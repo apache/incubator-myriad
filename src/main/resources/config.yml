@@ -1,0 +1,15 @@
+mesosMaster: 10.0.2.15:5050
+checkpoint: false
+frameworkFailoverTimeout: 43200000
+frameworkName: MyriadAlpha
+profiles:
+  small:
+    cpu: 1
+    mem: 1100
+  medium:
+    cpu: 2
+    mem: 2048
+  large:
+    cpu: 4
+    mem: 4096
+rebalancer: false

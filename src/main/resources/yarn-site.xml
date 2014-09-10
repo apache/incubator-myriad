@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<configuration>
+	<property>
+		<name>yarn.nodemanager.aux-services</name>
+		<value>mapreduce_shuffle</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.aux-services.mapreduce.shuffle.class</name>
+		<value>org.apache.hadoop.mapred.ShuffleHandler</value>
+	</property>
+
+	<property>
+		<name>yarn.nm.liveness-monitor.expiry-interval-ms</name>
+		<value>2000</value>
+	</property>
+	<property>
+		<name>yarn.am.liveness-monitor.expiry-interval-ms</name>
+		<value>10000</value>
+	</property>
+	<property>
+		<name>yarn.resourcemanager.nm.liveness-monitor.interval-ms</name>
+		<value>1000</value>
+	</property>
+
+	<property>
+		<name>yarn.nodemanager.resource.cpu-vcores</name>
+		<value>1</value>
+	</property>
+	<property>
+		<name>yarn.nodemanager.resource.memory-mb</name>
+		<value>1024</value>
+	</property>
+
+	<!-- Site specific YARN configuration properties -->
+
+</configuration>
