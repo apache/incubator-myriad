@@ -23,7 +23,7 @@ To setup YARN/Hadoop inside VM, run following:
 cd /vagrant
 ./setup-yarn-1.sh
 ```
-This will create a user hduser in group hadoop. Remeber the password that you provide for this user.
+This will create a user hduser in group hadoop. Remember the password that you provide for this user.
 
 Now, do following:
 ```shell
@@ -53,3 +53,8 @@ gradle capsule
 ```
 At this point, a jar will be created here: build/libs/myriad-capsule-0.0.1.jar
 
+To launch Myriad, you can run following (this will use the configuration located in ```src/main/resources/config.yml```):
+```shell
+cd /vagrant
+gradle run
+```
