@@ -41,6 +41,10 @@ export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so
 java -Dmyriad.config=location/of/config.yml -jar myriad-capsule-x.x.x.jar
 ```
 
+## Vagrant setup
+
+You can following this [guide](docs/vagrant.md) to setup a cluster inside a virtual machine.
+
 ## Sample config
 
 ```yaml
