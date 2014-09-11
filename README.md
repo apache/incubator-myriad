@@ -1,5 +1,7 @@
 # Myriad
 
+[![Build Status](https://travis-ci.org/mesos/myriad.svg)](https://travis-ci.org/mesos/myriad)
+
 Myriad is a mesos framework designed for scaling YARN clusters on Mesos. Myriad can expand or shrink one or more YARN clusters in response to events as per configured rules and policies.
 
 The name _Myriad_ means, _countless or extremely great number_. In context of the project, it allows one to expand overall resources managed by Mesos, even when the cluster under mesos management runs other cluster mangaers like YARN.
