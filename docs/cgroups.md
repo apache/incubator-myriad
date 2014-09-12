@@ -60,4 +60,4 @@ To enable cgroups for YARN NodeManager, add following to yarn-site.xml. The foll
     </property>
 ```
 
-**Please note at time of this writing, YARN's NodeManager only works with CPU subsystem. **
+**Please note at time of this writing, YARN's NodeManager only works with CPU subsystem.**
