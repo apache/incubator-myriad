@@ -6,6 +6,8 @@ Myriad is a mesos framework designed for scaling YARN clusters on Mesos. Myriad 
 
 The name _Myriad_ means, _countless or extremely great number_. In context of the project, it allows one to expand overall resources managed by Mesos, even when the cluster under mesos management runs other cluster mangaers like YARN.
 
+**Please note: Myriad is a work in progress, and should not be used in production at this point.**
+
 ## Introduction
 
 Myriad allows Mesos and YARN to co-exist and share resources with Mesos as the resource manager for the datacenter. Sharing resources between these two resource allocation systems improves overall cluster utilization and avoids statically partitioning resources amongst two separate clusters/resource managers.
@@ -14,7 +16,13 @@ Running two resource managers independently results in a statically partitioned 
 
 ![Static Partition](docs/images/static-partition.png)
 
-**Please note: Myriad is a work in progress, and should not be used in production at this point.**
+## Design Goal
+
+_Share resources between YARN and Mesos with Mesos being the resource manager for the datacenter._
+
+## Design characteristics
+
+A non-intrusive solution which avoids modifying Mesos or YARN protocols, enabling simpler future upgrade paths for both Mesos and YARN. Being non-intrusive should make YARN/Hadoop cluster certifications by vendors easier. The solution should leverage scheduling information from YARN from an external control plane to make decisions about providing or rescinding resources to YARN via Mesos.
 
 ## Roadmap
 Myriad is a work in progress, please keep checking this section for updates.
