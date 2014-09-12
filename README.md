@@ -20,10 +20,6 @@ Running two resource managers independently results in a statically partitioned 
 
 _Share resources between YARN and Mesos with Mesos being the resource manager for the datacenter._
 
-## Design characteristics
-
-A non-intrusive solution which avoids modifying Mesos or YARN protocols, enabling simpler future upgrade paths for both Mesos and YARN. Being non-intrusive should make YARN/Hadoop cluster certifications by vendors easier. The solution should leverage scheduling information from YARN from an external control plane to make decisions about providing or rescinding resources to YARN via Mesos.
-
 ## Roadmap
 Myriad is a work in progress, please keep checking this section for updates.
 
