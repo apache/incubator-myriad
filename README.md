@@ -12,6 +12,8 @@ Myriad allows Mesos and YARN to co-exist and share resources with Mesos as the r
 
 Running two resource managers independently results in a statically partitioned datacenter as shown below:
 
+![Static Partition](docs/images/static-partition.png)
+
 **Please note: Myriad is a work in progress, and should not be used in production at this point.**
 
 ## Roadmap
