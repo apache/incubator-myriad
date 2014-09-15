@@ -23,3 +23,11 @@ One way to avoid static partitioning and to enable resource sharing when running
 Let's look at how we can achieve above, that is, how we can run YARN along side Mesos. The diagram below gives an overview:
 
 ![How it works](images/how-it-works.png)
+
+Each node in the cluster has both daemons, Mesos slave and YARN node manager, installed. By default, the Mesos slave daemon is started on each node and advertises all available resources to the Mesos Master.
+
+Myriad can launch NodeManager as a task under Mesos Slave, let's look at how:
+
+1. Myriad makes a decision to launch a new NodeManager. It passes the required configuration and task launch information to Mesos Master which forwards that to the Mesos Slave(s). Mesos slave configures Node Manager appropriately before launching it. For ex: In the above diagram, Node Manager is allotted 2.5 CPU and 2.5 GB RAM.
+2. NodeManager, upon startup, advertises configured resources to YARN's Resource Manager. In the above example, 2 CPU and 2 GB RAM are advertised.
+3. YARN's Resource Manager can launch containers now, via this Node Manager. The launched containers will be mounted under the configured cgroup hierarchy, as explained earlier.
