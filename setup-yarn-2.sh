@@ -49,19 +49,19 @@ sudo -u hduser sed -i.bak 's=<configuration>=<configuration>\<property>\<name>df
 
 
 # Format NameNode
-sudo -u hduser sh -c 'hdfs namenode -format'
+sudo -u hduser sh -c '/usr/local/hadoop/bin/hdfs namenode -format'
 
 # Start NameNode
-sudo -u hduser sh -c 'hadoop-daemon.sh start namenode'
+sudo -u hduser sh -c '/usr/local/hadoop/sbin/hadoop-daemon.sh start namenode'
 
 # Start DataNode
-sudo -u hduser sh -c 'hadoop-daemons.sh start datanode'
+sudo -u hduser sh -c '/usr/local/hadoop/sbin/hadoop-daemons.sh start datanode'
 
 # Start ResourceManager
-sudo -u hduser sh -c 'yarn-daemon.sh start resourcemanager'
+sudo -u hduser sh -c '/usr/local/hadoop/sbin/yarn-daemon.sh start resourcemanager'
 
 # Start HistoryServer
-sudo -u hduser sh -c 'mr-jobhistory-daemon.sh start historyserver'
+sudo -u hduser sh -c '/usr/local/hadoop/sbin/mr-jobhistory-daemon.sh start historyserver'
 
 # Check status
 sudo -u hduser -u hduser jps
