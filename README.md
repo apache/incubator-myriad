@@ -20,9 +20,9 @@ Running two resource managers independently results in a statically partitioned 
 
 _Share resources between YARN and Mesos with Mesos being the resource manager for the datacenter._
 
-## Architecture
+## How it works ?
 
-High-level architecture of Myriad is described [here](docs/architecture.md)
+Please refer to following [document](docs/how-it-works.md) to understand how Myriad works.
 
 ## Roadmap
 Myriad is a work in progress, please keep checking this section for updates.
