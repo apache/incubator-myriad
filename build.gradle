@@ -35,6 +35,7 @@ dependencies {
  	compile "io.dropwizard:dropwizard-assets:${ext.dropwizardVer}"
  	compile "io.dropwizard:dropwizard-views-mustache:${ext.dropwizardVer}"
 	compile "org.apache.curator:curator-framework:2.6.0"
+	compile "com.lmax:disruptor:3.3.0"
 	
     testCompile 'junit:junit:4.11'
 }

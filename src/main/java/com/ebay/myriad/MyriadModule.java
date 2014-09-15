@@ -46,5 +46,6 @@ public class MyriadModule extends AbstractModule {
 		bind(MyriadScheduler.class).in(Scopes.SINGLETON);
 		bind(NMProfileManager.class).in(Scopes.SINGLETON);
 		bind(SchedulerState.class).in(Scopes.SINGLETON);
+		bind(DisruptorManager.class).in(Scopes.SINGLETON);
 	}
 }

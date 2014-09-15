@@ -15,228 +15,122 @@
  */
 package com.ebay.myriad.scheduler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.OfferID;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskState;
-import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.ebay.myriad.DisruptorManager;
 import com.ebay.myriad.configuration.MyriadConfiguration;
-import com.ebay.myriad.state.NodeTask;
-import com.ebay.myriad.state.SchedulerState;
 
 public class MyriadScheduler implements Scheduler {
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(MyriadScheduler.class);
-
-	private final Lock driverOperationLock;
-
-	private SchedulerState schedulerState;
+	private DisruptorManager disruptorManager;
 
 	@Inject
 	public MyriadScheduler(final MyriadConfiguration cfg,
-			final SchedulerState schedulerState) {
-		this.driverOperationLock = new ReentrantLock();
-		this.schedulerState = schedulerState;
+			final DisruptorManager disruptorManager) {
+		this.disruptorManager = disruptorManager;
 	}
 
 	@Override
 	public void registered(SchedulerDriver driver,
-			Protos.FrameworkID frameworkId, Protos.MasterInfo mi) {
-		LOGGER.info("Framework registered! ID = {}", frameworkId.getValue());
-		schedulerState.setFrameworkId(frameworkId);
+			Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
+		disruptorManager.getRegisteredEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setFrameworkId(frameworkId);
+					event.setMasterInfo(masterInfo);
+				});
 	}
 
 	@Override
-	public void reregistered(SchedulerDriver driver, Protos.MasterInfo mi) {
-		LOGGER.info("Framework reregistered!");
+	public void reregistered(SchedulerDriver driver,
+			Protos.MasterInfo masterInfo) {
+		disruptorManager.getReRegisteredEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setMasterInfo(masterInfo);
+				});
 	}
 
 	@Override
 	public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-		LOGGER.info("Received offers {}", offers.size());
-		driverOperationLock.lock();
-		try {
-			Set<String> pendingTasks = schedulerState.getPendingTaskIds();
-			if (CollectionUtils.isNotEmpty(pendingTasks)) {
-				for (Offer offer : offers) {
-					boolean offerMatch = false;
-					for (String pendingTaskId : pendingTasks) {
-						NodeTask taskToLaunch = schedulerState
-								.getTask(pendingTaskId);
-						NMProfile profile = taskToLaunch.getProfile();
-						if (matches(offer, profile)
-								&& SchedulerUtils.isUniqueHostname(offer,
-										schedulerState.getActiveTasks())) {
-							LOGGER.info("Offer {} matched profile {}", offer,
-									profile);
-							TaskInfo task = TaskUtils.createYARNTask(offer,
-									taskToLaunch);
-							List<OfferID> offerIds = new ArrayList<>();
-							offerIds.add(offer.getId());
-							List<TaskInfo> tasks = new ArrayList<>();
-							tasks.add(task);
-							LOGGER.info("Launching task: {}", task);
-							driver.launchTasks(offerIds, tasks);
-							schedulerState.makeTaskStaging(pendingTaskId);
-							NodeTask taskLaunched = schedulerState
-									.getTask(pendingTaskId);
-							taskLaunched.setHostname(offer.getHostname());
-							offerMatch = true;
-							break;
-						}
-					}
-					if (!offerMatch) {
-						LOGGER.info(
-								"Declining offer {}, as it didn't match any pending task.",
-								offer);
-						driver.declineOffer(offer.getId());
-					}
-				}
-			} else {
-				LOGGER.info("No pending tasks, declining all offers");
-				offers.forEach(o -> driver.declineOffer(o.getId()));
-			}
-		} finally {
-			driverOperationLock.unlock();
-		}
+		disruptorManager.getResourceOffersEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setOffers(offers);
+				});
 	}
 
 	@Override
-	public void offerRescinded(SchedulerDriver sd, Protos.OfferID offerId) {
-		LOGGER.info("Rescinded offer {}", offerId);
+	public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
+		disruptorManager.getOfferRescindedEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setOfferId(offerId);
+				});
 	}
 
 	@Override
-	public void statusUpdate(SchedulerDriver sd, Protos.TaskStatus status) {
-		TaskID taskId = status.getTaskId();
-		LOGGER.info("Status Update for task: {} | state: {}", taskId,
-				status.getState());
-		TaskState state = status.getState();
-
-		String taskIdValue = taskId.getValue();
-		switch (state) {
-		case TASK_STAGING:
-			schedulerState.makeTaskStaging(taskIdValue);
-			break;
-		case TASK_STARTING:
-			schedulerState.makeTaskStaging(taskIdValue);
-			break;
-		case TASK_RUNNING:
-			schedulerState.makeTaskActive(taskIdValue);
-			NodeTask task = schedulerState.getTask(taskIdValue);
-			schedulerState.releaseLock(task.getClusterId());
-			break;
-		case TASK_FINISHED:
-			schedulerState.removeTask(taskIdValue);
-			break;
-		case TASK_FAILED:
-			// Add to pending tasks
-			schedulerState.makeTaskPending(taskIdValue);
-			break;
-		case TASK_KILLED:
-			schedulerState.removeTask(taskIdValue);
-			break;
-		case TASK_LOST:
-			schedulerState.makeTaskPending(taskIdValue);
-			break;
-		default:
-			LOGGER.error("Invalid state: {}", state);
-			break;
-		}
+	public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
+		disruptorManager.getStatusUpdateEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setStatus(status);
+				});
 	}
 
 	@Override
-	public void frameworkMessage(SchedulerDriver sd,
+	public void frameworkMessage(SchedulerDriver driver,
 			Protos.ExecutorID executorId, Protos.SlaveID slaveId, byte[] bytes) {
-		LOGGER.info("Received framework message from executor {} of slave {}",
-				executorId, slaveId);
+		disruptorManager.getFrameworkMessageEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setBytes(bytes);
+					event.setExecutorId(executorId);
+					event.setSlaveId(slaveId);
+				});
 	}
 
 	@Override
-	public void disconnected(SchedulerDriver sd) {
-		LOGGER.info("Framework disconnected!");
+	public void disconnected(SchedulerDriver driver) {
+		disruptorManager.getDisconnectedEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+				});
 	}
 
 	@Override
-	public void slaveLost(SchedulerDriver sd, Protos.SlaveID slaveId) {
-		LOGGER.info("Slave {} lost!", slaveId);
+	public void slaveLost(SchedulerDriver driver, Protos.SlaveID slaveId) {
+		disruptorManager.getSlaveLostEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setSlaveId(slaveId);
+				});
 	}
 
 	@Override
-	public void executorLost(SchedulerDriver sd, Protos.ExecutorID executorId,
-			Protos.SlaveID slaveId, int i) {
-		LOGGER.info("Executor {} of slave {} lost!", executorId, slaveId);
+	public void executorLost(SchedulerDriver driver,
+			Protos.ExecutorID executorId, Protos.SlaveID slaveId, int exitStatus) {
+		disruptorManager.getExecutorLostEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setExecutorId(executorId);
+					event.setSlaveId(slaveId);
+					event.setExitStatus(exitStatus);
+				});
 	}
 
 	@Override
 	public void error(SchedulerDriver driver, String message) {
-		LOGGER.error(message);
-	}
-
-	private boolean matches(Offer offer, NMProfile profile) {
-		double cpus = -1;
-		double mem = -1;
-
-		for (Resource resource : offer.getResourcesList()) {
-			if (resource.getName().equals("cpus")) {
-				if (resource.getType().equals(Value.Type.SCALAR)) {
-					cpus = resource.getScalar().getValue();
-				} else {
-					LOGGER.error("Cpus resource was not a scalar: {}", resource
-							.getType().toString());
-				}
-			} else if (resource.getName().equals("mem")) {
-				if (resource.getType().equals(Value.Type.SCALAR)) {
-					mem = resource.getScalar().getValue();
-				} else {
-					LOGGER.error("Mem resource was not a scalar: {}", resource
-							.getType().toString());
-				}
-			} else if (resource.getName().equals("disk")) {
-				LOGGER.warn("Ignoring disk resources from offer");
-			} else if (resource.getName().equals("ports")) {
-				LOGGER.info("Ignoring ports resources from offer");
-			} else {
-				LOGGER.warn("Ignoring unknown resource type: {}",
-						resource.getName());
-			}
-		}
-
-		if (cpus < 0)
-			LOGGER.error("No cpus resource present");
-		if (mem < 0)
-			LOGGER.error("No mem resource present");
-
-		Map<String, String> requestAttributes = new HashMap<String, String>();
-
-		if (profile.getCpus() <= cpus
-				&& profile.getMemory() <= mem
-				&& SchedulerUtils.isMatchSlaveAttributes(offer,
-						requestAttributes)) {
-			return true;
-		} else {
-			LOGGER.info("Offer not sufficient for profile: " + profile);
-			return false;
-		}
+		disruptorManager.getErrorEventDisruptor().publishEvent(
+				(event, sequence) -> {
+					event.setDriver(driver);
+					event.setMessage(message);
+				});
 	}
 
 }

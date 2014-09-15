@@ -84,6 +84,7 @@ public class Main extends Application<MyriadConfiguration> {
 		registerResources(cfg, env, injector);
 		initHealthChecks(cfg, env, injector);
 		initProfiles(cfg, env, injector);
+		initDisruptors(cfg, env, injector);
 		initRebalancerService(cfg, env, injector);
 		initTerminatorService(cfg, env, injector);
 	}
@@ -175,6 +176,14 @@ public class Main extends Application<MyriadConfiguration> {
 		} else {
 			LOGGER.info("Rebalancer is not turned on");
 		}
+	}
+
+	private void initDisruptors(MyriadConfiguration cfg, Environment env,
+			Injector injector) {
+		LOGGER.info("Initializing Disruptors");
+		DisruptorManager disruptorManager = injector
+				.getInstance(DisruptorManager.class);
+		disruptorManager.init(injector);
 	}
 
 }

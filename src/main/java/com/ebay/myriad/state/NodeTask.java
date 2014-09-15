@@ -20,11 +20,17 @@ import java.util.UUID;
 import org.apache.mesos.Protos.TaskID;
 
 import com.ebay.myriad.scheduler.NMProfile;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class NodeTask {
+	@JsonProperty
 	private String taskId;
+	@JsonProperty
 	private String clusterId;
+	@JsonProperty
 	private NMProfile profile;
+	@JsonProperty
 	private String hostname;
 
 	public NodeTask(String clusterId, NMProfile profile) {
@@ -59,6 +65,7 @@ public class NodeTask {
 		this.profile = profile;
 	}
 
+	@JsonIgnore
 	public TaskID getMesosTaskId() {
 		return TaskID.newBuilder().setValue(taskId).build();
 	}
