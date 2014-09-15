@@ -33,6 +33,12 @@ Myriad is a work in progress, please keep checking this section for updates.
 - [ ] Framework checkpointing
 - [ ] Framework re-conciliation
 
+## Auto-scaling YARN clusters
+Please find the documentation [here](docs/control-plane-algorithm.md).
+
+## What about cgroups ?
+Please find the cgroups related documentation [here](docs/cgroups.md)
+
 ## Build instructions
 System requirements:
 * JDK 1.8+
