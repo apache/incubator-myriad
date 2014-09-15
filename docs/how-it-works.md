@@ -18,4 +18,8 @@ Doing above allows Mesos Slave and Node Manager to co-exist on the same node, in
 
 One way to avoid static partitioning and to enable resource sharing when running two resource managers, is to let one resource manager be in absolute control of datacenter’s resources. The other resource manager then manages a subset of resources, allocated to it through the primary resource manager. Let's consider a scenario where Mesos is used as the resource manager for the datacenter. In the diagram below, both, Mesos and YARN, can schedule tasks on any node.
 
-![Generic Node](images/generic-node.md)
+![Generic Nodes](images/generic-nodes.md)
+
+Let's look at how we can achieve above, that is, how we can run YARN along side Mesos. The diagram below gives an overview:
+
+![How it works](images/how-it-works.md)
