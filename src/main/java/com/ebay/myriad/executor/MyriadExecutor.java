@@ -51,7 +51,7 @@ public class MyriadExecutor implements Executor {
 	}
 
 	@Override
-	public void launchTask(ExecutorDriver driver, TaskInfo task) {
+	public void launchTask(final ExecutorDriver driver, final TaskInfo task) {
 		new Thread(new Runnable() {
 			public void run() {
 				try {

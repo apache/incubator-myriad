@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.mesos.Protos.FrameworkID;
@@ -165,17 +164,19 @@ public class SchedulerState {
 
 		// TODO(mohit): error handling
 
-		nodes.forEach(node -> {
+		for (NodeTask node : nodes) {
 			cluster.addNode(node);
 			String taskId = node.getTaskId();
 			tasks.put(taskId, node);
 			pendingTasks.add(taskId);
-		});
+		}
 	}
 
 	public void deleteCluster(String clusterId) {
 		Collection<NodeTask> nodes = clusters.get(clusterId).getNodes();
-		nodes.forEach(node -> this.makeTaskKillable(node));
+		for (NodeTask node : nodes) {
+			this.makeTaskKillable(node);
+		}
 		// TODO(mohit): Make this more correct.
 		this.clusters.remove(clusterId);
 	}
@@ -216,9 +217,11 @@ public class SchedulerState {
 		List<NodeTask> activeNodeTasks = new ArrayList<>();
 		if (CollectionUtils.isNotEmpty(activeTasks)
 				&& CollectionUtils.isNotEmpty(tasks.values())) {
-			activeNodeTasks = tasks.values().stream()
-					.filter(task -> activeTasks.contains(task.getTaskId()))
-					.collect(Collectors.toList());
+			for (NodeTask task : tasks.values()) {
+				if (activeTasks.contains(task.getTaskId())) {
+					activeNodeTasks.add(task);
+				}
+			}
 		}
 		return activeNodeTasks;
 	}

@@ -19,15 +19,25 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import com.ebay.myriad.scheduler.event.DisconnectedEvent;
+import com.ebay.myriad.scheduler.event.DisconnectedEventFactory;
 import com.ebay.myriad.scheduler.event.ErrorEvent;
+import com.ebay.myriad.scheduler.event.ErrorEventFactory;
 import com.ebay.myriad.scheduler.event.ExecutorLostEvent;
+import com.ebay.myriad.scheduler.event.ExecutorLostEventFactory;
 import com.ebay.myriad.scheduler.event.FrameworkMessageEvent;
+import com.ebay.myriad.scheduler.event.FrameworkMessageEventFactory;
 import com.ebay.myriad.scheduler.event.OfferRescindedEvent;
+import com.ebay.myriad.scheduler.event.OfferRescindedEventFactory;
 import com.ebay.myriad.scheduler.event.ReRegisteredEvent;
+import com.ebay.myriad.scheduler.event.ReRegisteredEventFactory;
 import com.ebay.myriad.scheduler.event.RegisteredEvent;
+import com.ebay.myriad.scheduler.event.RegisteredEventFactory;
 import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
+import com.ebay.myriad.scheduler.event.ResourceOffersEventFactory;
 import com.ebay.myriad.scheduler.event.SlaveLostEvent;
+import com.ebay.myriad.scheduler.event.SlaveLostEventFactory;
 import com.ebay.myriad.scheduler.event.StatusUpdateEvent;
+import com.ebay.myriad.scheduler.event.StatusUpdateEventFactory;
 import com.ebay.myriad.scheduler.event.handlers.DisconnectedEventHandler;
 import com.ebay.myriad.scheduler.event.handlers.ErrorEventHandler;
 import com.ebay.myriad.scheduler.event.handlers.ExecutorLostEventHandler;
@@ -63,62 +73,62 @@ public class DisruptorManager {
 	public void init(Injector injector) {
 		this.disruptorExecutors = Executors.newCachedThreadPool();
 
-		this.registeredEventDisruptor = new Disruptor<>(RegisteredEvent::new,
-				64, disruptorExecutors);
+		this.registeredEventDisruptor = new Disruptor<>(
+				new RegisteredEventFactory(), 64, disruptorExecutors);
 		this.registeredEventDisruptor.handleEventsWith(injector
 				.getInstance(RegisteredEventHandler.class));
 		this.registeredEventDisruptor.start();
 
 		this.reRegisteredEventDisruptor = new Disruptor<>(
-				ReRegisteredEvent::new, 64, disruptorExecutors);
+				new ReRegisteredEventFactory(), 64, disruptorExecutors);
 		this.reRegisteredEventDisruptor.handleEventsWith(injector
 				.getInstance(ReRegisteredEventHandler.class));
 		this.reRegisteredEventDisruptor.start();
 
 		this.resourceOffersEventDisruptor = new Disruptor<>(
-				ResourceOffersEvent::new, 1024, disruptorExecutors);
+				new ResourceOffersEventFactory(), 1024, disruptorExecutors);
 		this.resourceOffersEventDisruptor.handleEventsWith(injector
 				.getInstance(ResourceOffersEventHandler.class));
 		this.resourceOffersEventDisruptor.start();
 
 		this.offerRescindedEventDisruptor = new Disruptor<>(
-				OfferRescindedEvent::new, 1024, disruptorExecutors);
+				new OfferRescindedEventFactory(), 1024, disruptorExecutors);
 		this.offerRescindedEventDisruptor.handleEventsWith(injector
 				.getInstance(OfferRescindedEventHandler.class));
 		this.offerRescindedEventDisruptor.start();
 
 		this.statusUpdateEventDisruptor = new Disruptor<>(
-				StatusUpdateEvent::new, 1024, disruptorExecutors);
+				new StatusUpdateEventFactory(), 1024, disruptorExecutors);
 		this.statusUpdateEventDisruptor.handleEventsWith(injector
 				.getInstance(StatusUpdateEventHandler.class));
 		this.statusUpdateEventDisruptor.start();
 
 		this.frameworkMessageEventDisruptor = new Disruptor<>(
-				FrameworkMessageEvent::new, 1024, disruptorExecutors);
+				new FrameworkMessageEventFactory(), 1024, disruptorExecutors);
 		this.frameworkMessageEventDisruptor.handleEventsWith(injector
 				.getInstance(FrameworkMessageEventHandler.class));
 		this.frameworkMessageEventDisruptor.start();
 
 		this.disconnectedEventDisruptor = new Disruptor<>(
-				DisconnectedEvent::new, 1024, disruptorExecutors);
+				new DisconnectedEventFactory(), 1024, disruptorExecutors);
 		this.disconnectedEventDisruptor.handleEventsWith(injector
 				.getInstance(DisconnectedEventHandler.class));
 		this.disconnectedEventDisruptor.start();
 
-		this.slaveLostEventDisruptor = new Disruptor<>(SlaveLostEvent::new,
-				1024, disruptorExecutors);
+		this.slaveLostEventDisruptor = new Disruptor<>(
+				new SlaveLostEventFactory(), 1024, disruptorExecutors);
 		this.slaveLostEventDisruptor.handleEventsWith(injector
 				.getInstance(SlaveLostEventHandler.class));
 		this.slaveLostEventDisruptor.start();
 
 		this.executorLostEventDisruptor = new Disruptor<>(
-				ExecutorLostEvent::new, 1024, disruptorExecutors);
+				new ExecutorLostEventFactory(), 1024, disruptorExecutors);
 		this.executorLostEventDisruptor.handleEventsWith(injector
 				.getInstance(ExecutorLostEventHandler.class));
 		this.executorLostEventDisruptor.start();
 
-		this.errorEventDisruptor = new Disruptor<>(ErrorEvent::new, 1024,
-				disruptorExecutors);
+		this.errorEventDisruptor = new Disruptor<>(new ErrorEventFactory(),
+				1024, disruptorExecutors);
 		this.errorEventDisruptor.handleEventsWith(injector
 				.getInstance(ErrorEventHandler.class));
 		this.errorEventDisruptor.start();

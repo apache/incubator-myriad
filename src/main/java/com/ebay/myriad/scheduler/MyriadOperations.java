@@ -58,14 +58,13 @@ public class MyriadOperations {
 	public void flexDownCluster(Cluster cluster, int n) {
 		AtomicInteger instances = new AtomicInteger(n);
 		Collection<NodeTask> nodes = cluster.getNodes();
-		nodes.forEach(node -> {
+		for (NodeTask node : nodes) {
 			if (instances.get() > 0) {
 				cluster.removeNode(node);
 				this.schedulerState.makeTaskKillable(node.getTaskId());
 				instances.decrementAndGet();
 			}
-		});
-
+		}
 		LOGGER.info("Removed {} instances for cluster {}", instances,
 				cluster.getClusterId());
 	}

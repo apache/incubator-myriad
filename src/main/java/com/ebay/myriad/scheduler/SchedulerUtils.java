@@ -48,8 +48,7 @@ public class SchedulerUtils {
 			match = offerAttributes.equals(requestAttributes);
 		}
 
-		LOGGER.info(
-				"Match status: {} for offer: {} and requestAttributes: {}",
+		LOGGER.info("Match status: {} for offer: {} and requestAttributes: {}",
 				match, offer, requestAttributes);
 
 		return match;
@@ -63,14 +62,14 @@ public class SchedulerUtils {
 		if (CollectionUtils.isEmpty(tasks)) {
 			return true;
 		}
-
-		boolean uniqueHostname = tasks
-				.stream()
-				.filter(task -> offerHostname.equalsIgnoreCase(task
-						.getHostname())).count() == 0;
+		boolean uniqueHostname = true;
+		for (NodeTask task : tasks) {
+			if (offerHostname.equalsIgnoreCase(task.getHostname())) {
+				uniqueHostname = false;
+			}
+		}
 		LOGGER.info("Offer's hostname {} is unique: {}", offerHostname,
 				uniqueHostname);
 		return uniqueHostname;
 	}
-
 }

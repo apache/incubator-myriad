@@ -25,6 +25,17 @@ import org.apache.mesos.SchedulerDriver;
 
 import com.ebay.myriad.DisruptorManager;
 import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.scheduler.event.DisconnectedEvent;
+import com.ebay.myriad.scheduler.event.ErrorEvent;
+import com.ebay.myriad.scheduler.event.ExecutorLostEvent;
+import com.ebay.myriad.scheduler.event.FrameworkMessageEvent;
+import com.ebay.myriad.scheduler.event.OfferRescindedEvent;
+import com.ebay.myriad.scheduler.event.ReRegisteredEvent;
+import com.ebay.myriad.scheduler.event.RegisteredEvent;
+import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
+import com.ebay.myriad.scheduler.event.SlaveLostEvent;
+import com.ebay.myriad.scheduler.event.StatusUpdateEvent;
+import com.lmax.disruptor.EventTranslator;
 
 public class MyriadScheduler implements Scheduler {
 	private DisruptorManager disruptorManager;
@@ -36,101 +47,146 @@ public class MyriadScheduler implements Scheduler {
 	}
 
 	@Override
-	public void registered(SchedulerDriver driver,
-			Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
+	public void registered(final SchedulerDriver driver,
+			final Protos.FrameworkID frameworkId,
+			final Protos.MasterInfo masterInfo) {
 		disruptorManager.getRegisteredEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setFrameworkId(frameworkId);
-					event.setMasterInfo(masterInfo);
+				new EventTranslator<RegisteredEvent>() {
+					@Override
+					public void translateTo(RegisteredEvent event, long sequence) {
+						event.setDriver(driver);
+						event.setFrameworkId(frameworkId);
+						event.setMasterInfo(masterInfo);
+					}
 				});
 	}
 
 	@Override
-	public void reregistered(SchedulerDriver driver,
-			Protos.MasterInfo masterInfo) {
+	public void reregistered(final SchedulerDriver driver,
+			final Protos.MasterInfo masterInfo) {
 		disruptorManager.getReRegisteredEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setMasterInfo(masterInfo);
+				new EventTranslator<ReRegisteredEvent>() {
+					@Override
+					public void translateTo(ReRegisteredEvent event,
+							long sequence) {
+						event.setDriver(driver);
+						event.setMasterInfo(masterInfo);
+					}
 				});
 	}
 
 	@Override
-	public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
+	public void resourceOffers(final SchedulerDriver driver,
+			final List<Protos.Offer> offers) {
 		disruptorManager.getResourceOffersEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setOffers(offers);
+				new EventTranslator<ResourceOffersEvent>() {
+					@Override
+					public void translateTo(ResourceOffersEvent event,
+							long sequence) {
+						event.setDriver(driver);
+						event.setOffers(offers);
+					}
 				});
 	}
 
 	@Override
-	public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
+	public void offerRescinded(final SchedulerDriver driver,
+			final Protos.OfferID offerId) {
 		disruptorManager.getOfferRescindedEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setOfferId(offerId);
+				new EventTranslator<OfferRescindedEvent>() {
+					@Override
+					public void translateTo(OfferRescindedEvent event,
+							long sequence) {
+						event.setDriver(driver);
+						event.setOfferId(offerId);
+					}
 				});
 	}
 
 	@Override
-	public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
+	public void statusUpdate(final SchedulerDriver driver,
+			final Protos.TaskStatus status) {
 		disruptorManager.getStatusUpdateEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setStatus(status);
+				new EventTranslator<StatusUpdateEvent>() {
+					@Override
+					public void translateTo(StatusUpdateEvent event,
+							long sequence) {
+						event.setDriver(driver);
+						event.setStatus(status);
+					}
 				});
 	}
 
 	@Override
-	public void frameworkMessage(SchedulerDriver driver,
-			Protos.ExecutorID executorId, Protos.SlaveID slaveId, byte[] bytes) {
+	public void frameworkMessage(final SchedulerDriver driver,
+			final Protos.ExecutorID executorId, final Protos.SlaveID slaveId,
+			final byte[] bytes) {
 		disruptorManager.getFrameworkMessageEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setBytes(bytes);
-					event.setExecutorId(executorId);
-					event.setSlaveId(slaveId);
+				new EventTranslator<FrameworkMessageEvent>() {
+					@Override
+					public void translateTo(FrameworkMessageEvent event,
+							long sequence) {
+						event.setDriver(driver);
+						event.setBytes(bytes);
+						event.setExecutorId(executorId);
+						event.setSlaveId(slaveId);
+					}
 				});
 	}
 
 	@Override
-	public void disconnected(SchedulerDriver driver) {
+	public void disconnected(final SchedulerDriver driver) {
 		disruptorManager.getDisconnectedEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
+				new EventTranslator<DisconnectedEvent>() {
+					@Override
+					public void translateTo(DisconnectedEvent event,
+							long sequence) {
+						event.setDriver(driver);
+					}
 				});
 	}
 
 	@Override
-	public void slaveLost(SchedulerDriver driver, Protos.SlaveID slaveId) {
+	public void slaveLost(final SchedulerDriver driver,
+			final Protos.SlaveID slaveId) {
 		disruptorManager.getSlaveLostEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setSlaveId(slaveId);
+				new EventTranslator<SlaveLostEvent>() {
+					@Override
+					public void translateTo(SlaveLostEvent event, long sequence) {
+						event.setDriver(driver);
+						event.setSlaveId(slaveId);
+					}
 				});
 	}
 
 	@Override
-	public void executorLost(SchedulerDriver driver,
-			Protos.ExecutorID executorId, Protos.SlaveID slaveId, int exitStatus) {
+	public void executorLost(final SchedulerDriver driver,
+			final Protos.ExecutorID executorId, final Protos.SlaveID slaveId,
+			final int exitStatus) {
 		disruptorManager.getExecutorLostEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setExecutorId(executorId);
-					event.setSlaveId(slaveId);
-					event.setExitStatus(exitStatus);
+				new EventTranslator<ExecutorLostEvent>() {
+					@Override
+					public void translateTo(ExecutorLostEvent event,
+							long sequence) {
+						event.setDriver(driver);
+						event.setExecutorId(executorId);
+						event.setSlaveId(slaveId);
+						event.setExitStatus(exitStatus);
+					}
 				});
+		;
+
 	}
 
 	@Override
-	public void error(SchedulerDriver driver, String message) {
+	public void error(final SchedulerDriver driver, final String message) {
 		disruptorManager.getErrorEventDisruptor().publishEvent(
-				(event, sequence) -> {
-					event.setDriver(driver);
-					event.setMessage(message);
+				new EventTranslator<ErrorEvent>() {
+					@Override
+					public void translateTo(ErrorEvent event, long sequence) {
+						event.setDriver(driver);
+						event.setMessage(message);
+					}
 				});
 	}
-
 }

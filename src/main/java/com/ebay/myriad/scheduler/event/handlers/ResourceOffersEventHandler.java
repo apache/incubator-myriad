@@ -100,7 +100,9 @@ public class ResourceOffersEventHandler implements
 				}
 			} else {
 				LOGGER.info("No pending tasks, declining all offers");
-				offers.forEach(o -> driver.declineOffer(o.getId()));
+				for (Offer offer : offers) {
+					driver.declineOffer(offer.getId());
+				}
 			}
 		} finally {
 			driverOperationLock.unlock();
