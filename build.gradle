@@ -57,7 +57,7 @@ task capsule(type: Jar, dependsOn: jar) {
         attributes(
             'Main-Class'  		: 'Capsule',
             'Application-Class' : mainClassName,
-            'Min-Java-Version' 	: '1.8.0',
+            'Min-Java-Version' 	: '1.7.0',
             'JVM-Args' 			: run.jvmArgs.join(' '),
             'System-Properties' : (run.systemProperties + ["myriad.config": '$CAPSULE_DIR/config.yml']).collect { k,v -> "$k=$v" }.join(' ')
         )
