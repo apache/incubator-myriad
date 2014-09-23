@@ -63,3 +63,23 @@ task capsule(type: Jar, dependsOn: jar) {
         )
     }
 }
+
+task capsuleExecutor(type: Jar, dependsOn: jar) {
+    archiveName = "myriad-executor-${version}.jar"
+	
+    from jar
+    from { configurations.runtime }
+	from { sourceSets.main.resources }
+	
+    from(configurations.capsule.collect { zipTree(it) }) { include 'Capsule.class' }
+
+    manifest {
+        attributes(
+            'Main-Class'  		: 'Capsule',
+            'Application-Class' : 'com.ebay.myriad.executor.MyriadExecutor',
+            'Min-Java-Version' 	: '1.7.0',
+            'JVM-Args' 			: run.jvmArgs.join(' '),
+            'System-Properties' : (run.systemProperties).collect { k,v -> "$k=$v" }.join(' ')
+        )
+    }
+}
