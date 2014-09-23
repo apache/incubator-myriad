@@ -243,9 +243,11 @@ public class SchedulerState {
 	}
 
 	public boolean acquireLock(String clusterId) {
-		Boolean lock = this.rebalancerLock.getOrDefault(clusterId,
-				Boolean.FALSE);
-		if (Boolean.FALSE == lock) {
+		Preconditions.checkArgument(Strings.isNullOrEmpty(clusterId),
+				"ClusterId cannot be null or empty.");
+		Boolean lock = this.rebalancerLock.get(clusterId);
+
+		if (null == lock || Boolean.FALSE == lock) {
 			this.rebalancerLock.put(clusterId, Boolean.TRUE);
 			return true;
 		}

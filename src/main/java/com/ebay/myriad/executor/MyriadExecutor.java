@@ -1,7 +1,6 @@
 package com.ebay.myriad.executor;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
@@ -83,7 +82,7 @@ public class MyriadExecutor implements Executor {
 	@Override
 	public void killTask(ExecutorDriver driver, TaskID taskId) {
 		LOGGER.info("KillTask received for taskId: {}", taskId.getValue());
-		this.process.destroyForcibly();
+		this.process.destroy();
 		TaskStatus status = TaskStatus.newBuilder().setTaskId(taskId)
 				.setState(TaskState.TASK_KILLED).build();
 		driver.sendStatusUpdate(status);
@@ -107,9 +106,9 @@ public class MyriadExecutor implements Executor {
 	private String getCommand(String commandTemplate, TaskInfo taskInfo) {
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(commandTemplate),
 				"Command template cannot be null or empty");
-		Preconditions.checkArgument(Objects.nonNull(taskInfo),
-				"TaskInfo cannot be null");
-		Preconditions.checkArgument(Objects.nonNull(taskInfo.getData()),
+		Preconditions
+				.checkArgument(taskInfo != null, "TaskInfo cannot be null");
+		Preconditions.checkArgument(taskInfo.getData() != null,
 				"Data field cannot be null");
 
 		String taskJson = taskInfo.getData().toStringUtf8();
