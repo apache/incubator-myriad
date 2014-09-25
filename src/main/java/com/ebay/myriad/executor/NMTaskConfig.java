@@ -5,6 +5,7 @@ public class NMTaskConfig {
 	private String yarnHome;
 	private double advertisableCpus;
 	private double advertisableMem;
+	private String jvmOpts;
 
 	public String getUser() {
 		return user;
@@ -36,6 +37,14 @@ public class NMTaskConfig {
 
 	public void setAdvertisableMem(double advertisableMem) {
 		this.advertisableMem = advertisableMem;
+	}
+
+	public String getJvmOpts() {
+		return jvmOpts;
+	}
+
+	public void setJvmOpts(String jvmOpts) {
+		this.jvmOpts = jvmOpts;
 	}
 
 }

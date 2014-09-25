@@ -45,8 +45,8 @@ public class NodeManagerConfiguration {
 		return Optional.fromNullable(jvmMaxMemoryMB);
 	}
 
-	public String getJvmOpts() {
-		return jvmOpts;
+	public Optional<String> getJvmOpts() {
+		return Optional.fromNullable(jvmOpts);
 	}
 
 	public Optional<Double> getCpus() {

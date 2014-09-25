@@ -36,7 +36,6 @@ public interface TaskFactory {
 				.getLogger(NMTaskFactoryImpl.class);
 		public static final String EXECUTOR_NAME = "myriad_task";
 		public static final String EXECUTOR_PREFIX = "myriad_executor";
-		private static final ObjectMapper MAPPER = new ObjectMapper();
 
 		private MyriadConfiguration cfg;
 
@@ -59,6 +58,8 @@ public interface TaskFactory {
 			nmTaskConfig.setAdvertisableMem(taskUtils.getTaskMemory(profile));
 			nmTaskConfig.setUser(this.cfg.getNodeManagerConfiguration()
 					.getUser().orNull());
+			nmTaskConfig.setJvmOpts(this.cfg.getNodeManagerConfiguration()
+					.getJvmOpts().orNull());
 
 			String taskConfigJSON = new Gson().toJson(nmTaskConfig);
 
