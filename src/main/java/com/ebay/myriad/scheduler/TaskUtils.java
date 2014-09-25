@@ -18,6 +18,7 @@ package com.ebay.myriad.scheduler;
 import java.io.InputStream;
 import java.io.StringWriter;
 
+import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -43,7 +44,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
+import com.ebay.myriad.configuration.NodeManagerConfiguration;
+import com.ebay.myriad.executor.MyriadExecutor;
 import com.ebay.myriad.state.NodeTask;
+import com.google.common.base.Optional;
 
 public class TaskUtils {
 	private static final Logger LOGGER = LoggerFactory
@@ -54,6 +60,13 @@ public class TaskUtils {
 
 	private static final String YARN_NODEMANAGER_RESOURCE_CPU_VCORES = "yarn.nodemanager.resource.cpu-vcores";
 	private static final String YARN_NODEMANAGER_RESOURCE_MEMORY_MB = "yarn.nodemanager.resource.memory-mb";
+
+	private MyriadConfiguration cfg;
+
+	@Inject
+	public TaskUtils(MyriadConfiguration cfg) {
+		this.cfg = cfg;
+	}
 
 	public static TaskInfo createYARNTask(Offer offer, NodeTask nodeTask) {
 		NMProfile profile = nodeTask.getProfile();
@@ -159,4 +172,58 @@ public class TaskUtils {
 		}
 		return "";
 	}
+
+	public double getAggregateMemory(NMProfile profile) {
+		double totalTaskMemory = 0;
+		double executorMemory = getExecutorMemory();
+		double nmJvmMaxMemoryMB = getNodeManagerMemory();
+		double advertisableMemory = profile.getMemory();
+		totalTaskMemory = executorMemory + nmJvmMaxMemoryMB
+				+ advertisableMemory;
+		return totalTaskMemory;
+	}
+
+	public double getAggregateCpus(NMProfile profile) {
+		return getNodeManagerCpus() + MyriadExecutor.DEFAULT_CPUS
+				+ profile.getCpus();
+	}
+
+	public double getNodeManagerMemory() {
+		NodeManagerConfiguration nmCfg = this.cfg.getNodeManagerConfiguration();
+		double nmJvmMaxMemoryMB = (nmCfg.getJvmMaxMemoryMB().isPresent() ? nmCfg
+				.getJvmMaxMemoryMB().get()
+				: NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB)
+				* (1 + NodeManagerConfiguration.JVM_OVERHEAD);
+		return nmJvmMaxMemoryMB;
+	}
+
+	public double getNodeManagerCpus() {
+		Optional<Double> cpus = this.cfg.getNodeManagerConfiguration()
+				.getCpus();
+		return cpus.isPresent() ? cpus.get()
+				: NodeManagerConfiguration.DEFAULT_NM_CPUS;
+	}
+
+	public double getExecutorCpus() {
+		return MyriadExecutor.DEFAULT_CPUS;
+	}
+
+	public double getExecutorMemory() {
+		MyriadExecutorConfiguration executorCfg = this.cfg
+				.getMyriadExecutorConfiguration();
+		double executorMemory = (executorCfg.getJvmMaxMemoryMB().isPresent() ? executorCfg
+				.getJvmMaxMemoryMB().get()
+				: MyriadExecutor.DEFAULT_JVM_MAX_MEMORY_MB)
+				* (1 + MyriadExecutor.JVM_OVERHEAD);
+		return executorMemory;
+	}
+
+	public double getTaskCpus(NMProfile profile) {
+		return getAggregateCpus(profile) - getExecutorCpus();
+	}
+
+	public double getTaskMemory(NMProfile profile) {
+		return getAggregateMemory(profile) - getExecutorMemory();
+	}
+
 }
