@@ -60,6 +60,13 @@ public class MyriadConfiguration extends Configuration {
 	@JsonProperty
 	private Boolean rebalancer;
 
+	@JsonProperty
+	private NodeManagerConfiguration nodemanager;
+
+	@JsonProperty
+	@NotEmpty
+	private MyriadExecutorConfiguration executor;
+
 	public String getMesosMaster() {
 		return mesosMaster;
 	}
@@ -88,5 +95,13 @@ public class MyriadConfiguration extends Configuration {
 
 	public Boolean isRebalancer() {
 		return rebalancer != null ? rebalancer : DEFAULT_REBALANCER;
+	}
+
+	public NodeManagerConfiguration getNodeManagerConfiguration() {
+		return this.nodemanager;
+	}
+
+	public MyriadExecutorConfiguration getMyriadExecutorConfiguration() {
+		return this.executor;
 	}
 }
