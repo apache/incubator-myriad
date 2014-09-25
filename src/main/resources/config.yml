@@ -13,3 +13,9 @@ profiles:
     cpu: 4
     mem: 4096
 rebalancer: false
+nodemanager:
+  jvmMaxMemoryMB: 2048
+  user: hduser
+executor:
+  jvmMaxMemoryMB: 256
+  path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar
