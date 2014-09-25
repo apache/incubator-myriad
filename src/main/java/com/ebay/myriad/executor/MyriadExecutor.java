@@ -28,6 +28,21 @@ public class MyriadExecutor implements Executor {
 	private static final String NM_COMMAND = "sudo -H -u %s bash -c '$YARN_HOME/bin/yarn nodemanager'";
 	private static final ObjectMapper MAPPER = new ObjectMapper();
 
+	/**
+	 * Allot 10% more memory to account for JVM overhead.
+	 */
+	public static final double JVM_OVERHEAD = 0.1;
+
+	/**
+	 * Default -Xmx for executor JVM.
+	 */
+	public static final double DEFAULT_JVM_MAX_MEMORY_MB = 256;
+
+	/**
+	 * Default cpus for executor JVM.
+	 */
+	public static final double DEFAULT_CPUS = 0.2;
+
 	private SlaveInfo slaveInfo;
 	private Process process;
 
