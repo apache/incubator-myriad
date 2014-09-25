@@ -19,7 +19,15 @@ import com.google.gson.Gson;
 
 public class NMProfile {
 	private String name;
+	
+	/**
+	 * Number of CPU advertised to YARN Resource Manager.
+	 */
 	private double cpus;
+	
+	/**
+	 * Memory in MB advertised to YARN Resource Manager.
+	 */
 	private double memory;
 
 	public NMProfile(String name, double cpus, double memory) {
