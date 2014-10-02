@@ -15,19 +15,17 @@
  */
 package com.ebay.myriad.views;
 
-import io.dropwizard.views.View;
 
 import java.util.Collection;
 
 import com.ebay.myriad.state.Cluster;
 import com.ebay.myriad.state.SchedulerState;
 
-public class DashboardView extends View {
+public class DashboardView {
 	public static final String TEMPLATE_NAME = "master.mustache";
 	public SchedulerState schedulerState;
 
 	public DashboardView(SchedulerState schedulerState) {
-		super(TEMPLATE_NAME);
 		this.schedulerState = schedulerState;
 	}
 

@@ -15,8 +15,6 @@
  */
 package com.ebay.myriad.scheduler;
 
-import io.dropwizard.lifecycle.Managed;
-
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -30,7 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-public class MyriadDriverManager implements Managed {
+public class MyriadDriverManager {
 	private final static Logger LOGGER = LoggerFactory
 			.getLogger(MyriadDriverManager.class);
 
@@ -39,8 +37,7 @@ public class MyriadDriverManager implements Managed {
 	private Status driverStatus;
 
 	@Inject
-	public MyriadDriverManager(final MyriadScheduler scheduler,
-			MyriadDriver driver) {
+	public MyriadDriverManager(MyriadDriver driver) {
 		this.driver = driver;
 		this.driverLock = new ReentrantLock();
 		this.driverStatus = Protos.Status.DRIVER_NOT_STARTED;
@@ -103,15 +100,5 @@ public class MyriadDriverManager implements Managed {
 	private boolean isRunning() {
 		return this.driver != null
 				&& this.driverStatus == Status.DRIVER_RUNNING;
-	}
-
-	@Override
-	public void start() throws Exception {
-		startDriver();
-	}
-
-	@Override
-	public void stop() throws Exception {
-		stopDriver();
 	}
 }

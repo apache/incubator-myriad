@@ -11,9 +11,16 @@ mainClassName = "com.ebay.myriad.Main"
 group       = "com.ebay.myriad"
 version     = "0.0.1"
 
+ext {
+    mesosVer = "0.20.0"
+    hadoopVer = "2.4.1"
+}
+
 configurations {
 	provided
 	capsule
+    // exclude hadoop/yarn deps for 'runtime'
+    runtime.exclude group: 'org.apache.hadoop', module: '*'
 }
 
 repositories {
@@ -22,23 +29,24 @@ repositories {
 }
 
 dependencies {
-	ext {
-		mesosVer = "0.20.0"
-		dropwizardVer = "0.7.1"
-	}
-	capsule "co.paralleluniverse:capsule:0.7.1"
-    compile "org.apache.mesos:mesos:${ext.mesosVer}"
+    capsule "co.paralleluniverse:capsule:0.7.1"
+    compile "org.apache.mesos:mesos:${mesosVer}"
+    compile "org.apache.hadoop:hadoop-common:${hadoopVer}"
+    compile "org.apache.hadoop:hadoop-yarn-common:${hadoopVer}"
+    compile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}"
     compile 'com.squareup.retrofit:retrofit:1.6.1'
-    compile 'com.google.inject:guice:3.0'
-    compile 'org.apache.commons:commons-collections4:4.0'
- 	compile "io.dropwizard:dropwizard-core:${ext.dropwizardVer}"
- 	compile "io.dropwizard:dropwizard-assets:${ext.dropwizardVer}"
- 	compile "io.dropwizard:dropwizard-views-mustache:${ext.dropwizardVer}"
-	compile "org.apache.curator:curator-framework:2.6.0"
-	compile "com.lmax:disruptor:3.3.0"
-	
+    compile "com.lmax:disruptor:3.3.0"
+    compile "com.codahale.metrics:metrics-core:3.0.2"
+    compile "com.codahale.metrics:metrics-annotation:3.0.2"
+    compile "com.codahale.metrics:metrics-healthchecks:3.0.2"
+    compile "org.hibernate:hibernate-validator:5.1.2.Final"
+    compile "com.fasterxml.jackson.core:jackson-annotations:2.4.2"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.4.2"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.4.2"
+    compile "org.apache.curator:curator-framework:2.6.0"
     testCompile 'junit:junit:4.11'
 }
+
 
 run {
     systemProperty "myriad.config", "build/resources/main/config.yml"
@@ -50,7 +58,7 @@ task capsule(type: Jar, dependsOn: jar) {
     from jar
     from { configurations.runtime }
 	from { sourceSets.main.resources }
-	
+
     from(configurations.capsule.collect { zipTree(it) }) { include 'Capsule.class' }
 
     manifest {
@@ -64,13 +72,23 @@ task capsule(type: Jar, dependsOn: jar) {
     }
 }
 
+// copies dependencies to build/libs dir
+task copyRunTimeDeps(type: Sync) {
+    from configurations.runtime
+    into "$buildDir/libs"
+}
+
+jar {
+    dependsOn copyRunTimeDeps
+}
+
 task capsuleExecutor(type: Jar, dependsOn: jar) {
     archiveName = "myriad-executor-${version}.jar"
-	
+
     from jar
     from { configurations.runtime }
 	from { sourceSets.main.resources }
-	
+
     from(configurations.capsule.collect { zipTree(it) }) { include 'Capsule.class' }
 
     manifest {

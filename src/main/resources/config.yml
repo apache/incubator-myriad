@@ -1,4 +1,4 @@
-mesosMaster: 10.0.2.15:5050
+mesosMaster: localhost:5050
 checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadAlpha

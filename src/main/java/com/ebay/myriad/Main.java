@@ -15,11 +15,7 @@
  */
 package com.ebay.myriad;
 
-import io.dropwizard.Application;
-import io.dropwizard.assets.AssetsBundle;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-import io.dropwizard.views.ViewBundle;
+import com.codahale.metrics.health.HealthCheckRegistry;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -27,16 +23,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.collections4.MapUtils;
+import com.codahale.metrics.MetricRegistry;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.JmxReporter;
-import com.ebay.myriad.api.ClustersResource;
-import com.ebay.myriad.api.ConfigurationResource;
-import com.ebay.myriad.api.DashboardResource;
-import com.ebay.myriad.api.SchedulerStateResource;
-import com.ebay.myriad.common.Constants;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.health.MesosDriverHealthCheck;
 import com.ebay.myriad.health.MesosMasterHealthCheck;
@@ -49,7 +43,7 @@ import com.ebay.myriad.scheduler.TaskTerminator;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-public class Main extends Application<MyriadConfiguration> {
+public class Main {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
 	private ScheduledExecutorService terminatorService;
@@ -57,20 +51,18 @@ public class Main extends Application<MyriadConfiguration> {
 	private ScheduledExecutorService rebalancerService;
 
 	public static void main(String[] args) throws Exception {
-		new Main().run(new String[] { "server",
-				System.getProperty(Constants.CONFIG_PROPERTY) });
-	}
+    initialize();
+  }
 
-	@Override
-	public void initialize(Bootstrap<MyriadConfiguration> bootstrap) {
-		bootstrap.addBundle(new ViewBundle());
-		bootstrap
-				.addBundle(new AssetsBundle("/assets/css", "/css", null, "css"));
-		bootstrap.addBundle(new AssetsBundle("/assets/js", "/js", null, "js"));
-	}
+  public static void initialize() throws Exception {
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    MyriadConfiguration cfg = mapper.readValue(
+      Thread.currentThread().getContextClassLoader().getResource("config.yml"),
+      MyriadConfiguration.class);
+    new Main().run(cfg);
+  }
 
-	@Override
-	public void run(MyriadConfiguration cfg, Environment env) {
+	public void run(MyriadConfiguration cfg) {
 		MyriadModule myriadModule = new MyriadModule(cfg);
 		Injector injector = Guice.createInjector(myriadModule);
 
@@ -78,22 +70,19 @@ public class Main extends Application<MyriadConfiguration> {
 			LOGGER.debug("Bindings: " + injector.getAllBindings());
 		}
 
-		JmxReporter.forRegistry(env.metrics()).build().start();
-		registerManaged(cfg, env, injector);
+		JmxReporter.forRegistry(new MetricRegistry()).build().start();
 
-		registerResources(cfg, env, injector);
-		initHealthChecks(cfg, env, injector);
-		initProfiles(cfg, env, injector);
-		initDisruptors(cfg, env, injector);
-		initRebalancerService(cfg, env, injector);
-		initTerminatorService(cfg, env, injector);
+		registerResources(injector);
+		initHealthChecks(injector);
+		initProfiles(cfg, injector);
+		initDisruptors(injector);
+		initRebalancerService(cfg, injector);
+		initTerminatorService(injector);
+    startMesosDriver(injector);
 	}
 
-	private void registerManaged(final MyriadConfiguration cfg,
-			final Environment env, Injector injector) {
-		final MyriadDriverManager driverManager = injector
-				.getInstance(MyriadDriverManager.class);
-		env.lifecycle().manage(driverManager);
+	private void startMesosDriver(Injector injector) {
+    injector.getInstance(MyriadDriverManager.class).startDriver();
 	}
 
 	/**
@@ -101,14 +90,12 @@ public class Main extends Application<MyriadConfiguration> {
 	 * 
 	 * @param injector
 	 */
-	private void registerResources(final MyriadConfiguration cfg,
-			final Environment env, Injector injector) {
-		env.jersey()
-				.register(injector.getInstance(ConfigurationResource.class));
-		env.jersey().register(injector.getInstance(DashboardResource.class));
-		env.jersey().register(injector.getInstance(ClustersResource.class));
-		env.jersey().register(
-				injector.getInstance(SchedulerStateResource.class));
+	private void registerResources(Injector injector) {
+    //TODO(Santosh): accomplish the below without dropwizard
+//    env.jersey().register(injector.getInstance(ConfigurationResource.class));
+//		env.jersey().register(injector.getInstance(DashboardResource.class));
+//		env.jersey().register(injector.getInstance(ClustersResource.class));
+//		env.jersey().register(injector.getInstance(SchedulerStateResource.class));
 	}
 
 	/**
@@ -116,19 +103,19 @@ public class Main extends Application<MyriadConfiguration> {
 	 * 
 	 * @param injector
 	 */
-	private void initHealthChecks(final MyriadConfiguration cfg,
-			final Environment env, Injector injector) {
+	private void initHealthChecks(Injector injector) {
 		LOGGER.info("Initializing HealthChecks");
-		env.healthChecks().register(MesosMasterHealthCheck.NAME,
-				injector.getInstance(MesosMasterHealthCheck.class));
-		env.healthChecks().register(ZookeeperHealthCheck.NAME,
-				injector.getInstance(ZookeeperHealthCheck.class));
-		env.healthChecks().register(MesosDriverHealthCheck.NAME,
-				injector.getInstance(MesosDriverHealthCheck.class));
+    HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
+    healthCheckRegistry.register(MesosMasterHealthCheck.NAME,
+      injector.getInstance(MesosMasterHealthCheck.class));
+		healthCheckRegistry.register(ZookeeperHealthCheck.NAME,
+      injector.getInstance(ZookeeperHealthCheck.class));
+		healthCheckRegistry.register(MesosDriverHealthCheck.NAME,
+      injector.getInstance(MesosDriverHealthCheck.class));
 	}
 
 	private void initProfiles(final MyriadConfiguration cfg,
-			final Environment env, Injector injector) {
+                            Injector injector) {
 		LOGGER.info("Initializing Profiles");
 		NMProfileManager profileManager = injector
 				.getInstance(NMProfileManager.class);
@@ -156,8 +143,7 @@ public class Main extends Application<MyriadConfiguration> {
 		}
 	}
 
-	private void initTerminatorService(MyriadConfiguration cfg,
-			Environment env, Injector injector) {
+	private void initTerminatorService(Injector injector) {
 		LOGGER.info("Initializing Terminator");
 		terminatorService = Executors.newScheduledThreadPool(1);
 		terminatorService.scheduleAtFixedRate(
@@ -166,7 +152,7 @@ public class Main extends Application<MyriadConfiguration> {
 	}
 
 	private void initRebalancerService(MyriadConfiguration cfg,
-			Environment env, Injector injector) {
+                                     Injector injector) {
 		if (cfg.isRebalancer()) {
 			LOGGER.info("Initializing Rebalancer");
 			rebalancerService = Executors.newScheduledThreadPool(1);
@@ -178,8 +164,7 @@ public class Main extends Application<MyriadConfiguration> {
 		}
 	}
 
-	private void initDisruptors(MyriadConfiguration cfg, Environment env,
-			Injector injector) {
+	private void initDisruptors(Injector injector) {
 		LOGGER.info("Initializing Disruptors");
 		DisruptorManager disruptorManager = injector
 				.getInstance(DisruptorManager.class);
