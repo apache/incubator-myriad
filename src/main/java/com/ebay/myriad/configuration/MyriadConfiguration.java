@@ -15,8 +15,6 @@
  */
 package com.ebay.myriad.configuration;
 
-import io.dropwizard.Configuration;
-
 import java.util.Map;
 
 import org.hibernate.validator.constraints.NotEmpty;
@@ -24,7 +22,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Strings;
 
-public class MyriadConfiguration extends Configuration {
+public class MyriadConfiguration {
 	/**
 	 * By default framework checkpointing is turned off.
 	 */

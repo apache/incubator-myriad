@@ -25,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.inject.Inject;
 
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.Resource;
