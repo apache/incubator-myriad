@@ -49,7 +49,7 @@ dependencies {
 
 
 run {
-    systemProperty "myriad.config", "build/resources/main/config.yml"
+    systemProperty "myriad.config", "build/resources/main/myriad-config-default.yml"
 }
 
 task capsule(type: Jar, dependsOn: jar) {
@@ -67,7 +67,7 @@ task capsule(type: Jar, dependsOn: jar) {
             'Application-Class' : mainClassName,
             'Min-Java-Version' 	: '1.7.0',
             'JVM-Args' 			: run.jvmArgs.join(' '),
-            'System-Properties' : (run.systemProperties + ["myriad.config": '$CAPSULE_DIR/config.yml']).collect { k,v -> "$k=$v" }.join(' ')
+            'System-Properties' : (run.systemProperties + ["myriad.config": '$CAPSULE_DIR/myriad-config-default.yml']).collect { k,v -> "$k=$v" }.join(' ')
         )
     }
 }

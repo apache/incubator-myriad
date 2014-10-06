@@ -26,7 +26,7 @@ public class MyriadYarnSchedulerInterceptor implements YarnSchedulerInterceptor 
       Main.initialize();
     } catch (Exception e) {
       // Abort bringing up RM
-      throw new RuntimeException(e);
+      throw new RuntimeException("Failed to initialize myriad", e);
     }
   }
 }

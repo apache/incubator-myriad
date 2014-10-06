@@ -49,15 +49,16 @@ public class Main {
 	private ScheduledExecutorService terminatorService;
 
 	private ScheduledExecutorService rebalancerService;
+    private HealthCheckRegistry healthCheckRegistry;
 
-	public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws Exception {
     initialize();
   }
 
   public static void initialize() throws Exception {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     MyriadConfiguration cfg = mapper.readValue(
-      Thread.currentThread().getContextClassLoader().getResource("config.yml"),
+      Thread.currentThread().getContextClassLoader().getResource("myriad-config-default.yml"),
       MyriadConfiguration.class);
     new Main().run(cfg);
   }
@@ -105,7 +106,7 @@ public class Main {
 	 */
 	private void initHealthChecks(Injector injector) {
 		LOGGER.info("Initializing HealthChecks");
-    HealthCheckRegistry healthCheckRegistry = new HealthCheckRegistry();
+    healthCheckRegistry = new HealthCheckRegistry();
     healthCheckRegistry.register(MesosMasterHealthCheck.NAME,
       injector.getInstance(MesosMasterHealthCheck.class));
 		healthCheckRegistry.register(ZookeeperHealthCheck.NAME,
