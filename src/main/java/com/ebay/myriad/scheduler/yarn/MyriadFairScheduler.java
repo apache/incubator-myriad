@@ -26,5 +26,11 @@ public class MyriadFairScheduler extends FairScheduler {
     this.interceptor.beforeReinitialize(conf, rmContext);
     super.reinitialize(conf, rmContext);
   }
+
+    @Override
+    public void serviceInit(Configuration conf) throws Exception {
+        this.reinitialize(conf, null);
+        super.serviceInit(conf);
+    }
 }
 

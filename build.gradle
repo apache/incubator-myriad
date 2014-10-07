@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'idea'
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
@@ -13,7 +14,7 @@ version     = "0.0.1"
 
 ext {
     mesosVer = "0.20.0"
-    hadoopVer = "2.4.1"
+    hadoopVer = "2.5.0"
 }
 
 configurations {

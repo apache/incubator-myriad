@@ -58,3 +58,8 @@ local.properties
 
 # Vagrant
 .vagrant/
+
+# Intellij
+*.iml
+*.ipr
+*.iws
