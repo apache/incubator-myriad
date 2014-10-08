@@ -1,12 +1,12 @@
 /**
  * Copyright 2012-2014 eBay Software Foundation, All Rights Reserved.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -15,21 +15,20 @@
  */
 package com.ebay.myriad.scheduler.event.handlers;
 
+import com.ebay.myriad.scheduler.event.ErrorEvent;
+import com.lmax.disruptor.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ebay.myriad.scheduler.event.ErrorEvent;
-import com.lmax.disruptor.EventHandler;
-
 public class ErrorEventHandler implements EventHandler<ErrorEvent> {
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(ErrorEventHandler.class);
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(ErrorEventHandler.class);
 
-	@Override
-	public void onEvent(ErrorEvent event, long sequence, boolean endOfBatch)
-			throws Exception {
-		String message = event.getMessage();
-		LOGGER.error(message);
-	}
+    @Override
+    public void onEvent(ErrorEvent event, long sequence, boolean endOfBatch)
+            throws Exception {
+        String message = event.getMessage();
+        LOGGER.error(message);
+    }
 
 }

@@ -12,19 +12,21 @@ import java.io.IOException;
  * via the {@link YarnSchedulerInterceptor} interface.
  */
 public class MyriadFifoScheduler extends FifoScheduler {
-  private final YarnSchedulerInterceptor interceptor;
+    private final YarnSchedulerInterceptor interceptor;
 
-  public MyriadFifoScheduler() {
-    super();
-    this.interceptor = new MyriadYarnSchedulerInterceptor();
-  }
+    public MyriadFifoScheduler() {
+        super();
+        this.interceptor = new MyriadYarnSchedulerInterceptor();
+    }
 
-  /*********** Methods overridden from YARN {@link FifoScheduler}  **********************/
+    /**
+     * ******** Methods overridden from YARN {@link FifoScheduler}  *********************
+     */
 
-  @Override
-  public void reinitialize(Configuration conf, RMContext rmContext) throws IOException {
-    this.interceptor.beforeReinitialize(conf, rmContext);
-    super.reinitialize(conf, rmContext);
-  }
+    @Override
+    public void reinitialize(Configuration conf, RMContext rmContext) throws IOException {
+        this.interceptor.beforeReinitialize(conf, rmContext);
+        super.reinitialize(conf, rmContext);
+    }
 }
 

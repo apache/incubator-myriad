@@ -11,13 +11,13 @@ import java.io.IOException;
  */
 public interface YarnSchedulerInterceptor {
 
-  /**
-   * Called before {@link AbstractYarnScheduler#reinitialize(Configuration, RMContext)}
-   *
-   * @param conf
-   * @param rmContext
-   * @throws IOException
-   */
-  public void beforeReinitialize(Configuration conf, RMContext rmContext) throws IOException;
+    /**
+     * Called before {@link AbstractYarnScheduler#reinitialize(Configuration, RMContext)}
+     *
+     * @param conf
+     * @param rmContext
+     * @throws IOException
+     */
+    public void beforeReinitialize(Configuration conf, RMContext rmContext) throws IOException;
 
 }

@@ -12,19 +12,21 @@ import java.io.IOException;
  * via the {@link YarnSchedulerInterceptor} interface.
  */
 public class MyriadCapacityScheduler extends CapacityScheduler {
-  private final YarnSchedulerInterceptor interceptor;
+    private final YarnSchedulerInterceptor interceptor;
 
-  public MyriadCapacityScheduler() {
-    super();
-    this.interceptor = new MyriadYarnSchedulerInterceptor();
-  }
+    public MyriadCapacityScheduler() {
+        super();
+        this.interceptor = new MyriadYarnSchedulerInterceptor();
+    }
 
-  /*********** Methods overridden from YARN {@link CapacityScheduler}  **********************/
+    /**
+     * ******** Methods overridden from YARN {@link CapacityScheduler}  *********************
+     */
 
-  @Override
-  public void reinitialize(Configuration conf, RMContext rmContext) throws IOException {
-    this.interceptor.beforeReinitialize(conf, rmContext);
-    super.reinitialize(conf, rmContext);
-  }
+    @Override
+    public void reinitialize(Configuration conf, RMContext rmContext) throws IOException {
+        this.interceptor.beforeReinitialize(conf, rmContext);
+        super.reinitialize(conf, rmContext);
+    }
 }
 

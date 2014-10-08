@@ -3,10 +3,10 @@ package com.ebay.myriad.scheduler.event;
 import com.lmax.disruptor.EventFactory;
 
 public class ResourceOffersEventFactory implements
-		EventFactory<ResourceOffersEvent> {
+        EventFactory<ResourceOffersEvent> {
 
-	@Override
-	public ResourceOffersEvent newInstance() {
-		return new ResourceOffersEvent();
-	}
+    @Override
+    public ResourceOffersEvent newInstance() {
+        return new ResourceOffersEvent();
+    }
 }

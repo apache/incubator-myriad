@@ -12,20 +12,22 @@ import java.io.IOException;
  * via the {@link YarnSchedulerInterceptor} interface.
  */
 public class MyriadFairScheduler extends FairScheduler {
-  private final YarnSchedulerInterceptor interceptor;
+    private final YarnSchedulerInterceptor interceptor;
 
-  public MyriadFairScheduler() {
-    super();
-    this.interceptor = new MyriadYarnSchedulerInterceptor();
-  }
+    public MyriadFairScheduler() {
+        super();
+        this.interceptor = new MyriadYarnSchedulerInterceptor();
+    }
 
-  /*********** Methods overridden from YARN {@link FairScheduler}  **********************/
+    /**
+     * ******** Methods overridden from YARN {@link FairScheduler}  *********************
+     */
 
-  @Override
-  public void reinitialize(Configuration conf, RMContext rmContext) throws IOException {
-    this.interceptor.beforeReinitialize(conf, rmContext);
-    super.reinitialize(conf, rmContext);
-  }
+    @Override
+    public void reinitialize(Configuration conf, RMContext rmContext) throws IOException {
+        this.interceptor.beforeReinitialize(conf, rmContext);
+        super.reinitialize(conf, rmContext);
+    }
 
     @Override
     public void serviceInit(Configuration conf) throws Exception {
