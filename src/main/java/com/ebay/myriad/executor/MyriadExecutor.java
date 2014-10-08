@@ -1,8 +1,8 @@
 package com.ebay.myriad.executor;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
@@ -14,24 +14,50 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 public class MyriadExecutor implements Executor {
+    // private static final String NM_COMMAND =
+    // "sudo -H -u %s bash -c \"$YARN_HOME/bin/yarn nodemanager\"";
+    // private static final String[] NM_COMMAND = { "bash", "--rcfile",
+    // "~/.bashrc", "-c", "\"", "cat",
+    // "~/.bashrc", "\"" };
+
     /**
      * Allot 10% more memory to account for JVM overhead.
      */
     public static final double JVM_OVERHEAD = 0.1;
+
     /**
      * Default -Xmx for executor JVM.
      */
+
     public static final double DEFAULT_JVM_MAX_MEMORY_MB = 256;
     /**
      * Default cpus for executor JVM.
      */
     public static final double DEFAULT_CPUS = 0.2;
+
     private static final Logger LOGGER = LoggerFactory
             .getLogger(MyriadExecutor.class);
+
     private static final String NM_COMMAND = "sudo -H -u %s bash -c '$YARN_HOME/bin/yarn nodemanager'";
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    public static final Gson GSON = new Gson();
+
     private SlaveInfo slaveInfo;
+
     private Process process;
+
+    /*
+    make_cgroups_dir = Process(
+  name = 'make_cgroups_dir',
+  cmdline = "MY_TASK_ID=`pwd | awk -F'/' '{ print $(NF-1) }'` && echo %s && echo 'hadoop' | sudo -S chown -R root:root %s && echo 'hadoop' | sudo -S chmod -R 777 %s && mkdir -p %s && echo 'hadoop' | sudo -S chown -R root:root %s && echo 'hadoop' | sudo -S chmod -R 777 %s" % (CGROUP_DIR_NM, CGROUP_DIR_TASK, CGROUP_DIR_TASK, CGROUP_DIR_NM, CGROUP_DIR_TASK, CGROUP_DIR_TASK)
+)
+     */
+    private static final String MAKE_CGROUPS_DIR = "";
+
+  //cmdline = "MY_TASK_ID=`pwd | awk -F'/' '{ print $(NF-1) }'` && echo 'hadoop' | sudo -S sed -i \"s@mesos.*/hadoop-yarn@mesos/$MY_TASK_ID/hadoop-yarn@g\" /usr/local/hadoop/etc/hadoop/yarn-site.xml"
+    private static final String CONFIGURE_CGROUPS = "";
+
+    private static final String START = "source ~/.bashrc; $YARN_HOME/sbin/yarn-daemons.sh start nodemanager";
 
     public static void main(String[] args) {
         MesosExecutorDriver driver = new MesosExecutorDriver(
@@ -61,12 +87,14 @@ public class MyriadExecutor implements Executor {
     public void launchTask(final ExecutorDriver driver, final TaskInfo task) {
         new Thread(new Runnable() {
             public void run() {
+                Builder statusBuilder = TaskStatus.newBuilder().setTaskId(
+                        task.getTaskId());
                 try {
-                    String command = getCommand(NM_COMMAND, task);
-                    Builder statusBuilder = TaskStatus.newBuilder().setTaskId(
-                            task.getTaskId());
-                    MyriadExecutor.this.process = Runtime.getRuntime().exec(
-                            command);
+                    NMTaskConfig taskConfig = GSON.fromJson(task.getData()
+                            .toStringUtf8(), NMTaskConfig.class);
+                    ProcessBuilder processBuilder = buildProcessBuilder(task,
+                            taskConfig);
+                    MyriadExecutor.this.process = processBuilder.start();
                     int waitFor = MyriadExecutor.this.process.waitFor();
 
                     if (waitFor == 0) {
@@ -74,17 +102,25 @@ public class MyriadExecutor implements Executor {
                     } else {
                         statusBuilder.setState(TaskState.TASK_FAILED);
                     }
+                } catch (InterruptedException | IOException e) {
+                    LOGGER.error(e.getMessage(), e);
+                    statusBuilder.setState(TaskState.TASK_FAILED);
+                } finally {
                     driver.sendStatusUpdate(statusBuilder.build());
-                } catch (IOException e) {
-                    LOGGER.error(e.getMessage(), e);
-                } catch (InterruptedException e) {
-                    LOGGER.error(e.getMessage(), e);
                 }
             }
         }).start();
         TaskStatus status = TaskStatus.newBuilder().setTaskId(task.getTaskId())
                 .setState(TaskState.TASK_RUNNING).build();
         driver.sendStatusUpdate(status);
+    }
+
+    private ProcessBuilder buildProcessBuilder(TaskInfo task,
+                                               NMTaskConfig taskConfig) {
+        ProcessBuilder processBuilder = new ProcessBuilder(NM_COMMAND);
+        processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+        return processBuilder;
     }
 
     @Override
@@ -124,12 +160,8 @@ public class MyriadExecutor implements Executor {
         NMTaskConfig taskConfig = null;
 
         String command = null;
-        try {
-            taskConfig = MAPPER.readValue(taskJson, NMTaskConfig.class);
-            command = String.format(NM_COMMAND, taskConfig.getUser());
-        } catch (IOException e) {
-            LOGGER.error("Error parsing taskJson: {}", taskJson);
-        }
+        taskConfig = GSON.fromJson(taskJson, NMTaskConfig.class);
+        command = String.format(NM_COMMAND, taskConfig.getUser());
 
         return command;
     }
