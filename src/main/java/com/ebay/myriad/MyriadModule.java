@@ -23,6 +23,8 @@ import com.ebay.myriad.scheduler.MyriadDriver;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
 import com.ebay.myriad.scheduler.MyriadScheduler;
 import com.ebay.myriad.scheduler.NMProfileManager;
+import com.ebay.myriad.scheduler.TaskFactory;
+import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.AbstractModule;
 import com.google.inject.Scopes;
@@ -47,5 +49,6 @@ public class MyriadModule extends AbstractModule {
 		bind(NMProfileManager.class).in(Scopes.SINGLETON);
 		bind(SchedulerState.class).in(Scopes.SINGLETON);
 		bind(DisruptorManager.class).in(Scopes.SINGLETON);
+		bind(TaskFactory.class).to(NMTaskFactoryImpl.class);
 	}
 }

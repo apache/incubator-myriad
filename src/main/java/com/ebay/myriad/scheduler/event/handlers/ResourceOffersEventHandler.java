@@ -26,6 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.inject.Inject;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.Resource;
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.SchedulerUtils;
-import com.ebay.myriad.scheduler.TaskUtils;
+import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
@@ -49,9 +50,12 @@ public class ResourceOffersEventHandler implements
 			.getLogger(ResourceOffersEventHandler.class);
 
 	private static final Lock driverOperationLock = new ReentrantLock();
-
+	
 	@Inject
 	private SchedulerState schedulerState;
+
+	@Inject
+	private TaskFactory taskFactory;
 
 	@Override
 	public void onEvent(ResourceOffersEvent event, long sequence,
@@ -75,7 +79,7 @@ public class ResourceOffersEventHandler implements
 										schedulerState.getActiveTasks())) {
 							LOGGER.info("Offer {} matched profile {}", offer,
 									profile);
-							TaskInfo task = TaskUtils.createYARNTask(offer,
+							TaskInfo task = taskFactory.createTask(offer,
 									taskToLaunch);
 							List<OfferID> offerIds = new ArrayList<>();
 							offerIds.add(offer.getId());

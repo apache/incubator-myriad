@@ -14,7 +14,7 @@ profiles:
     mem: 4096
 rebalancer: false
 nodemanager:
-  jvmMaxMemoryMB: 2048
+  jvmMaxMemoryMB: 1024
   user: hduser
 executor:
   jvmMaxMemoryMB: 256

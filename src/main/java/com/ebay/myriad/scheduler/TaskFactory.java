@@ -1,7 +1,6 @@
 package com.ebay.myriad.scheduler;
 
 import java.util.Objects;
-import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -22,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.executor.NMTaskConfig;
 import com.ebay.myriad.state.NodeTask;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
@@ -32,18 +30,29 @@ public interface TaskFactory {
 	TaskInfo createTask(Offer offer, NodeTask nodeTask);
 
 	class NMTaskFactoryImpl implements TaskFactory {
-		private static final Logger LOGGER = LoggerFactory
-				.getLogger(NMTaskFactoryImpl.class);
 		public static final String EXECUTOR_NAME = "myriad_task";
 		public static final String EXECUTOR_PREFIX = "myriad_executor";
-
+		private static final Logger LOGGER = LoggerFactory
+				.getLogger(NMTaskFactoryImpl.class);
 		private MyriadConfiguration cfg;
-
 		private TaskUtils taskUtils;
 
 		@Inject
-		public NMTaskFactoryImpl(MyriadConfiguration cfg) {
+		public NMTaskFactoryImpl(MyriadConfiguration cfg, TaskUtils taskUtils) {
 			this.cfg = cfg;
+			this.taskUtils = taskUtils;
+		}
+
+        private static String getFileName(String uri) {
+			int lastSlash = uri.lastIndexOf('/');
+			if (lastSlash == -1) {
+				return uri;
+			} else {
+				String fileName = uri.substring(lastSlash + 1);
+				Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName),
+						"URI should not have a slash at the end");
+				return fileName;
+			}
 		}
 
 		@Override
@@ -52,7 +61,6 @@ public interface TaskFactory {
 			Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
 			NMProfile profile = nodeTask.getProfile();
-
 			NMTaskConfig nmTaskConfig = new NMTaskConfig();
 			nmTaskConfig.setAdvertisableCpus(taskUtils.getTaskCpus(profile));
 			nmTaskConfig.setAdvertisableMem(taskUtils.getTaskMemory(profile));
@@ -64,24 +72,25 @@ public interface TaskFactory {
 			String taskConfigJSON = new Gson().toJson(nmTaskConfig);
 
 			Scalar taskMemory = Value.Scalar.newBuilder()
-					.setValue(taskUtils.getTaskMemory(profile)).build();
+			.setValue(taskUtils.getTaskMemory(profile)).build();
 			Scalar taskCpus = Value.Scalar.newBuilder()
-					.setValue(taskUtils.getTaskCpus(profile)).build();
+			.setValue(taskUtils.getTaskCpus(profile)).build();
 			Scalar executorMemory = Value.Scalar.newBuilder()
-					.setValue(taskUtils.getExecutorMemory()).build();
+			.setValue(taskUtils.getExecutorMemory()).build();
 			Scalar executorCpus = Value.Scalar.newBuilder()
-					.setValue(taskUtils.getExecutorCpus()).build();
+			.setValue(taskUtils.getExecutorCpus()).build();
 
 			String executorPath = cfg.getMyriadExecutorConfiguration()
 					.getPath();
 			URI executorURI = URI.newBuilder().setValue(executorPath)
 					.setExecutable(true).build();
 			CommandInfo commandInfo = CommandInfo.newBuilder()
-					.addUris(executorURI)
+					.addUris(executorURI).setUser(nmTaskConfig.getUser())
 					.setValue("java -jar " + getFileName(executorPath)).build();
 
 			ExecutorID executorId = Protos.ExecutorID.newBuilder()
-					.setValue(EXECUTOR_PREFIX + UUID.randomUUID()).build();
+					.setValue(EXECUTOR_PREFIX + offer.getSlaveId().getValue())
+					.build();
 			ExecutorInfo executorInfo = ExecutorInfo
 					.newBuilder()
 					.setCommand(commandInfo)
@@ -103,6 +112,7 @@ public interface TaskFactory {
 					.setSlaveId(offer.getSlaveId());
 
 			// TODO (mohit): Configure ports for multi-tenancy
+			ByteString data = ByteString.copyFrom(taskConfigJSON.getBytes());
 			TaskInfo task = taskBuilder
 					.addResources(
 							Resource.newBuilder().setName("cpus")
@@ -112,23 +122,9 @@ public interface TaskFactory {
 							Resource.newBuilder().setName("mem")
 									.setType(Value.Type.SCALAR)
 									.setScalar(taskMemory).build())
-					.setExecutor(executorInfo)
-					.setData(ByteString.copyFrom(taskConfigJSON.getBytes()))
-					.build();
+					.setExecutor(executorInfo).setData(data).build();
 
 			return task;
-		}
-
-		private static String getFileName(String uri) {
-			int lastSlash = uri.lastIndexOf('/');
-			if (lastSlash == -1) {
-				return uri;
-			} else {
-				String fileName = uri.substring(lastSlash + 1);
-				Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName),
-						"URI should not have a slash at the end");
-				return fileName;
-			}
 		}
 	}
 }
