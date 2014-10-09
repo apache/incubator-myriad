@@ -136,7 +136,7 @@ public class ResourceOffersEventHandler implements
         if (mem < 0)
             LOGGER.error("No mem resource present");
 
-        Map<String, String> requestAttributes = new HashMap<String, String>();
+        Map<String, String> requestAttributes = new HashMap<>();
 
         if (profile.getCpus() <= cpus
                 && profile.getMemory() <= mem

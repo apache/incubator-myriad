@@ -242,9 +242,8 @@ public class SchedulerState {
         return false;
     }
 
-    public boolean releaseLock(String clusterId) {
+    public void releaseLock(String clusterId) {
         this.rebalancerLock.put(clusterId, Boolean.FALSE);
-        return true;
     }
 
 }

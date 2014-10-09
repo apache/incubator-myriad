@@ -23,7 +23,6 @@ import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
-import org.apache.mesos.MesosNativeLibrary;
 import org.apache.mesos.state.ZooKeeperState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

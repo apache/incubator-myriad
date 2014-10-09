@@ -26,7 +26,7 @@ public class NMProfileManager {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(NMProfileManager.class);
 
-    private Map<String, NMProfile> profiles = new ConcurrentHashMap<String, NMProfile>();
+    private Map<String, NMProfile> profiles = new ConcurrentHashMap<>();
 
     public NMProfile get(String name) {
         return profiles.get(name);

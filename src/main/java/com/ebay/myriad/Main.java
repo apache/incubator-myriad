@@ -116,9 +116,7 @@ public class Main {
                 .getInstance(NMProfileManager.class);
         Map<String, Map<String, String>> profiles = cfg.getProfiles();
         if (MapUtils.isNotEmpty(profiles)) {
-            Iterator<String> profileKeys = profiles.keySet().iterator();
-            while (profileKeys.hasNext()) {
-                String profileKey = profileKeys.next();
+            for (String profileKey : profiles.keySet()) {
                 Map<String, String> profileResourceMap = profiles
                         .get(profileKey);
                 if (MapUtils.isNotEmpty(profiles)

@@ -104,7 +104,7 @@ public interface TaskFactory {
 
             // TODO (mohit): Configure ports for multi-tenancy
             ByteString data = ByteString.copyFrom(taskConfigJSON.getBytes());
-            TaskInfo task = taskBuilder
+            return taskBuilder
                     .addResources(
                             Resource.newBuilder().setName("cpus")
                                     .setType(Value.Type.SCALAR)
@@ -114,8 +114,6 @@ public interface TaskFactory {
                                     .setType(Value.Type.SCALAR)
                                     .setScalar(taskMemory).build())
                     .setExecutor(executorInfo).setData(data).build();
-
-            return task;
         }
     }
 }

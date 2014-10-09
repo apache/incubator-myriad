@@ -57,10 +57,8 @@ public class ClustersResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public GetClustersResponse getClusters() {
-        GetClustersResponse getClustersResponse = new GetClustersResponse(
+        return new GetClustersResponse(
                 this.schedulerState.getClusters());
-
-        return getClustersResponse;
     }
 
     @Timed

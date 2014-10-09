@@ -35,19 +35,16 @@ public class MyriadDriver {
             .getLogger(MyriadDriver.class);
 
     private final MesosSchedulerDriver driver;
-    private final FrameworkInfo myriadFrameworkInfo;
-    private final MyriadScheduler scheduler;
 
     @Inject
     public MyriadDriver(final MyriadScheduler scheduler,
                         final MyriadConfiguration cfg, final SchedulerState schedulerState) {
-        this.scheduler = scheduler;
         Builder frameworkInfoBuilder = FrameworkInfo.newBuilder().setUser("")
                 .setName(cfg.getFrameworkName())
                 .setCheckpoint(cfg.getCheckpoint())
                 .setFailoverTimeout(cfg.getFrameworkFailoverTimeout());
 
-        FrameworkID frameworkId = null;
+        FrameworkID frameworkId;
         try {
             frameworkId = schedulerState.getMyriadState().getFrameworkID();
             if (frameworkId != null) {
@@ -59,9 +56,8 @@ public class MyriadDriver {
             throw new RuntimeException(e);
         }
 
-        this.myriadFrameworkInfo = frameworkInfoBuilder.build();
-        this.driver = new MesosSchedulerDriver(this.scheduler,
-                this.myriadFrameworkInfo, cfg.getMesosMaster());
+        this.driver = new MesosSchedulerDriver(scheduler,
+                frameworkInfoBuilder.build(), cfg.getMesosMaster());
     }
 
     public Status start() {

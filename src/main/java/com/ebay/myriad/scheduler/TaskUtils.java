@@ -19,9 +19,7 @@ import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
 import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.executor.MyriadExecutor;
-import com.ebay.myriad.state.NodeTask;
 import com.google.common.base.Optional;
-import org.apache.mesos.Protos.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -48,9 +46,6 @@ public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(TaskUtils.class);
 
-    // TODO(mohit): Make sudo user input driven
-    private static final String NM_LAUNCH_CMD = "sudo -H -u hduser bash -c '/usr/local/hadoop/bin/yarn nodemanager'";
-
     private static final String YARN_NODEMANAGER_RESOURCE_CPU_VCORES = "yarn.nodemanager.resource.cpu-vcores";
     private static final String YARN_NODEMANAGER_RESOURCE_MEMORY_MB = "yarn.nodemanager.resource.memory-mb";
 
@@ -61,56 +56,13 @@ public class TaskUtils {
         this.cfg = cfg;
     }
 
-    public static TaskInfo createYARNTask(Offer offer, NodeTask nodeTask) {
-        NMProfile profile = nodeTask.getProfile();
-        TaskID taskId = TaskID.newBuilder().setValue(nodeTask.getTaskId())
-                .build();
-
-        String taskIdValue = taskId.getValue();
-        LOGGER.info("Launching task {} with profile: {}", taskIdValue, profile);
-        String revisedConfig = getRevisedConfig(profile.getCpus(),
-                profile.getMemory());
-        String CONFIG_UPDATE_CMD = "sudo -H -u hduser bash -c \"echo '"
-                + revisedConfig
-                + "' > /usr/local/hadoop/etc/hadoop/yarn-site.xml\"; ";
-
-        CommandInfo.Builder commandBuilder = CommandInfo.newBuilder();
-        commandBuilder.setUser("root").setValue(
-                CONFIG_UPDATE_CMD + NM_LAUNCH_CMD);
-
-        TaskInfo task = TaskInfo
-                .newBuilder()
-                .setName("task " + taskIdValue)
-                .setTaskId(taskId)
-                .setSlaveId(offer.getSlaveId())
-                .addResources(
-                        Resource.newBuilder()
-                                .setName("cpus")
-                                .setType(Value.Type.SCALAR)
-                                .setScalar(
-                                        Value.Scalar.newBuilder()
-                                                .setValue(profile.getCpus())
-                                                .build()).build())
-                .addResources(
-                        Resource.newBuilder()
-                                .setName("mem")
-                                .setType(Value.Type.SCALAR)
-                                .setScalar(
-                                        Value.Scalar.newBuilder()
-                                                .setValue(profile.getMemory())
-                                                .build()).build())
-                .setCommand(commandBuilder.build()).build();
-
-        return task;
-    }
-
     public static String getRevisedConfig(Double cpu, Double memory) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory
                     .newInstance();
             factory.setNamespaceAware(true);
             DocumentBuilder builder;
-            Document doc = null;
+            Document doc;
 
             builder = factory.newDocumentBuilder();
             InputStream resourceAsStream = TaskUtils.class.getClassLoader()
@@ -157,9 +109,9 @@ public class TaskUtils {
                     "yes");
             StringWriter writer = new StringWriter();
             transformer.transform(new DOMSource(doc), new StreamResult(writer));
-            String output = writer.getBuffer().toString()
+
+            return writer.getBuffer().toString()
                     .replaceAll("\n|\r", "");
-            return output;
         } catch (Exception e) {
             LOGGER.error("Error with xml operation", e);
         }
@@ -167,7 +119,7 @@ public class TaskUtils {
     }
 
     public double getAggregateMemory(NMProfile profile) {
-        double totalTaskMemory = 0;
+        double totalTaskMemory;
         double executorMemory = getExecutorMemory();
         double nmJvmMaxMemoryMB = getNodeManagerMemory();
         double advertisableMemory = profile.getMemory();
@@ -183,11 +135,10 @@ public class TaskUtils {
 
     public double getNodeManagerMemory() {
         NodeManagerConfiguration nmCfg = this.cfg.getNodeManagerConfiguration();
-        double nmJvmMaxMemoryMB = (nmCfg.getJvmMaxMemoryMB().isPresent() ? nmCfg
+        return (nmCfg.getJvmMaxMemoryMB().isPresent() ? nmCfg
                 .getJvmMaxMemoryMB().get()
                 : NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB)
                 * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
-        return nmJvmMaxMemoryMB;
     }
 
     public double getNodeManagerCpus() {
@@ -204,11 +155,10 @@ public class TaskUtils {
     public double getExecutorMemory() {
         MyriadExecutorConfiguration executorCfg = this.cfg
                 .getMyriadExecutorConfiguration();
-        double executorMemory = (executorCfg.getJvmMaxMemoryMB().isPresent() ? executorCfg
+        return (executorCfg.getJvmMaxMemoryMB().isPresent() ? executorCfg
                 .getJvmMaxMemoryMB().get()
                 : MyriadExecutor.DEFAULT_JVM_MAX_MEMORY_MB)
                 * (1 + MyriadExecutor.JVM_OVERHEAD);
-        return executorMemory;
     }
 
     public double getTaskCpus(NMProfile profile) {

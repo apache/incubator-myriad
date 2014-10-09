@@ -36,7 +36,7 @@ public class SchedulerUtils {
                                                  Map<String, String> requestAttributes) {
         boolean match = true;
 
-        Map<String, String> offerAttributes = new HashMap<String, String>();
+        Map<String, String> offerAttributes = new HashMap<>();
         for (Attribute attribute : offer.getAttributesList()) {
             offerAttributes.put(attribute.getName(), attribute.getText()
                     .getValue());

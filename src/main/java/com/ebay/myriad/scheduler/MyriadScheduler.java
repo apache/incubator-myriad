@@ -163,8 +163,6 @@ public class MyriadScheduler implements Scheduler {
                         event.setExitStatus(exitStatus);
                     }
                 });
-        ;
-
     }
 
     @Override
