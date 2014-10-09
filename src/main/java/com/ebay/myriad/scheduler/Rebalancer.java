@@ -63,13 +63,6 @@ public class Rebalancer implements Runnable {
 
         for (Cluster cluster : clusters.values()) {
             String clusterId = cluster.getClusterId();
-            boolean acquireLock = this.schedulerState.acquireLock(clusterId);
-            if (!acquireLock) {
-                LOGGER.info(
-                        "Rebalancer was unable to acquire lock for cluster {}",
-                        clusterId);
-                return;
-            }
 
             LOGGER.info("Analyzing cluster: {}", clusterId);
             String host = cluster.getResourceManagerHost();

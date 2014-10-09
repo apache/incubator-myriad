@@ -30,7 +30,7 @@ public class SchedulerState {
     private Set<String> activeTasks;
     private Set<String> lostTasks;
     private Set<String> killableTasks;
-    private Map<String, Boolean> rebalancerLock;
+
     private MyriadState myriadState;
 
     public SchedulerState(MyriadState myriadState) {
@@ -41,7 +41,6 @@ public class SchedulerState {
         this.activeTasks = new HashSet<>();
         this.lostTasks = new HashSet<>();
         this.killableTasks = new HashSet<>();
-        this.rebalancerLock = new ConcurrentHashMap<>();
         this.myriadState = myriadState;
     }
 
@@ -229,21 +228,4 @@ public class SchedulerState {
     }
 
     public MyriadState getMyriadState() { return this.myriadState; }
-
-    public boolean acquireLock(String clusterId) {
-        Preconditions.checkArgument(Strings.isNullOrEmpty(clusterId),
-                "ClusterId cannot be null or empty.");
-        Boolean lock = this.rebalancerLock.get(clusterId);
-
-        if (null == lock || Boolean.FALSE == lock) {
-            this.rebalancerLock.put(clusterId, Boolean.TRUE);
-            return true;
-        }
-        return false;
-    }
-
-    public void releaseLock(String clusterId) {
-        this.rebalancerLock.put(clusterId, Boolean.FALSE);
-    }
-
 }

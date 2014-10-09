@@ -55,7 +55,6 @@ public class StatusUpdateEventHandler implements
             case TASK_RUNNING:
                 schedulerState.makeTaskActive(taskIdValue);
                 NodeTask task = schedulerState.getTask(taskIdValue);
-                schedulerState.releaseLock(task.getClusterId());
                 break;
             case TASK_FINISHED:
                 schedulerState.removeTask(taskIdValue);
