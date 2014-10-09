@@ -34,7 +34,7 @@ public class RegisteredEventHandler implements EventHandler<RegisteredEvent> {
     public void onEvent(RegisteredEvent event, long sequence, boolean endOfBatch)
             throws Exception {
         LOGGER.info("Received event: {}", event);
-        schedulerState.setFrameworkId(event.getFrameworkId());
+        schedulerState.getMyriadState().setFrameworkId(event.getFrameworkId());
     }
 
 }

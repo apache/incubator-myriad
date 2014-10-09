@@ -18,13 +18,11 @@ package com.ebay.myriad.state;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos.FrameworkID;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SchedulerState {
-    private FrameworkID frameworkId;
     private Map<String, Cluster> clusters;
     private Map<String, NodeTask> tasks;
     private Set<String> pendingTasks;
@@ -33,8 +31,9 @@ public class SchedulerState {
     private Set<String> lostTasks;
     private Set<String> killableTasks;
     private Map<String, Boolean> rebalancerLock;
+    private MyriadState myriadState;
 
-    public SchedulerState() {
+    public SchedulerState(MyriadState myriadState) {
         this.clusters = new ConcurrentHashMap<>();
         this.tasks = new ConcurrentHashMap<>();
         this.pendingTasks = new HashSet<>();
@@ -43,6 +42,7 @@ public class SchedulerState {
         this.lostTasks = new HashSet<>();
         this.killableTasks = new HashSet<>();
         this.rebalancerLock = new ConcurrentHashMap<>();
+        this.myriadState = myriadState;
     }
 
     public void makeTaskPending(String taskId) {
@@ -228,13 +228,7 @@ public class SchedulerState {
         return this.lostTasks;
     }
 
-    public FrameworkID getFrameworkId() {
-        return frameworkId;
-    }
-
-    public void setFrameworkId(FrameworkID frameworkId) {
-        this.frameworkId = frameworkId;
-    }
+    public MyriadState getMyriadState() { return this.myriadState; }
 
     public boolean acquireLock(String clusterId) {
         Preconditions.checkArgument(Strings.isNullOrEmpty(clusterId),

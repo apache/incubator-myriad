@@ -18,11 +18,17 @@ package com.ebay.myriad;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.scheduler.*;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
+import com.ebay.myriad.state.MyriadState;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import org.apache.mesos.MesosNativeLibrary;
+import org.apache.mesos.state.ZooKeeperState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 public class MyriadModule extends AbstractModule {
     private final static Logger LOGGER = LoggerFactory
@@ -42,8 +48,19 @@ public class MyriadModule extends AbstractModule {
         bind(MyriadDriverManager.class).in(Scopes.SINGLETON);
         bind(MyriadScheduler.class).in(Scopes.SINGLETON);
         bind(NMProfileManager.class).in(Scopes.SINGLETON);
-        bind(SchedulerState.class).in(Scopes.SINGLETON);
         bind(DisruptorManager.class).in(Scopes.SINGLETON);
         bind(TaskFactory.class).to(NMTaskFactoryImpl.class);
+    }
+
+    @Provides
+    SchedulerState providesSchedulerState(MyriadConfiguration cfg) {
+        LOGGER.debug("Configuring SchedulerState provider");
+        ZooKeeperState zkState = new ZooKeeperState(
+                cfg.getZkServers(),
+                cfg.getZkTimeout(),
+                TimeUnit.MILLISECONDS,
+                "/myriad/" + cfg.getFrameworkName());
+        MyriadState state = new MyriadState(zkState);
+        return new SchedulerState(state);
     }
 }

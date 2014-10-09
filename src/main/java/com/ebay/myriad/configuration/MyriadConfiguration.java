@@ -37,7 +37,11 @@ public class MyriadConfiguration {
      */
     public static final Double DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS = 86400000.0;
 
-    public static final String DEFAULT_FRAMEWORK_NAME = "Myriad Scheduler";
+    public static final String DEFAULT_FRAMEWORK_NAME = "myriad-scheduler";
+
+    public static final String DEFAULT_NATIVE_LIBRARY = "/usr/local/lib/libmesos.so";
+
+    public static final Integer DEFAULT_ZK_TIMEOUT = 20000;
 
     @JsonProperty
     private
@@ -67,6 +71,16 @@ public class MyriadConfiguration {
     @JsonProperty
     @NotEmpty
     private MyriadExecutorConfiguration executor;
+
+    @JsonProperty
+    private String nativeLibrary;
+
+    @JsonProperty
+    @NotEmpty
+    private String zkServers;
+
+    @JsonProperty
+    private Integer zkTimeout;
 
     public String getMesosMaster() {
         return mesosMaster;
@@ -105,4 +119,10 @@ public class MyriadConfiguration {
     public MyriadExecutorConfiguration getMyriadExecutorConfiguration() {
         return this.executor;
     }
+
+    public String getNativeLibrary() { return Strings.isNullOrEmpty(this.nativeLibrary) ? DEFAULT_NATIVE_LIBRARY : this.nativeLibrary; }
+
+    public String getZkServers() { return this.zkServers; }
+
+    public Integer getZkTimeout() { return this.zkTimeout != null ? this.zkTimeout : DEFAULT_ZK_TIMEOUT; }
 }

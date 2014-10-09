@@ -17,6 +17,7 @@ package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.state.SchedulerState;
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.FrameworkInfo;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.concurrent.ExecutionException;
 
 public class MyriadDriver {
     private final static Logger LOGGER = LoggerFactory
@@ -40,14 +42,23 @@ public class MyriadDriver {
     public MyriadDriver(final MyriadScheduler scheduler,
                         final MyriadConfiguration cfg, final SchedulerState schedulerState) {
         this.scheduler = scheduler;
-        FrameworkID frameworkId = schedulerState.getFrameworkId();
         Builder frameworkInfoBuilder = FrameworkInfo.newBuilder().setUser("")
                 .setName(cfg.getFrameworkName())
                 .setCheckpoint(cfg.getCheckpoint())
                 .setFailoverTimeout(cfg.getFrameworkFailoverTimeout());
-        if (frameworkId != null) {
-            frameworkInfoBuilder.setId(frameworkId);
+
+        FrameworkID frameworkId = null;
+        try {
+            frameworkId = schedulerState.getMyriadState().getFrameworkID();
+            if (frameworkId != null) {
+                LOGGER.info("Attempting to re-register with frameworkId: {}", frameworkId.getValue());
+                frameworkInfoBuilder.setId(frameworkId);
+            }
+        } catch (InterruptedException | ExecutionException | InvalidProtocolBufferException e) {
+            LOGGER.error("Error fetching frameworkId", e);
+            throw new RuntimeException(e);
         }
+
         this.myriadFrameworkInfo = frameworkInfoBuilder.build();
         this.driver = new MesosSchedulerDriver(this.scheduler,
                 this.myriadFrameworkInfo, cfg.getMesosMaster());
