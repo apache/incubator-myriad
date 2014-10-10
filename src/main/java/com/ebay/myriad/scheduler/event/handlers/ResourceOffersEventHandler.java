@@ -80,13 +80,11 @@ public class ResourceOffersEventHandler implements
                             offerIds.add(offer.getId());
                             List<TaskInfo> tasks = new ArrayList<>();
                             tasks.add(task);
-                            LOGGER.info("Launching task: {}", task);
+                            LOGGER.info("Launching task: {} using offer: {}", task, offer);
                             driver.launchTasks(offerIds, tasks);
                             schedulerState.makeTaskStaging(pendingTaskId);
-                            NodeTask taskLaunched = schedulerState
-                                    .getTask(pendingTaskId);
-                            taskLaunched.setHostname(offer.getHostname());
-                            taskLaunched.setSlaveId(offer.getSlaveId());
+                            taskToLaunch.setHostname(offer.getHostname());
+                            taskToLaunch.setSlaveId(offer.getSlaveId());
                             offerMatch = true;
                             break;
                         }
