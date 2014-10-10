@@ -18,11 +18,13 @@ package com.ebay.myriad.scheduler.event.handlers;
 import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.SchedulerUtils;
 import com.ebay.myriad.scheduler.TaskFactory;
+import com.ebay.myriad.scheduler.TaskUtils;
 import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -46,6 +48,9 @@ public class ResourceOffersEventHandler implements
     @Inject
     private TaskFactory taskFactory;
 
+    @Inject
+    private TaskUtils taskUtils;
+
     @Override
     public void onEvent(ResourceOffersEvent event, long sequence,
                         boolean endOfBatch) throws Exception {
@@ -53,13 +58,14 @@ public class ResourceOffersEventHandler implements
         List<Offer> offers = event.getOffers();
 
         LOGGER.info("Received offers {}", offers.size());
+        LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
         driverOperationLock.lock();
         try {
-            Set<String> pendingTasks = schedulerState.getPendingTaskIds();
+            Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
             if (CollectionUtils.isNotEmpty(pendingTasks)) {
                 for (Offer offer : offers) {
                     boolean offerMatch = false;
-                    for (String pendingTaskId : pendingTasks) {
+                    for (Protos.TaskID pendingTaskId : pendingTasks) {
                         NodeTask taskToLaunch = schedulerState
                                 .getTask(pendingTaskId);
                         NMProfile profile = taskToLaunch.getProfile();
@@ -68,7 +74,7 @@ public class ResourceOffersEventHandler implements
                                 schedulerState.getActiveTasks())) {
                             LOGGER.info("Offer {} matched profile {}", offer,
                                     profile);
-                            TaskInfo task = taskFactory.createTask(offer,
+                            TaskInfo task = taskFactory.createTask(offer, pendingTaskId,
                                     taskToLaunch);
                             List<OfferID> offerIds = new ArrayList<>();
                             offerIds.add(offer.getId());
@@ -80,6 +86,7 @@ public class ResourceOffersEventHandler implements
                             NodeTask taskLaunched = schedulerState
                                     .getTask(pendingTaskId);
                             taskLaunched.setHostname(offer.getHostname());
+                            taskLaunched.setSlaveId(offer.getSlaveId());
                             offerMatch = true;
                             break;
                         }
@@ -138,13 +145,13 @@ public class ResourceOffersEventHandler implements
 
         Map<String, String> requestAttributes = new HashMap<>();
 
-        if (profile.getCpus() <= cpus
-                && profile.getMemory() <= mem
+        if (taskUtils.getAggregateCpus(profile) <= cpus
+                && taskUtils.getAggregateMemory(profile) <= mem
                 && SchedulerUtils.isMatchSlaveAttributes(offer,
                 requestAttributes)) {
             return true;
         } else {
-            LOGGER.info("Offer not sufficient for profile: " + profile);
+            LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}", taskUtils.getAggregateCpus(profile), taskUtils.getAggregateMemory(profile));
             return false;
         }
     }

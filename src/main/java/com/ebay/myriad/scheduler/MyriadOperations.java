@@ -20,11 +20,14 @@ import com.ebay.myriad.state.Cluster;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.Inject;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MyriadOperations {
@@ -44,27 +47,24 @@ public class MyriadOperations {
         this.profileManager = profileManager;
     }
 
-    public void flexUpCluster(String clusterId, int instances, String profile) {
+    public void flexUpCluster(int instances, String profile) {
         Collection<NodeTask> nodes = new HashSet<>();
         for (int i = 0; i < instances; i++) {
-            nodes.add(new NodeTask(clusterId, profileManager.get(profile)));
+            nodes.add(new NodeTask(profileManager.get(profile)));
         }
 
-        LOGGER.info("Adding {} instances for cluster {}", instances, clusterId);
-        this.schedulerState.addClusterNodes(clusterId, nodes);
+        LOGGER.info("Adding {} instances to cluster", nodes.size());
+        this.schedulerState.addNodes(nodes);
     }
 
-    public void flexDownCluster(Cluster cluster, int n) {
+    public void flexDownCluster(int n) {
         AtomicInteger instances = new AtomicInteger(n);
-        Collection<NodeTask> nodes = cluster.getNodes();
-        for (NodeTask node : nodes) {
-            if (instances.get() > 0) {
-                cluster.removeNode(node);
-                this.schedulerState.makeTaskKillable(node.getTaskId());
-                instances.decrementAndGet();
-            }
+        Set<Protos.TaskID> activeTaskIds = this.schedulerState.getActiveTaskIds();
+        Iterator<Protos.TaskID> iterator = activeTaskIds.iterator();
+        while (instances.get() > 0) {
+            this.schedulerState.makeTaskKillable(iterator.next());
+            instances.decrementAndGet();
         }
-        LOGGER.info("Removed {} instances for cluster {}", instances,
-                cluster.getClusterId());
+        LOGGER.info("Removed {} instances from cluster", instances);
     }
 }

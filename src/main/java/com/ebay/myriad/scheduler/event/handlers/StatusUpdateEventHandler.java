@@ -39,35 +39,35 @@ public class StatusUpdateEventHandler implements
     public void onEvent(StatusUpdateEvent event, long sequence,
                         boolean endOfBatch) throws Exception {
         TaskStatus status = event.getStatus();
+        this.schedulerState.updateTask(status);
         TaskID taskId = status.getTaskId();
         LOGGER.info("Status Update for task: {} | state: {}", taskId,
                 status.getState());
         TaskState state = status.getState();
 
-        String taskIdValue = taskId.getValue();
         switch (state) {
             case TASK_STAGING:
-                schedulerState.makeTaskStaging(taskIdValue);
+                schedulerState.makeTaskStaging(taskId);
                 break;
             case TASK_STARTING:
-                schedulerState.makeTaskStaging(taskIdValue);
+                schedulerState.makeTaskStaging(taskId);
                 break;
             case TASK_RUNNING:
-                schedulerState.makeTaskActive(taskIdValue);
-                NodeTask task = schedulerState.getTask(taskIdValue);
+                schedulerState.makeTaskActive(taskId);
+                NodeTask task = schedulerState.getTask(taskId);
                 break;
             case TASK_FINISHED:
-                schedulerState.removeTask(taskIdValue);
+                schedulerState.removeTask(taskId);
                 break;
             case TASK_FAILED:
                 // Add to pending tasks
-                schedulerState.makeTaskPending(taskIdValue);
+                schedulerState.makeTaskPending(taskId);
                 break;
             case TASK_KILLED:
-                schedulerState.removeTask(taskIdValue);
+                schedulerState.removeTask(taskId);
                 break;
             case TASK_LOST:
-                schedulerState.makeTaskPending(taskIdValue);
+                schedulerState.makeTaskPending(taskId);
                 break;
             default:
                 LOGGER.error("Invalid state: {}", state);

@@ -33,7 +33,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-@Path("/api/clusters")
+@Path("/api/cluster")
 @Produces(MediaType.APPLICATION_JSON)
 public class ClustersResource {
     private static final Logger LOGGER = LoggerFactory
@@ -54,98 +54,32 @@ public class ClustersResource {
     }
 
     @Timed
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public GetClustersResponse getClusters() {
-        return new GetClustersResponse(
-                this.schedulerState.getClusters());
-    }
-
-    @Timed
-    @Path("/{clusterId}")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public GetClusterResponse getCluster(
-            @PathParam("clusterId") String clusterId) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(clusterId),
-                "clusterId cannot be null or empty.");
-        return new GetClusterResponse(this.schedulerState.getCluster(clusterId));
-    }
-
-    @Timed
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response registerCluster(RegisterClusterRequest request) {
-        Preconditions.checkNotNull(request,
-                "RegisterClusterRequest object cannot be null");
-        Cluster cluster = new Cluster();
-        cluster.setClusterName(request.getClusterName());
-        cluster.setResourceManagerHost(request.getResourceManagerHost());
-        cluster.setResourceManagerPort(request.getResourceManagerPort());
-        this.schedulerState.addCluster(cluster);
-        return Response.ok()
-                .entity(new RegisterClusterResponse(cluster.getClusterId()))
-                .build();
-    }
-
-    @Timed
-    @Path("/{clusterId}")
-    @DELETE
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response unregisterCluster(@PathParam("clusterId") String clusterId) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(clusterId),
-                "clusterId cannot be null or empty.");
-
-        this.schedulerState.deleteCluster(clusterId);
-        return Response.ok().build();
-    }
-
-    @Timed
     @PUT
-    @Path("/{clusterId}/flexup")
+    @Path("/flexup")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response flexUp(@PathParam("clusterId") String clusterId,
-                           FlexUpClusterRequest request) {
+    public Response flexUp(FlexUpClusterRequest request) {
         Preconditions.checkNotNull(request,
                 "request object cannot be null or empty");
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(clusterId),
-                "clusterId cannot be null or empty");
-
-        Cluster cluster = this.schedulerState.getCluster(clusterId);
-        if (cluster == null) {
-            LOGGER.error("No cluster found with clusterId: " + clusterId);
-            return Response.status(Status.NOT_FOUND).build();
-        }
 
         // TODO(mohit): Validation
         Integer instances = request.getInstances();
         String profile = request.getProfile();
-        this.myriadOperations.flexUpCluster(clusterId, instances, profile);
+        this.myriadOperations.flexUpCluster(instances, profile);
         return Response.ok().build();
     }
 
     @Timed
     @PUT
-    @Path("/{clusterId}/flexdown")
+    @Path("/flexdown")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response flexDown(@PathParam("clusterId") String clusterId,
-                             FlexDownClusterRequest request) {
+    public Response flexDown(FlexDownClusterRequest request) {
         Preconditions.checkNotNull(request,
                 "request object cannot be null or empty");
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(clusterId),
-                "clusterId cannot be null or empty");
-
-        Cluster cluster = this.schedulerState.getCluster(clusterId);
-        if (cluster == null) {
-            LOGGER.error("No cluster found with clusterId: " + clusterId);
-            return Response.status(Status.NOT_FOUND).build();
-        }
 
         // TODO(mohit): Make safer.
-        this.myriadOperations.flexDownCluster(cluster, request.getInstances());
+        this.myriadOperations.flexDownCluster(request.getInstances());
         return Response.ok().build();
     }
 

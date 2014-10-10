@@ -19,12 +19,17 @@ import com.codahale.metrics.annotation.Timed;
 import com.ebay.myriad.api.model.GetSchedulerStateResponse;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.state.SchedulerState;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
 @Path("/api/state")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,8 +47,20 @@ public class SchedulerStateResource {
     @Timed
     @GET
     public GetSchedulerStateResponse getState() {
-        return new GetSchedulerStateResponse(state.getPendingTaskIds(),
-                state.getStagingTaskIds(), state.getActiveTaskIds(),
-                state.getKillableTasks());
+        return new GetSchedulerStateResponse(toStringCollection(state.getPendingTaskIds()),
+                toStringCollection(state.getStagingTaskIds()), toStringCollection(state.getActiveTaskIds()),
+                toStringCollection(state.getKillableTasks()));
+    }
+
+    private Collection<String> toStringCollection(Collection<Protos.TaskID> collection) {
+        if (CollectionUtils.isEmpty(collection)) {
+            return Collections.EMPTY_LIST;
+        }
+        Collection<String> returnCollection = new ArrayList<>();
+        for (Protos.TaskID task : collection) {
+            returnCollection.add(task.getValue());
+        }
+
+        return returnCollection;
     }
 }

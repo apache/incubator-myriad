@@ -15,26 +15,28 @@
  */
 package com.ebay.myriad.state;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SchedulerState {
-    private Map<String, Cluster> clusters;
-    private Map<String, NodeTask> tasks;
-    private Set<String> pendingTasks;
-    private Set<String> stagingTasks;
-    private Set<String> activeTasks;
-    private Set<String> lostTasks;
-    private Set<String> killableTasks;
+    private final static Logger LOGGER = LoggerFactory
+            .getLogger(SchedulerState.class);
+
+    private Map<Protos.TaskID, NodeTask> tasks;
+    private Set<Protos.TaskID> pendingTasks;
+    private Set<Protos.TaskID> stagingTasks;
+    private Set<Protos.TaskID> activeTasks;
+    private Set<Protos.TaskID> lostTasks;
+    private Set<Protos.TaskID> killableTasks;
 
     private MyriadState myriadState;
 
     public SchedulerState(MyriadState myriadState) {
-        this.clusters = new ConcurrentHashMap<>();
         this.tasks = new ConcurrentHashMap<>();
         this.pendingTasks = new HashSet<>();
         this.stagingTasks = new HashSet<>();
@@ -44,8 +46,34 @@ public class SchedulerState {
         this.myriadState = myriadState;
     }
 
-    public void makeTaskPending(String taskId) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(taskId),
+    public void addNodes(Collection<NodeTask> nodes) {
+        if (CollectionUtils.isEmpty(nodes)) {
+            LOGGER.info("No nodes to add");
+            return;
+        }
+        for (NodeTask node : nodes) {
+            Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(String.format("nm.%s.%s", node.getProfile().getName(), UUID.randomUUID()))
+                    .build();
+            addTask(taskId, node);
+            LOGGER.info("Marked taskId {} pending, size of pending queue {}", taskId.getValue(), this.pendingTasks.size());
+            makeTaskPending(taskId);
+        }
+    }
+
+    public void addTask(Protos.TaskID taskId, NodeTask node) {
+        this.tasks.put(taskId, node);
+    }
+
+    public void updateTask(Protos.TaskStatus taskStatus) {
+        Objects.requireNonNull(taskStatus, "TaskStatus object shouldn't be null");
+        Protos.TaskID taskId = taskStatus.getTaskId();
+        if (this.tasks.containsKey(taskId)) {
+            this.tasks.get(taskId).setTaskStatus(taskStatus);
+        }
+    }
+
+    public void makeTaskPending(Protos.TaskID taskId) {
+        Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
         pendingTasks.add(taskId);
@@ -55,15 +83,8 @@ public class SchedulerState {
         killableTasks.remove(taskId);
     }
 
-    public void makeTaskPending(NodeTask task) {
-        Preconditions.checkArgument(task != null,
-                "NodeTask object cannot be null");
-
-        makeTaskPending(task.getTaskId());
-    }
-
-    public void makeTaskStaging(String taskId) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(taskId),
+    public void makeTaskStaging(Protos.TaskID taskId) {
+        Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
         pendingTasks.remove(taskId);
@@ -73,15 +94,8 @@ public class SchedulerState {
         killableTasks.remove(taskId);
     }
 
-    public void makeTaskStaging(NodeTask task) {
-        Preconditions.checkArgument(task != null,
-                "NodeTask object cannot be null");
-
-        makeTaskStaging(task.getTaskId());
-    }
-
-    public void makeTaskActive(String taskId) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(taskId),
+    public void makeTaskActive(Protos.TaskID taskId) {
+        Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
         pendingTasks.remove(taskId);
@@ -91,15 +105,8 @@ public class SchedulerState {
         killableTasks.remove(taskId);
     }
 
-    public void makeTaskActive(NodeTask task) {
-        Preconditions.checkArgument(task != null,
-                "NodeTask object cannot be null");
-
-        makeTaskActive(task.getTaskId());
-    }
-
-    public void makeTaskLost(String taskId) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(taskId),
+    public void makeTaskLost(Protos.TaskID taskId) {
+        Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
         pendingTasks.remove(taskId);
@@ -109,15 +116,8 @@ public class SchedulerState {
         killableTasks.remove(taskId);
     }
 
-    public void makeTaskLost(NodeTask task) {
-        Preconditions.checkArgument(task != null,
-                "NodeTask object cannot be null");
-
-        makeTaskLost(task.getTaskId());
-    }
-
-    public void makeTaskKillable(String taskId) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(taskId),
+    public void makeTaskKillable(Protos.TaskID taskId) {
+        Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
         pendingTasks.remove(taskId);
@@ -127,69 +127,15 @@ public class SchedulerState {
         killableTasks.add(taskId);
     }
 
-    public void makeTaskKillable(NodeTask task) {
-        Preconditions.checkArgument(task != null,
-                "NodeTask object cannot be null");
-
-        makeTaskKillable(task.getTaskId());
-    }
-
-    public Cluster getCluster(String clusterId) {
-        return clusters.get(clusterId);
-    }
-
-    public Map<String, Cluster> getClusters() {
-        return clusters;
-    }
-
-    public void addCluster(Cluster cluster) {
-        Preconditions.checkArgument(cluster != null,
-                "Cluster object cannot be null");
-
-        clusters.put(cluster.getClusterId(), cluster);
-        this.addClusterNodes(cluster.getClusterId(), cluster.getNodes());
-    }
-
-    public void addClusterNodes(String clusterId, Collection<NodeTask> nodes) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(clusterId));
-
-        Cluster cluster = this.clusters.get(clusterId);
-
-        // TODO(mohit): error handling
-
-        for (NodeTask node : nodes) {
-            cluster.addNode(node);
-            String taskId = node.getTaskId();
-            tasks.put(taskId, node);
-            pendingTasks.add(taskId);
-        }
-    }
-
-    public void deleteCluster(String clusterId) {
-        Collection<NodeTask> nodes = clusters.get(clusterId).getNodes();
-        for (NodeTask node : nodes) {
-            this.makeTaskKillable(node);
-        }
-        // TODO(mohit): Make this more correct.
-        this.clusters.remove(clusterId);
-    }
-
-    public void deleteCluster(Cluster cluster) {
-        Preconditions.checkArgument(cluster != null,
-                "Cluster object cannot be null");
-
-        deleteCluster(cluster.getClusterId());
-    }
-
-    public Set<String> getKillableTasks() {
+    public Set<Protos.TaskID> getKillableTasks() {
         return this.killableTasks;
     }
 
-    public NodeTask getTask(String taskId) {
+    public NodeTask getTask(Protos.TaskID taskId) {
         return this.tasks.get(taskId);
     }
 
-    public void removeTask(String taskId) {
+    public void removeTask(Protos.TaskID taskId) {
         this.pendingTasks.remove(taskId);
         this.stagingTasks.remove(taskId);
         this.activeTasks.remove(taskId);
@@ -198,11 +144,11 @@ public class SchedulerState {
         this.tasks.remove(taskId);
     }
 
-    public Set<String> getPendingTaskIds() {
+    public Set<Protos.TaskID> getPendingTaskIds() {
         return this.pendingTasks;
     }
 
-    public Set<String> getActiveTaskIds() {
+    public Set<Protos.TaskID> getActiveTaskIds() {
         return this.activeTasks;
     }
 
@@ -210,20 +156,20 @@ public class SchedulerState {
         List<NodeTask> activeNodeTasks = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(activeTasks)
                 && CollectionUtils.isNotEmpty(tasks.values())) {
-            for (NodeTask task : tasks.values()) {
-                if (activeTasks.contains(task.getTaskId())) {
-                    activeNodeTasks.add(task);
+            for (Map.Entry<Protos.TaskID, NodeTask> entry : tasks.entrySet()) {
+                if (activeTasks.contains(entry.getKey())) {
+                    activeNodeTasks.add(entry.getValue());
                 }
             }
         }
         return activeNodeTasks;
     }
 
-    public Set<String> getStagingTaskIds() {
+    public Set<Protos.TaskID> getStagingTaskIds() {
         return this.stagingTasks;
     }
 
-    public Set<String> getLostTaskIds() {
+    public Set<Protos.TaskID> getLostTaskIds() {
         return this.lostTasks;
     }
 

@@ -15,21 +15,22 @@
  */
 package com.ebay.myriad.api.model;
 
+import java.util.Collection;
 import java.util.Set;
 
 public class GetSchedulerStateResponse {
-    private Set<String> pendingTasks;
-    private Set<String> stagingTasks;
-    private Set<String> activeTasks;
-    private Set<String> killableTasks;
+    private Collection<String> pendingTasks;
+    private Collection<String> stagingTasks;
+    private Collection<String> activeTasks;
+    private Collection<String> killableTasks;
 
     public GetSchedulerStateResponse() {
 
     }
 
-    public GetSchedulerStateResponse(Set<String> pendingTasks,
-                                     Set<String> stagingTasks, Set<String> activeTasks,
-                                     Set<String> killableTasks) {
+    public GetSchedulerStateResponse(Collection<String> pendingTasks,
+                                     Collection<String> stagingTasks, Collection<String> activeTasks,
+                                     Collection<String> killableTasks) {
         super();
         this.pendingTasks = pendingTasks;
         this.stagingTasks = stagingTasks;
@@ -37,19 +38,19 @@ public class GetSchedulerStateResponse {
         this.killableTasks = killableTasks;
     }
 
-    public Set<String> getPendingTasks() {
+    public Collection<String> getPendingTasks() {
         return pendingTasks;
     }
 
-    public Set<String> getStagingTasks() {
+    public Collection<String> getStagingTasks() {
         return stagingTasks;
     }
 
-    public Set<String> getActiveTasks() {
+    public Collection<String> getActiveTasks() {
         return activeTasks;
     }
 
-    public Set<String> getKillableTasks() {
+    public Collection<String> getKillableTasks() {
         return killableTasks;
     }
 

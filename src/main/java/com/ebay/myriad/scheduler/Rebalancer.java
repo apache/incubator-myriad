@@ -55,20 +55,10 @@ public class Rebalancer implements Runnable {
 
     @Override
     public void run() {
-        Map<String, Cluster> clusters = this.schedulerState.getClusters();
-        if (MapUtils.isEmpty(clusters)) {
-            LOGGER.info("Nothing to rebalance, as there are no clusters registered");
-            return;
+        LOGGER.info("Active {}, Pending {}", schedulerState.getActiveTaskIds().size(), schedulerState.getPendingTaskIds().size());
+        if (schedulerState.getActiveTaskIds().size() < 1 && schedulerState.getPendingTaskIds().size() < 1) {
+            myriadOperations.flexUpCluster(1, "small");
         }
-
-        for (Cluster cluster : clusters.values()) {
-            String clusterId = cluster.getClusterId();
-
-            LOGGER.info("Analyzing cluster: {}", clusterId);
-            String host = cluster.getResourceManagerHost();
-            String port = cluster.getResourceManagerPort();
-            double minQuota = cluster.getMinQuota();
-
 //            RestAdapter restAdapter = new RestAdapter.Builder()
 //                    .setEndpoint("http://" + host + ":" + port)
 //                    .setLogLevel(LogLevel.FULL).build();
@@ -115,6 +105,5 @@ public class Rebalancer implements Runnable {
 //                LOGGER.info("Nothing to rebalance");
 //                this.schedulerState.releaseLock(clusterId);
 //            }
-        }
     }
 }

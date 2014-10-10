@@ -20,6 +20,7 @@ import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class TaskTerminator implements Runnable {
 
     @Override
     public void run() {
-        Set<String> killableTasks = schedulerState.getKillableTasks();
+        Set<TaskID> killableTasks = schedulerState.getKillableTasks();
 
         if (CollectionUtils.isEmpty(killableTasks)) {
             return;
@@ -64,13 +65,8 @@ public class TaskTerminator implements Runnable {
             return;
         }
 
-        Iterator<String> iterator = killableTasks.iterator();
-
-        while (iterator.hasNext()) {
-            String taskIdToKill = iterator.next();
-            NodeTask task = this.schedulerState.getTask(taskIdToKill);
-            TaskID mesosTaskId = task.getMesosTaskId();
-            Status status = this.driverManager.kill(mesosTaskId);
+        for (TaskID taskIdToKill : killableTasks) {
+            Status status = this.driverManager.kill(taskIdToKill);
             this.schedulerState.removeTask(taskIdToKill);
             Preconditions.checkState(status == Status.DRIVER_RUNNING);
         }

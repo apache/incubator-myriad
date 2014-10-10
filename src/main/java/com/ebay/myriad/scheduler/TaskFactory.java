@@ -16,9 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.Objects;
+import java.util.UUID;
 
 public interface TaskFactory {
-    TaskInfo createTask(Offer offer, NodeTask nodeTask);
+    TaskInfo createTask(Offer offer, TaskID taskId, NodeTask nodeTask);
 
     class NMTaskFactoryImpl implements TaskFactory {
         public static final String EXECUTOR_NAME = "myriad_task";
@@ -47,7 +48,7 @@ public interface TaskFactory {
         }
 
         @Override
-        public TaskInfo createTask(Offer offer, NodeTask nodeTask) {
+        public TaskInfo createTask(Offer offer, TaskID taskId, NodeTask nodeTask) {
             Objects.requireNonNull(offer, "Offer should be non-null");
             Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
@@ -96,10 +97,8 @@ public interface TaskFactory {
                                     .setScalar(executorMemory).build())
                     .setExecutorId(executorId).setCommand(commandInfo).build();
 
-            TaskID taskId = TaskID.newBuilder().setValue(nodeTask.getTaskId())
-                    .build();
             TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
-                    .setName("task " + taskId.getValue()).setTaskId(taskId)
+                    .setName("task-" + taskId.getValue()).setTaskId(taskId)
                     .setSlaveId(offer.getSlaveId());
 
             // TODO (mohit): Configure ports for multi-tenancy

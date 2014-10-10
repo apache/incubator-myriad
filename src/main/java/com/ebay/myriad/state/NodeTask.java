@@ -16,44 +16,34 @@
 package com.ebay.myriad.state;
 
 import com.ebay.myriad.scheduler.NMProfile;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
 
 import java.util.UUID;
 
 public class NodeTask {
     @JsonProperty
-    private String taskId;
-    @JsonProperty
-    private String clusterId;
-    @JsonProperty
     private NMProfile profile;
     @JsonProperty
     private String hostname;
+    @JsonProperty
+    private Protos.SlaveID slaveId;
+    @JsonProperty
+    private Protos.TaskStatus taskStatus;
 
-    public NodeTask(String clusterId, NMProfile profile) {
+    public NodeTask(NMProfile profile) {
         super();
-        this.taskId = UUID.randomUUID().toString();
-        this.clusterId = clusterId;
         this.profile = profile;
         this.hostname = "";
     }
 
-    public String getTaskId() {
-        return taskId;
+    public Protos.SlaveID getSlaveId() {
+        return slaveId;
     }
 
-    public void setTaskId(String taskId) {
-        this.taskId = taskId;
-    }
-
-    public String getClusterId() {
-        return clusterId;
-    }
-
-    public void setClusterId(String clusterId) {
-        this.clusterId = clusterId;
+    public void setSlaveId(Protos.SlaveID slaveId) {
+        this.slaveId = slaveId;
     }
 
     public NMProfile getProfile() {
@@ -64,16 +54,19 @@ public class NodeTask {
         this.profile = profile;
     }
 
-    @JsonIgnore
-    public TaskID getMesosTaskId() {
-        return TaskID.newBuilder().setValue(taskId).build();
-    }
-
     public String getHostname() {
         return this.hostname;
     }
 
     public void setHostname(String hostname) {
         this.hostname = hostname;
+    }
+
+    public Protos.TaskStatus getTaskStatus() {
+        return taskStatus;
+    }
+
+    public void setTaskStatus(Protos.TaskStatus taskStatus) {
+        this.taskStatus = taskStatus;
     }
 }

@@ -20,6 +20,7 @@ import com.ebay.myriad.state.Cluster;
 import com.ebay.myriad.state.SchedulerState;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class DashboardView {
     public static final String TEMPLATE_NAME = "master.mustache";
@@ -30,22 +31,22 @@ public class DashboardView {
     }
 
     public Collection<String> getPendingTasks() {
-        return this.schedulerState.getPendingTaskIds();
+        return Collections.EMPTY_LIST;
     }
 
     public Collection<String> getStagingTasks() {
-        return this.schedulerState.getStagingTaskIds();
+        return Collections.EMPTY_LIST;
     }
 
     public Collection<String> getKillableTasks() {
-        return this.schedulerState.getKillableTasks();
+        return Collections.EMPTY_LIST;
     }
 
     public Collection<Cluster> getClusters() {
-        return this.schedulerState.getClusters().values();
+        return Collections.EMPTY_LIST;
     }
 
     public Collection<String> getActiveTasks() {
-        return this.schedulerState.getActiveTaskIds();
+        return Collections.EMPTY_LIST;
     }
 }

@@ -30,7 +30,7 @@ public class MyriadConfiguration {
     /**
      * By default rebalancer is turned off.
      */
-    public static final Boolean DEFAULT_REBALANCER = false;
+    public static final Boolean DEFAULT_REBALANCER = true;
 
     /**
      * By default framework failover timeout is 1 day.
