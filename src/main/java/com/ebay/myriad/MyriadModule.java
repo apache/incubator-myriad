@@ -23,6 +23,7 @@ import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 import org.apache.mesos.state.ZooKeeperState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public class MyriadModule extends AbstractModule {
         bind(TaskFactory.class).to(NMTaskFactoryImpl.class);
     }
 
-    @Provides
+    @Provides @Singleton
     SchedulerState providesSchedulerState(MyriadConfiguration cfg) {
         LOGGER.debug("Configuring SchedulerState provider");
         ZooKeeperState zkState = new ZooKeeperState(
