@@ -23,7 +23,7 @@ public class MyriadYarnSchedulerInterceptor implements YarnSchedulerInterceptor 
     @Override
     public void beforeReinitialize(Configuration conf, RMContext rmContext) throws IOException {
         try {
-            Main.initialize();
+            Main.initialize(conf);
         } catch (Exception e) {
             // Abort bringing up RM
             throw new RuntimeException("Failed to initialize myriad", e);
