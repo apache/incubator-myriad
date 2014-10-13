@@ -1,7 +1,10 @@
-mesosMaster: localhost:5050
+mesosMaster: 10.0.2.15:5050
 checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadAlpha
+nativeLibrary: /usr/local/lib/libmesos.so
+zkServers: localhost:2181
+zkTimeout: 20000
 profiles:
   small:
     cpu: 1
@@ -16,6 +19,7 @@ rebalancer: false
 nodemanager:
   jvmMaxMemoryMB: 1024
   user: hduser
+  cpus: 0.2
 executor:
   jvmMaxMemoryMB: 256
   path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar
