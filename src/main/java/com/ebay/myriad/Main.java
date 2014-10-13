@@ -70,12 +70,12 @@ public class Main {
         JmxReporter.forRegistry(new MetricRegistry()).build().start();
 
         initWebApp(injector);
-//        initHealthChecks(injector);
-//        initProfiles(cfg, injector);
-//        initDisruptors(injector);
-//        initRebalancerService(cfg, injector);
-//        initTerminatorService(injector);
-//        startMesosDriver(injector);
+        initHealthChecks(injector);
+        initProfiles(cfg, injector);
+        initDisruptors(injector);
+        initRebalancerService(cfg, injector);
+        initTerminatorService(injector);
+        startMesosDriver(injector);
     }
 
     private void startMesosDriver(Injector injector) {
