@@ -23,11 +23,14 @@ import com.ebay.myriad.health.MesosDriverHealthCheck;
 import com.ebay.myriad.health.MesosMasterHealthCheck;
 import com.ebay.myriad.health.ZookeeperHealthCheck;
 import com.ebay.myriad.scheduler.*;
+import com.ebay.myriad.webapp.MyriadWebServer;
+import com.ebay.myriad.webapp.WebAppGuiceModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.collections.MapUtils;
+import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,26 +43,25 @@ import java.util.concurrent.TimeUnit;
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
+    private MyriadWebServer webServer;
     private ScheduledExecutorService terminatorService;
 
     private ScheduledExecutorService rebalancerService;
     private HealthCheckRegistry healthCheckRegistry;
 
-    public static void main(String[] args) throws Exception {
-        initialize();
-    }
-
-    public static void initialize() throws Exception {
+    public static void initialize(Configuration hadoopConf) throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         MyriadConfiguration cfg = mapper.readValue(
                 Thread.currentThread().getContextClassLoader().getResource("myriad-config-default.yml"),
                 MyriadConfiguration.class);
-        new Main().run(cfg);
+        new Main().run(cfg, hadoopConf);
     }
 
-    public void run(MyriadConfiguration cfg) {
-        MyriadModule myriadModule = new MyriadModule(cfg);
-        Injector injector = Guice.createInjector(myriadModule);
+    public void run(MyriadConfiguration cfg, Configuration hadoopConf) throws Exception {
+        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf);
+        Injector injector = Guice.createInjector(
+            myriadModule,
+            new WebAppGuiceModule());
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Bindings: " + injector.getAllBindings());
@@ -67,7 +69,7 @@ public class Main {
 
         JmxReporter.forRegistry(new MetricRegistry()).build().start();
 
-        registerResources(injector);
+        initWebApp(injector);
         initHealthChecks(injector);
         initProfiles(cfg, injector);
         initDisruptors(injector);
@@ -77,20 +79,19 @@ public class Main {
     }
 
     private void startMesosDriver(Injector injector) {
+        LOGGER.info("starting mesosDriver..");
         injector.getInstance(MyriadDriverManager.class).startDriver();
+        LOGGER.info("started mesosDriver..");
     }
 
     /**
-     * Registers API resources.
+     * Brings up the embedded jetty webserver for serving REST APIs.
      *
      * @param injector
      */
-    private void registerResources(Injector injector) {
-        //TODO(Santosh): accomplish the below without dropwizard
-        //env.jersey().register(injector.getInstance(ConfigurationResource.class));
-        //env.jersey().register(injector.getInstance(DashboardResource.class));
-        //env.jersey().register(injector.getInstance(ClustersResource.class));
-        //env.jersey().register(injector.getInstance(SchedulerStateResource.class));
+    private void initWebApp(Injector injector) throws Exception {
+        webServer = injector.getInstance(MyriadWebServer.class);
+        webServer.start();
     }
 
     /**
