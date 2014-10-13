@@ -33,7 +33,6 @@ public class SchedulerState {
     private Set<Protos.TaskID> activeTasks;
     private Set<Protos.TaskID> lostTasks;
     private Set<Protos.TaskID> killableTasks;
-
     private MyriadState myriadState;
 
     public SchedulerState(MyriadState myriadState) {
@@ -174,4 +173,16 @@ public class SchedulerState {
     }
 
     public MyriadState getMyriadState() { return this.myriadState; }
+
+    public Collection<Protos.TaskStatus> getTaskStatuses() {
+        Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>(this.tasks.size());
+        Collection<NodeTask> tasks = this.tasks.values();
+        for (NodeTask task : tasks) {
+            Protos.TaskStatus taskStatus = task.getTaskStatus();
+            if (taskStatus != null)
+                taskStatuses.add(taskStatus);
+        }
+
+        return taskStatuses;
+    }
 }
