@@ -72,7 +72,7 @@ public class ResourceOffersEventHandler implements
                         if (matches(offer, profile)
                                 && SchedulerUtils.isUniqueHostname(offer,
                                 schedulerState.getActiveTasks())) {
-                            LOGGER.info("Offer {} matched profile {}", offer,
+                            LOGGER.debug("Offer {} matched profile {}", offer,
                                     profile);
                             TaskInfo task = taskFactory.createTask(offer, pendingTaskId,
                                     taskToLaunch);
@@ -80,7 +80,10 @@ public class ResourceOffersEventHandler implements
                             offerIds.add(offer.getId());
                             List<TaskInfo> tasks = new ArrayList<>();
                             tasks.add(task);
-                            LOGGER.info("Launching task: {} using offer: {}", task, offer);
+
+                            LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
+                            LOGGER.debug("Launching task: {} using offer: {}", task, offer);
+
                             driver.launchTasks(offerIds, tasks);
                             schedulerState.makeTaskStaging(pendingTaskId);
                             taskToLaunch.setHostname(offer.getHostname());

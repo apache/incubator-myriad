@@ -50,6 +50,7 @@ public class MyriadModule extends AbstractModule {
         bind(NMProfileManager.class).in(Scopes.SINGLETON);
         bind(DisruptorManager.class).in(Scopes.SINGLETON);
         bind(TaskFactory.class).to(NMTaskFactoryImpl.class);
+        bind(ReconcileService.class).in(Scopes.SINGLETON);
     }
 
     @Provides @Singleton

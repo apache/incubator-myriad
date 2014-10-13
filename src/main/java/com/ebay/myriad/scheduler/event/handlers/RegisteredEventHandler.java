@@ -15,6 +15,7 @@
  */
 package com.ebay.myriad.scheduler.event.handlers;
 
+import com.ebay.myriad.scheduler.ReconcileService;
 import com.ebay.myriad.scheduler.event.RegisteredEvent;
 import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
@@ -30,11 +31,15 @@ public class RegisteredEventHandler implements EventHandler<RegisteredEvent> {
     @Inject
     private SchedulerState schedulerState;
 
+    @Inject
+    private ReconcileService reconcileService;
+
     @Override
     public void onEvent(RegisteredEvent event, long sequence, boolean endOfBatch)
             throws Exception {
-        LOGGER.info("Received event: {}", event);
+        LOGGER.info("Received event: {} with frameworkId: {}", event, event.getFrameworkId());
         schedulerState.getMyriadState().setFrameworkId(event.getFrameworkId());
+        reconcileService.reconcile(event.getDriver());
     }
 
 }

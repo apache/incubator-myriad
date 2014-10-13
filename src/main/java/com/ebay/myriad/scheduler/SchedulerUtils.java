@@ -47,7 +47,7 @@ public class SchedulerUtils {
             match = offerAttributes.equals(requestAttributes);
         }
 
-        LOGGER.info("Match status: {} for offer: {} and requestAttributes: {}",
+        LOGGER.debug("Match status: {} for offer: {} and requestAttributes: {}",
                 match, offer, requestAttributes);
 
         return match;
@@ -67,7 +67,7 @@ public class SchedulerUtils {
                 uniqueHostname = false;
             }
         }
-        LOGGER.info("Offer's hostname {} is unique: {}", offerHostname,
+        LOGGER.debug("Offer's hostname {} is unique: {}", offerHostname,
                 uniqueHostname);
         return uniqueHostname;
     }

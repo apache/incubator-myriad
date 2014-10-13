@@ -15,20 +15,33 @@
  */
 package com.ebay.myriad.scheduler.event.handlers;
 
+import com.ebay.myriad.scheduler.ReconcileService;
 import com.ebay.myriad.scheduler.event.ReRegisteredEvent;
+import com.ebay.myriad.state.SchedulerState;
+import com.google.inject.Inject;
 import com.lmax.disruptor.EventHandler;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
 
 public class ReRegisteredEventHandler implements
         EventHandler<ReRegisteredEvent> {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(ReRegisteredEventHandler.class);
 
+    @Inject
+    private SchedulerState state;
+
+    @Inject
+    private ReconcileService reconcileService;
+
     @Override
     public void onEvent(ReRegisteredEvent event, long sequence,
                         boolean endOfBatch) throws Exception {
-        LOGGER.info("Framework reregistered: {}", event);
+        LOGGER.info("Framework re-registered: {}", event);
+        reconcileService.reconcile(event.getDriver());
     }
 
 }
