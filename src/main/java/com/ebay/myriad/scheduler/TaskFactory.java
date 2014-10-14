@@ -15,10 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 
 public interface TaskFactory {
     TaskInfo createTask(Offer offer, TaskID taskId, NodeTask nodeTask);
@@ -26,6 +24,8 @@ public interface TaskFactory {
     class NMTaskFactoryImpl implements TaskFactory {
         public static final String EXECUTOR_NAME = "myriad_task";
         public static final String EXECUTOR_PREFIX = "myriad_executor";
+        public static final String NM_CPU_ENV = "nodemanager.resource.cpu-vcores";
+        public static final String NM_MEM_ENV = "nodemanager.resource.memory-mb";
         private static final Logger LOGGER = LoggerFactory
                 .getLogger(NMTaskFactoryImpl.class);
         private MyriadConfiguration cfg;
@@ -88,9 +88,17 @@ public interface TaskFactory {
                         .setValue(value).build());
             }
 
+            // Setting NodeManager CPU and Mem
+            environment.addVariables(Environment.Variable.newBuilder()
+                    .setName(NM_CPU_ENV)
+                    .setValue(taskUtils.getNodeManagerCpus()+"").build());
+            environment.addVariables(Environment.Variable.newBuilder()
+                    .setName(NM_MEM_ENV)
+                    .setValue(taskUtils.getNodeManagerMemory()+"").build());
+
             CommandInfo commandInfo = CommandInfo.newBuilder()
                     .addUris(executorURI).setUser(nmTaskConfig.getUser())
-                    .setValue("export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar " + getFileName(executorPath)).setUser("hduser")
+                    .setValue("export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar " + getFileName(executorPath))
                     .setEnvironment(environment).build();
 
             ExecutorID executorId = Protos.ExecutorID.newBuilder()
