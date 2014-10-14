@@ -8,18 +8,10 @@ import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.TaskStatus.Builder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class MyriadExecutor implements Executor {
-    // private static final String NM_COMMAND =
-    // "sudo -H -u %s bash -c \"$YARN_HOME/bin/yarn nodemanager\"";
-    // private static final String[] NM_COMMAND = { "bash", "--rcfile",
-    // "~/.bashrc", "-c", "\"", "cat",
-    // "~/.bashrc", "\"" };
-
     /**
      * Allot 10% more memory to account for JVM overhead.
      */
@@ -35,11 +27,6 @@ public class MyriadExecutor implements Executor {
      */
     public static final double DEFAULT_CPUS = 0.2;
 
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(MyriadExecutor.class);
-
-    private static final String NM_COMMAND = "sudo -H -u %s bash -c '$YARN_HOME/bin/yarn nodemanager'";
-
     public static final Gson GSON = new Gson();
 
     private SlaveInfo slaveInfo;
@@ -52,14 +39,13 @@ public class MyriadExecutor implements Executor {
   cmdline = "MY_TASK_ID=`pwd | awk -F'/' '{ print $(NF-1) }'` && echo %s && echo 'hadoop' | sudo -S chown -R root:root %s && echo 'hadoop' | sudo -S chmod -R 777 %s && mkdir -p %s && echo 'hadoop' | sudo -S chown -R root:root %s && echo 'hadoop' | sudo -S chmod -R 777 %s" % (CGROUP_DIR_NM, CGROUP_DIR_TASK, CGROUP_DIR_TASK, CGROUP_DIR_NM, CGROUP_DIR_TASK, CGROUP_DIR_TASK)
 )
      */
-    private static final String MAKE_CGROUPS_DIR = "";
+//    private static final String MAKE_CGROUPS_DIR = "";
 
   //cmdline = "MY_TASK_ID=`pwd | awk -F'/' '{ print $(NF-1) }'` && echo 'hadoop' | sudo -S sed -i \"s@mesos.*/hadoop-yarn@mesos/$MY_TASK_ID/hadoop-yarn@g\" /usr/local/hadoop/etc/hadoop/yarn-site.xml"
-    private static final String CONFIGURE_CGROUPS = "";
+//    private static final String CONFIGURE_CGROUPS = "";
 
-    private static final String START = "source ~/.bashrc; $YARN_HOME/sbin/yarn-daemons.sh start nodemanager";
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        System.out.println("Starting MyriadExecutor...");
         MesosExecutorDriver driver = new MesosExecutorDriver(
                 new MyriadExecutor());
         System.exit(driver.run() == Status.DRIVER_STOPPED ? 0 : 1);
@@ -68,19 +54,18 @@ public class MyriadExecutor implements Executor {
     @Override
     public void registered(ExecutorDriver driver, ExecutorInfo executorInfo,
                            FrameworkInfo frameworkInfo, SlaveInfo slaveInfo) {
-        LOGGER.info("Registered {} for framework {} on mesos slave {}",
-                executorInfo, frameworkInfo, slaveInfo);
+        System.out.println("Registered "+ executorInfo +" for framework " + frameworkInfo + " on mesos slave " + slaveInfo);
         this.slaveInfo = slaveInfo;
     }
 
     @Override
     public void reregistered(ExecutorDriver driver, SlaveInfo slaveInfo) {
-        LOGGER.info("ReRegistered");
+        System.out.println("ReRegistered");
     }
 
     @Override
     public void disconnected(ExecutorDriver driver) {
-        LOGGER.info("Disconnected");
+        System.out.println("Disconnected");
     }
 
     @Override
@@ -92,9 +77,11 @@ public class MyriadExecutor implements Executor {
                 try {
                     NMTaskConfig taskConfig = GSON.fromJson(task.getData()
                             .toStringUtf8(), NMTaskConfig.class);
+                    System.out.println("TaskConfig: " + taskConfig);
                     ProcessBuilder processBuilder = buildProcessBuilder(task,
                             taskConfig);
                     MyriadExecutor.this.process = processBuilder.start();
+
                     int waitFor = MyriadExecutor.this.process.waitFor();
 
                     if (waitFor == 0) {
@@ -103,7 +90,7 @@ public class MyriadExecutor implements Executor {
                         statusBuilder.setState(TaskState.TASK_FAILED);
                     }
                 } catch (InterruptedException | IOException e) {
-                    LOGGER.error(e.getMessage(), e);
+                    System.out.println(e);
                     statusBuilder.setState(TaskState.TASK_FAILED);
                 } finally {
                     driver.sendStatusUpdate(statusBuilder.build());
@@ -117,7 +104,7 @@ public class MyriadExecutor implements Executor {
 
     private ProcessBuilder buildProcessBuilder(TaskInfo task,
                                                NMTaskConfig taskConfig) {
-        ProcessBuilder processBuilder = new ProcessBuilder(NM_COMMAND);
+        ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", "$YARN_HOME/bin/yarn nodemanager");
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         return processBuilder;
@@ -125,7 +112,7 @@ public class MyriadExecutor implements Executor {
 
     @Override
     public void killTask(ExecutorDriver driver, TaskID taskId) {
-        LOGGER.info("KillTask received for taskId: {}", taskId.getValue());
+        System.out.println("KillTask received for taskId: " + taskId.getValue());
         this.process.destroy();
         TaskStatus status = TaskStatus.newBuilder().setTaskId(taskId)
                 .setState(TaskState.TASK_KILLED).build();
@@ -134,35 +121,16 @@ public class MyriadExecutor implements Executor {
 
     @Override
     public void frameworkMessage(ExecutorDriver driver, byte[] data) {
-        LOGGER.info("Framework message received: {}", new String(data));
+        System.out.println("Framework message received: " + new String(data));
     }
 
     @Override
     public void shutdown(ExecutorDriver driver) {
-        LOGGER.info("Shutdown");
+        System.out.println("Shutdown");
     }
 
     @Override
     public void error(ExecutorDriver driver, String message) {
-        LOGGER.error("Error message: {}", message);
-    }
-
-    private String getCommand(String commandTemplate, TaskInfo taskInfo) {
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(commandTemplate),
-                "Command template cannot be null or empty");
-        Preconditions
-                .checkArgument(taskInfo != null, "TaskInfo cannot be null");
-        Preconditions.checkArgument(taskInfo.getData() != null,
-                "Data field cannot be null");
-
-        String taskJson = taskInfo.getData().toStringUtf8();
-
-        NMTaskConfig taskConfig = null;
-
-        String command = null;
-        taskConfig = GSON.fromJson(taskJson, NMTaskConfig.class);
-        command = String.format(NM_COMMAND, taskConfig.getUser());
-
-        return command;
+        System.out.println("Error message: " + message);
     }
 }
