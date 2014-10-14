@@ -18,9 +18,13 @@ ext {
     metricsVer = "3.1.0"
 }
 
+configurations.create('myriadExecutorConf')
+
 configurations {
 	provided
 	capsule
+    myriadExecutorConf
+    myriadExecutorConf.transitive = false
     // exclude hadoop/yarn deps for 'runtime'
     runtime.exclude group: 'org.apache.hadoop', module: '*'
 }
@@ -32,6 +36,7 @@ repositories {
 
 dependencies {
     capsule "co.paralleluniverse:capsule:0.7.1"
+    myriadExecutorConf 'org.slf4j:slf4j-log4j12:1.7.7'
     compile "org.apache.mesos:mesos:${mesosVer}"
     compile "org.apache.hadoop:hadoop-common:${hadoopVer}"
     compile "org.apache.hadoop:hadoop-yarn-common:${hadoopVer}"
@@ -89,6 +94,7 @@ task capsuleExecutor(type: Jar, dependsOn: jar) {
 
     from jar
     from { configurations.runtime }
+    from { configurations.myriadExecutorConf }
 	from { sourceSets.main.resources }
 
     from(configurations.capsule.collect { zipTree(it) }) { include 'Capsule.class' }
