@@ -15,6 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -76,9 +78,20 @@ public interface TaskFactory {
                     .getPath();
             URI executorURI = URI.newBuilder().setValue(executorPath)
                     .setExecutable(true).build();
+
+            Environment.Builder environment = Environment.newBuilder();
+            Map<String, String> yarnEnvironment = cfg.getYarnEnvironment();
+            for (String key: yarnEnvironment.keySet()) {
+                String value = yarnEnvironment.get(key);
+                environment.addVariables(Environment.Variable.newBuilder()
+                        .setName(key)
+                        .setValue(value).build());
+            }
+
             CommandInfo commandInfo = CommandInfo.newBuilder()
                     .addUris(executorURI).setUser(nmTaskConfig.getUser())
-                    .setValue("java -jar " + getFileName(executorPath)).build();
+                    .setValue("export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar " + getFileName(executorPath)).setUser("hduser")
+                    .setEnvironment(environment).build();
 
             ExecutorID executorId = Protos.ExecutorID.newBuilder()
                     .setValue(EXECUTOR_PREFIX + offer.getSlaveId().getValue())
