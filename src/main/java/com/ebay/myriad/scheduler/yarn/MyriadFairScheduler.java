@@ -9,14 +9,14 @@ import java.io.IOException;
 /**
  * {@link MyriadFairScheduler} just extends YARN's {@link FairScheduler} and
  * allows some of the {@link FairScheduler} methods to be intercepted
- * via the {@link YarnSchedulerInterceptor} interface.
+ * via the {@link YarnSchedulerPlugin} interface.
  */
 public class MyriadFairScheduler extends FairScheduler {
-    private final YarnSchedulerInterceptor interceptor;
+    private final YarnSchedulerPlugin yarnSchedulerPlugin;
 
     public MyriadFairScheduler() {
         super();
-        this.interceptor = new MyriadYarnSchedulerInterceptor();
+        this.yarnSchedulerPlugin = new MyriadYarnSchedulerPlugin();
     }
 
     /**
@@ -25,13 +25,13 @@ public class MyriadFairScheduler extends FairScheduler {
 
     @Override
     public void reinitialize(Configuration conf, RMContext rmContext) throws IOException {
-        this.interceptor.beforeReinitialize(conf, rmContext);
+        this.yarnSchedulerPlugin.init(conf, this);
         super.reinitialize(conf, rmContext);
     }
 
     @Override
     public void serviceInit(Configuration conf) throws Exception {
-        this.reinitialize(conf, null);
+        this.yarnSchedulerPlugin.init(conf, this);
         super.serviceInit(conf);
     }
 }
