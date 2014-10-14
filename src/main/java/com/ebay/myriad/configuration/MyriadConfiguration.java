@@ -82,6 +82,10 @@ public class MyriadConfiguration {
     @JsonProperty
     private Integer zkTimeout;
 
+    @JsonProperty
+    @NotEmpty
+    private Map<String, String> yarnEnvironment;
+
     public String getMesosMaster() {
         return mesosMaster;
     }
@@ -125,4 +129,8 @@ public class MyriadConfiguration {
     public String getZkServers() { return this.zkServers; }
 
     public Integer getZkTimeout() { return this.zkTimeout != null ? this.zkTimeout : DEFAULT_ZK_TIMEOUT; }
+
+    public Map<String, String> getYarnEnvironment() {
+        return yarnEnvironment;
+    }
 }
