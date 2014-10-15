@@ -41,6 +41,10 @@ public class StatusUpdateEventHandler implements
         TaskStatus status = event.getStatus();
         this.schedulerState.updateTask(status);
         TaskID taskId = status.getTaskId();
+        if (!schedulerState.hasTask(taskId)) {
+            LOGGER.warn("Task: {} not found, status: {}", taskId, status.getState());
+            return;
+        }
         LOGGER.info("Status Update for task: {} | state: {}", taskId,
                 status.getState());
         TaskState state = status.getState();

@@ -185,4 +185,8 @@ public class SchedulerState {
 
         return taskStatuses;
     }
+
+    public boolean hasTask(Protos.TaskID taskID) {
+        return this.tasks.containsKey(taskID);
+    }
 }
