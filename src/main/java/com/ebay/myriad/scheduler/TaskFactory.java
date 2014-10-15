@@ -91,10 +91,10 @@ public interface TaskFactory {
             // Setting NodeManager CPU and Mem
             environment.addVariables(Environment.Variable.newBuilder()
                     .setName(NM_CPU_ENV)
-                    .setValue(taskUtils.getNodeManagerCpus()+"").build());
+                    .setValue(profile.getCpus()+"").build());
             environment.addVariables(Environment.Variable.newBuilder()
                     .setName(NM_MEM_ENV)
-                    .setValue(taskUtils.getNodeManagerMemory()+"").build());
+                    .setValue(profile.getMemory()+"").build());
 
             CommandInfo commandInfo = CommandInfo.newBuilder()
                     .addUris(executorURI).setUser(nmTaskConfig.getUser())

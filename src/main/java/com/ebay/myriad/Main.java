@@ -123,9 +123,9 @@ public class Main {
                 if (MapUtils.isNotEmpty(profiles)
                         && profileResourceMap.containsKey("cpu")
                         && profileResourceMap.containsKey("mem")) {
-                    double cpu = Double.parseDouble(profileResourceMap
+                    Long cpu = Long.parseLong(profileResourceMap
                             .get("cpu"));
-                    double mem = Double.parseDouble(profileResourceMap
+                    Long mem = Long.parseLong(profileResourceMap
                             .get("mem"));
 
                     profileManager.add(new NMProfile(profileKey, cpu, mem));
