@@ -13,8 +13,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
-public class
-        MyriadExecutor implements Executor {
+public class MyriadExecutor implements Executor {
     public static final String ENV_YARN_NODEMANAGER_OPTS = "YARN_NODEMANAGER_OPTS";
 
     /**
