@@ -18,6 +18,7 @@ package com.ebay.myriad.scheduler;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
@@ -48,7 +49,8 @@ public class TaskTerminator implements Runnable {
 
     @Override
     public void run() {
-        Set<TaskID> killableTasks = schedulerState.getKillableTasks();
+        // clone a copy of the killable tasks
+        Set<TaskID> killableTasks = Sets.newHashSet(schedulerState.getKillableTasks());
 
         if (CollectionUtils.isEmpty(killableTasks)) {
             return;

@@ -23,6 +23,7 @@ import com.ebay.myriad.health.MesosDriverHealthCheck;
 import com.ebay.myriad.health.MesosMasterHealthCheck;
 import com.ebay.myriad.health.ZookeeperHealthCheck;
 import com.ebay.myriad.scheduler.*;
+import com.ebay.myriad.scheduler.yarn.YarnSchedulerInterceptor;
 import com.ebay.myriad.webapp.MyriadWebServer;
 import com.ebay.myriad.webapp.WebAppGuiceModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,16 +49,16 @@ public class Main {
     private ScheduledExecutorService rebalancerService;
     private HealthCheckRegistry healthCheckRegistry;
 
-    public static void initialize(Configuration hadoopConf) throws Exception {
+    public static void initialize(Configuration hadoopConf, YarnSchedulerInterceptor interceptor) throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         MyriadConfiguration cfg = mapper.readValue(
                 Thread.currentThread().getContextClassLoader().getResource("myriad-config-default.yml"),
                 MyriadConfiguration.class);
-        new Main().run(cfg, hadoopConf);
+        new Main().run(cfg, hadoopConf, interceptor);
     }
 
-    public void run(MyriadConfiguration cfg, Configuration hadoopConf) throws Exception {
-        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf);
+    public void run(MyriadConfiguration cfg, Configuration hadoopConf, YarnSchedulerInterceptor interceptor) throws Exception {
+        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, interceptor);
         Injector injector = Guice.createInjector(
             myriadModule,
             new WebAppGuiceModule());
