@@ -47,6 +47,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box_url = "https://vagrantcloud.com/ubuntu/trusty64/version/1/provider/virtualbox.box"
 
   # Forward mesos master and slave ports
+  config.vm.network "forwarded_port", guest: 5005, host: 5005
   config.vm.network "forwarded_port", guest: 5050, host: 5050
   config.vm.network "forwarded_port", guest: 5051, host: 5051
 
@@ -60,6 +61,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "forwarded_port", guest: 8088, host: 8088
   config.vm.network "forwarded_port", guest: 8042, host: 8042
   config.vm.network "forwarded_port", guest: 19888, host: 19888
+  config.vm.network "forwarded_port", guest: 8192, host: 8192
 
   config.vm.provision "shell", inline: $provision_script
 
