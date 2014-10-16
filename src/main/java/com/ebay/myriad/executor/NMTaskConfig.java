@@ -1,11 +1,15 @@
 package com.ebay.myriad.executor;
 
+import java.util.Map;
+
 public class NMTaskConfig {
     private String user;
     private String yarnHome;
-    private double advertisableCpus;
-    private double advertisableMem;
+    private Long advertisableCpus;
+    private Long advertisableMem;
     private String jvmOpts;
+    private Boolean cgroups;
+    private Map<String, String> yarnEnvironment;
 
     public String getUser() {
         return user;
@@ -23,19 +27,19 @@ public class NMTaskConfig {
         this.yarnHome = yarnHome;
     }
 
-    public double getAdvertisableCpus() {
+    public Long getAdvertisableCpus() {
         return advertisableCpus;
     }
 
-    public void setAdvertisableCpus(double advertisableCpus) {
+    public void setAdvertisableCpus(Long advertisableCpus) {
         this.advertisableCpus = advertisableCpus;
     }
 
-    public double getAdvertisableMem() {
+    public Long getAdvertisableMem() {
         return advertisableMem;
     }
 
-    public void setAdvertisableMem(double advertisableMem) {
+    public void setAdvertisableMem(Long advertisableMem) {
         this.advertisableMem = advertisableMem;
     }
 
@@ -47,4 +51,19 @@ public class NMTaskConfig {
         this.jvmOpts = jvmOpts;
     }
 
+    public Boolean getCgroups() {
+        return cgroups;
+    }
+
+    public void setCgroups(Boolean cgroups) {
+        this.cgroups = cgroups;
+    }
+
+    public Map<String, String> getYarnEnvironment() {
+        return yarnEnvironment;
+    }
+
+    public void setYarnEnvironment(Map<String, String> yarnEnvironment) {
+        this.yarnEnvironment = yarnEnvironment;
+    }
 }

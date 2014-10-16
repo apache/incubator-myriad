@@ -41,6 +41,12 @@ public class NodeManagerConfiguration {
     @JsonProperty
     private String jvmOpts;
 
+    /**
+     * Determines if cgroups are enabled for NM or not.
+     */
+    @JsonProperty
+    private Boolean cgroups;
+
     public Optional<Double> getJvmMaxMemoryMB() {
         return Optional.fromNullable(jvmMaxMemoryMB);
     }
@@ -56,4 +62,6 @@ public class NodeManagerConfiguration {
     public Optional<String> getUser() {
         return Optional.fromNullable(user);
     }
+
+    public Optional<Boolean> getCgroups() { return Optional.fromNullable(cgroups); }
 }

@@ -1,6 +1,7 @@
 package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.executor.NMTaskConfig;
 import com.ebay.myriad.state.NodeTask;
 import com.google.common.base.Preconditions;
@@ -15,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.Map;
 import java.util.Objects;
 
 public interface TaskFactory {
@@ -24,8 +24,7 @@ public interface TaskFactory {
     class NMTaskFactoryImpl implements TaskFactory {
         public static final String EXECUTOR_NAME = "myriad_task";
         public static final String EXECUTOR_PREFIX = "myriad_executor";
-        public static final String NM_CPU_ENV = "nodemanager.resource.cpu-vcores";
-        public static final String NM_MEM_ENV = "nodemanager.resource.memory-mb";
+
         private static final Logger LOGGER = LoggerFactory
                 .getLogger(NMTaskFactoryImpl.class);
         private MyriadConfiguration cfg;
@@ -56,12 +55,15 @@ public interface TaskFactory {
 
             NMProfile profile = nodeTask.getProfile();
             NMTaskConfig nmTaskConfig = new NMTaskConfig();
-            nmTaskConfig.setAdvertisableCpus(taskUtils.getTaskCpus(profile));
-            nmTaskConfig.setAdvertisableMem(taskUtils.getTaskMemory(profile));
-            nmTaskConfig.setUser(this.cfg.getNodeManagerConfiguration()
+            nmTaskConfig.setAdvertisableCpus(profile.getCpus());
+            nmTaskConfig.setAdvertisableMem(profile.getMemory());
+            NodeManagerConfiguration nodeManagerConfiguration = this.cfg.getNodeManagerConfiguration();
+            nmTaskConfig.setUser(nodeManagerConfiguration
                     .getUser().orNull());
-            nmTaskConfig.setJvmOpts(this.cfg.getNodeManagerConfiguration()
+            nmTaskConfig.setJvmOpts(nodeManagerConfiguration
                     .getJvmOpts().orNull());
+            nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
+            nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());
 
             String taskConfigJSON = new Gson().toJson(nmTaskConfig);
 
@@ -79,27 +81,10 @@ public interface TaskFactory {
             URI executorURI = URI.newBuilder().setValue(executorPath)
                     .setExecutable(true).build();
 
-            Environment.Builder environment = Environment.newBuilder();
-            Map<String, String> yarnEnvironment = cfg.getYarnEnvironment();
-            for (String key: yarnEnvironment.keySet()) {
-                String value = yarnEnvironment.get(key);
-                environment.addVariables(Environment.Variable.newBuilder()
-                        .setName(key)
-                        .setValue(value).build());
-            }
-
-            // Setting NodeManager CPU and Mem
-            environment.addVariables(Environment.Variable.newBuilder()
-                    .setName(NM_CPU_ENV)
-                    .setValue(profile.getCpus()+"").build());
-            environment.addVariables(Environment.Variable.newBuilder()
-                    .setName(NM_MEM_ENV)
-                    .setValue(profile.getMemory()+"").build());
-
             CommandInfo commandInfo = CommandInfo.newBuilder()
-                    .addUris(executorURI).setUser(nmTaskConfig.getUser())
+                    .addUris(executorURI).setUser("root")
                     .setValue("export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar " + getFileName(executorPath))
-                    .setEnvironment(environment).build();
+                    .build();
 
             ExecutorID executorId = Protos.ExecutorID.newBuilder()
                     .setValue(EXECUTOR_PREFIX + offer.getSlaveId().getValue())
