@@ -16,35 +16,34 @@
 package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
-import com.ebay.myriad.state.Cluster;
+import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.Inject;
-import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
 
 public class MyriadOperations {
     private static final Logger LOGGER = LoggerFactory
             .getLogger(MyriadOperations.class);
-
+    private final SchedulerState schedulerState;
     private MyriadConfiguration cfg;
-    private SchedulerState schedulerState;
     private NMProfileManager profileManager;
+    private NodeScaleDownPolicy nodeScaleDownPolicy;
 
     @Inject
     public MyriadOperations(MyriadConfiguration cfg,
-                            SchedulerState schedulerState, NMProfileManager profileManager) {
-        super();
+                            SchedulerState schedulerState,
+                            NMProfileManager profileManager,
+                            NodeScaleDownPolicy nodeScaleDownPolicy) {
         this.cfg = cfg;
         this.schedulerState = schedulerState;
         this.profileManager = profileManager;
+        this.nodeScaleDownPolicy = nodeScaleDownPolicy;
     }
 
     public void flexUpCluster(int instances, String profile) {
@@ -58,13 +57,20 @@ public class MyriadOperations {
     }
 
     public void flexDownCluster(int n) {
-        AtomicInteger instances = new AtomicInteger(n);
-        Set<Protos.TaskID> activeTaskIds = this.schedulerState.getActiveTaskIds();
-        Iterator<Protos.TaskID> iterator = activeTaskIds.iterator();
-        while (instances.get() > 0) {
-            this.schedulerState.makeTaskKillable(iterator.next());
-            instances.decrementAndGet();
+        LOGGER.info("About to flex down {} instances", n);
+        List<String> nodesToScaleDown = nodeScaleDownPolicy.getNodesToScaleDown();
+
+        // TODO(Santosh): Make this more efficient by using a Map<HostName, NodeTask> in scheduler state
+        for (int i = 0; i < n; i++) {
+            for (NodeTask nodeTask : this.schedulerState.getActiveTasks()) {
+                if (nodesToScaleDown.get(i).equals(nodeTask.getHostname())) {
+                    this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Marked NodeTask {} on host {} for kill.",
+                            nodeTask.getTaskStatus().getTaskId(), nodeTask.getHostname());
+                    }
+                }
+            }
         }
-        LOGGER.info("Removed {} instances from cluster", instances);
     }
 }

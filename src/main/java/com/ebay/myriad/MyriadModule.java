@@ -16,8 +16,11 @@
 package com.ebay.myriad;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.policy.LeastAMNodesFirstPolicy;
+import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.scheduler.*;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
+import com.ebay.myriad.scheduler.yarn.YarnSchedulerInterceptor;
 import com.ebay.myriad.state.MyriadState;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.AbstractModule;
@@ -37,16 +40,19 @@ public class MyriadModule extends AbstractModule {
 
     private MyriadConfiguration cfg;
     private Configuration hadoopConf;
+    private YarnSchedulerInterceptor interceptor;
 
-    public MyriadModule(MyriadConfiguration cfg, Configuration hadoopConf) {
+    public MyriadModule(MyriadConfiguration cfg, Configuration hadoopConf, YarnSchedulerInterceptor interceptor) {
         this.cfg = cfg;
         this.hadoopConf = hadoopConf;
+        this.interceptor = interceptor;
     }
 
     @Override
     protected void configure() {
         LOGGER.debug("Configuring guice");
         bind(MyriadConfiguration.class).toInstance(cfg);
+        bind(YarnSchedulerInterceptor.class).toInstance(interceptor);
         bind(Configuration.class).toInstance(hadoopConf);
         bind(MyriadDriver.class).in(Scopes.SINGLETON);
         bind(MyriadDriverManager.class).in(Scopes.SINGLETON);
@@ -55,6 +61,9 @@ public class MyriadModule extends AbstractModule {
         bind(DisruptorManager.class).in(Scopes.SINGLETON);
         bind(TaskFactory.class).to(NMTaskFactoryImpl.class);
         bind(ReconcileService.class).in(Scopes.SINGLETON);
+
+        //TODO(Santosh): Should be configurable as well
+        bind(NodeScaleDownPolicy.class).to(LeastAMNodesFirstPolicy.class).in(Scopes.SINGLETON);
     }
 
     @Provides @Singleton
