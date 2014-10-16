@@ -18,9 +18,6 @@ package com.ebay.myriad.state;
 import com.ebay.myriad.scheduler.NMProfile;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.TaskID;
-
-import java.util.UUID;
 
 public class NodeTask {
     @JsonProperty

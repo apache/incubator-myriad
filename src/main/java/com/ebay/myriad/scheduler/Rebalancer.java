@@ -16,15 +16,12 @@
 package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
-import com.ebay.myriad.state.Cluster;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
-import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.Map;
 
 /**
  * {@link Rebalancer} is responsible for scaling registered YARN clusters as per

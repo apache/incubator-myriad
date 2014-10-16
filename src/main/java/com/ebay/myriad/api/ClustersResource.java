@@ -16,22 +16,23 @@
 package com.ebay.myriad.api;
 
 import com.codahale.metrics.annotation.Timed;
-import com.ebay.myriad.api.model.*;
+import com.ebay.myriad.api.model.FlexDownClusterRequest;
+import com.ebay.myriad.api.model.FlexUpClusterRequest;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.scheduler.MyriadOperations;
 import com.ebay.myriad.scheduler.NMProfileManager;
-import com.ebay.myriad.state.Cluster;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 @Path("/api/cluster")
 @Produces(MediaType.APPLICATION_JSON)

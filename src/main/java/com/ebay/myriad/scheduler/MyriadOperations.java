@@ -16,7 +16,6 @@
 package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
-import com.ebay.myriad.state.Cluster;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.Inject;

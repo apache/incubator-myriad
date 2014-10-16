@@ -16,7 +16,6 @@
 package com.ebay.myriad.api.model;
 
 import java.util.Collection;
-import java.util.Set;
 
 public class GetSchedulerStateResponse {
     private Collection<String> pendingTasks;

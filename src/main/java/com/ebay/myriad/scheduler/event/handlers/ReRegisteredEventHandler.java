@@ -20,11 +20,8 @@ import com.ebay.myriad.scheduler.event.ReRegisteredEvent;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.Inject;
 import com.lmax.disruptor.EventHandler;
-import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 public class ReRegisteredEventHandler implements
         EventHandler<ReRegisteredEvent> {
