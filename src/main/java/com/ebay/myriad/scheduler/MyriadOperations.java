@@ -19,13 +19,16 @@ import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MyriadOperations {
     private static final Logger LOGGER = LoggerFactory
@@ -56,15 +59,23 @@ public class MyriadOperations {
         this.schedulerState.addNodes(nodes);
     }
 
-    public void flexDownCluster(int n) {
-        LOGGER.info("About to flex down {} instances", n);
+    public void flexDownCluster(int numInstances) {
+        LOGGER.info("About to flex down {} instances", numInstances);
+
+        int numScaledDown = 0;
+        Set<NodeTask> activeTasks = Sets.newHashSet(this.schedulerState.getActiveTasks());
         List<String> nodesToScaleDown = nodeScaleDownPolicy.getNodesToScaleDown();
+        if (activeTasks.size() > nodesToScaleDown.size()) {
+            LOGGER.info("Will skip flexing down {} Node Manager instances that were launched but " +
+                "have not yet registered with Resource Manager.", activeTasks.size() - nodesToScaleDown.size());
+        }
 
         // TODO(Santosh): Make this more efficient by using a Map<HostName, NodeTask> in scheduler state
-        for (int i = 0; i < n; i++) {
-            for (NodeTask nodeTask : this.schedulerState.getActiveTasks()) {
-                if (nodesToScaleDown.get(i).equals(nodeTask.getHostname())) {
+        for (int i = 0; i < numInstances; i++) {
+            for (NodeTask nodeTask : activeTasks) {
+                if (nodesToScaleDown.size() > i && nodesToScaleDown.get(i).equals(nodeTask.getHostname())) {
                     this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
+                    numScaledDown++;
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Marked NodeTask {} on host {} for kill.",
                             nodeTask.getTaskStatus().getTaskId(), nodeTask.getHostname());
@@ -72,5 +83,22 @@ public class MyriadOperations {
                 }
             }
         }
+
+        int numPendingTasksScaledDown = 0;
+        if (numScaledDown < numInstances) {
+            Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds());
+            // flex down pending tasks, if any
+            for (Protos.TaskID taskId : pendingTasks) {
+                this.schedulerState.makeTaskKillable(taskId);
+                numScaledDown++;
+                numPendingTasksScaledDown++;
+                if (numScaledDown == numInstances) {
+                    break;
+                }
+            }
+        }
+
+        LOGGER.info("Flexed down {} of {} instances including {} pending instances.",
+            numScaledDown, numInstances, numPendingTasksScaledDown);
     }
 }
