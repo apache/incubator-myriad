@@ -40,4 +40,4 @@ Myriad can launch NodeManager as a task under Mesos Slave, let's look at how:
    a. It passes the required configuration and task launch information to Mesos Master which forwards that to the Mesos Slave(s).    b. Mesos Slave launches Myriad Executor which will manage the lifecycle of the NodeManager.
    c. Myriad Executor upon launch, configures Node Manager appropriately like specifying CPU and memory to advertise, cgroups hierarchy, etc. and then launches it. For ex: In the above diagram, Node Manager is allotted 2.5 CPU and 2.5 GB RAM.
 2. NodeManager, upon startup, advertises configured resources to YARN's Resource Manager. In the above example, 2 CPU and 2 GB RAM are advertised. The rest of the resources are used by Myriad Executor and NodeManager process itself to run.
-3. YARN's Resource Manager can launch containers now, via this Node Manager. The launched containers will be mounted under the configured cgroup hierarchy, as explained earlier.
+3. YARN's Resource Manager can launch containers now, via this Node Manager. The launched containers will be mounted under the configured cgroup hierarchy, as explained in [cgroups doc](cgroups.md).
