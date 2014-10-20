@@ -57,9 +57,6 @@ sudo -u hduser sh -c '/usr/local/hadoop/sbin/hadoop-daemon.sh start namenode'
 # Start DataNode
 sudo -u hduser sh -c '/usr/local/hadoop/sbin/hadoop-daemons.sh start datanode'
 
-# Start ResourceManager
-sudo -u hduser sh -c '/usr/local/hadoop/sbin/yarn-daemon.sh start resourcemanager'
-
 # Start HistoryServer
 sudo -u hduser sh -c '/usr/local/hadoop/sbin/mr-jobhistory-daemon.sh start historyserver'
 
