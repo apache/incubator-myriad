@@ -6,6 +6,7 @@ import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeRemovedSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateSchedulerEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ public class LeastAMNodesFirstPolicy implements NodeScaleDownPolicy, YarnSchedul
 
     //TODO(Santosh): Should figure out the right values for the hashmap properties.
     // currently it's tuned for 200 nodes and 50 RM RPC threads (Yarn's default).
-    private Map<SchedulerNode, NodeId> schedulerNodes = new ConcurrentHashMap<>(200, 0.75f, 50);
+    private Map<String, SchedulerNode> schedulerNodes = new ConcurrentHashMap<>(200, 0.75f, 50);
 
     @Inject
     public LeastAMNodesFirstPolicy(YarnSchedulerInterceptor interceptor) {
@@ -35,7 +36,15 @@ public class LeastAMNodesFirstPolicy implements NodeScaleDownPolicy, YarnSchedul
 
     @Override
     public List<String> getNodesToScaleDown() {
-        List<SchedulerNode> nodes = Lists.newArrayList(this.schedulerNodes.keySet());
+        List<SchedulerNode> nodes = Lists.newArrayList(this.schedulerNodes.values());
+
+        if (LOGGER.isDebugEnabled()) {
+            for (SchedulerNode node : nodes) {
+                    LOGGER.debug("Host {} is running {} containers including {} App Masters",
+                        node.getNodeID().getHost(), node.getRunningContainers().size(),
+                        getNumAMContainers(node.getRunningContainers()));
+            }
+        }
         // We need to lock the YARN scheduler here. If we don't do that, then the YARN scheduler can
         // process HBs from NodeManagers and the state of SchedulerNode objects might change while we
         // are in the middle of sorting them based on the least number of AM containers.
@@ -52,13 +61,6 @@ public class LeastAMNodesFirstPolicy implements NodeScaleDownPolicy, YarnSchedul
                     Integer numRunningContainers1 = runningContainers1.size();
                     Integer numRunningContainers2 = runningContainers2.size();
 
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Host {} is running {} containers including {} App Masters",
-                            o1.getNodeID().getHost(), numRunningContainers1, numRunningAMs1);
-                        LOGGER.debug("Host {} is running {} containers including {} App Masters",
-                            o2.getNodeID().getHost(), numRunningContainers2, numRunningAMs2);
-                    }
-
                     // If two NMs are running equal number of AMs, sort them based on total num of running containers
                     if (numRunningAMs1.compareTo(numRunningAMs2) == 0) {
                         return numRunningContainers1.compareTo(numRunningContainers2);
@@ -70,7 +72,7 @@ public class LeastAMNodesFirstPolicy implements NodeScaleDownPolicy, YarnSchedul
 
         List<String> hosts = new ArrayList<>(nodes.size());
         for (SchedulerNode node : nodes) {
-            hosts.add(schedulerNodes.get(node).getHost());
+            hosts.add(node.getNodeID().getHost());
         }
 
         return hosts;
@@ -86,8 +88,14 @@ public class LeastAMNodesFirstPolicy implements NodeScaleDownPolicy, YarnSchedul
     public void onNodeUpdated(NodeUpdateSchedulerEvent event) {
         NodeId nodeID = event.getRMNode().getNodeID();
         SchedulerNode schedulerNode = yarnScheduler.getSchedulerNode(nodeID);
-        if (!schedulerNodes.containsKey(schedulerNode)) {
-            schedulerNodes.put(schedulerNode, nodeID);
+        schedulerNodes.put(nodeID.getHost(), schedulerNode); // keep track of only one node per host
+    }
+
+    @Override
+    public void onNodeRemoved(NodeRemovedSchedulerEvent event) {
+        SchedulerNode schedulerNode = schedulerNodes.get(event.getRemovedRMNode().getNodeID().getHost());
+        if (schedulerNode.getNodeID().equals(event.getRemovedRMNode().getNodeID())) {
+            schedulerNodes.remove(schedulerNode.getNodeID().getHost());
         }
     }
 
