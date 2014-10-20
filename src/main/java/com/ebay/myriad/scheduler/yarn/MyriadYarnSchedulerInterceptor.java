@@ -52,6 +52,11 @@ public class MyriadYarnSchedulerInterceptor implements YarnSchedulerInterceptor 
                 }
             }
             break;
+            case NODE_REMOVED: {
+                for (EventListener listener : listeners) {
+                    listener.onNodeRemoved((NodeRemovedSchedulerEvent) event);
+                }
+            }
         }
 
     }

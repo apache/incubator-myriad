@@ -25,6 +25,12 @@ public interface YarnSchedulerInterceptor {
          *
          */
         public void onNodeUpdated(NodeUpdateSchedulerEvent event);
+
+        /**
+         * Invoekd *after* Yarn's scheduler handles
+         * @param event
+         */
+        void onNodeRemoved(NodeRemovedSchedulerEvent event);
     }
 
     /**
