@@ -24,40 +24,48 @@ To enable cgroups for mesos-slave, start the slave with following flag:
 
 ### Enabling cgroups for YARN NodeManager
 
-To enable cgroups for YARN NodeManager, add following to yarn-site.xml. The following configuration mounts YARN's cgroup hierarchy under Mesos (see 'yarn.nodemanager.linux-container-executor.cgroups.hierarchy' property):
+To enable cgroups for YARN NodeManager, add following to ```$YARN_HOME/etc/hadoop/yarn-site.xml```:
 
 ```xml
-    <!-- cgroups -->
-    <property>
-      <description>who will execute(launch) the containers.</description>
-      <name>yarn.nodemanager.container-executor.class</name>
-      <value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>
-    </property>
-    <property>
-      <description>The class which should help the LCE handle resources.</description>
-      <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
-      <value>org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler</value>
-    </property>
-    <property>
-      <name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
-      <value>mesos/node-manager-task-id/hadoop-yarn</value>
-    </property>
-    <property>
-      <name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
-      <value>true</value>
-    </property>
-    <property>
-      <name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
-      <value>/sys/fs/cgroup</value>
-    </property>
-    <property>
-      <name>yarn.nodemanager.linux-container-executor.group</name>
-      <value>root</value>
-    </property>
-    <property>
-      <name>yarn.nodemanager.linux-container-executor.path</name>
-      <value>/usr/local/hadoop/bin/container-executor</value>
-    </property>
+<property>
+    <description>who will execute(launch) the containers.</description>
+    <name>yarn.nodemanager.container-executor.class</name>
+    <value>${yarn.nodemanager.container-executor.class}</value>
+</property>
+<property>
+    <description>The class which should help the LCE handle resources.</description>
+    <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
+    <value>${yarn.nodemanager.linux-container-executor.resources-handler.class}</value>
+</property>
+<property>
+    <name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
+    <value>${yarn.nodemanager.linux-container-executor.cgroups.hierarchy}</value>
+</property>
+<property>
+    <name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
+    <value>${yarn.nodemanager.linux-container-executor.cgroups.mount}</value>
+</property>
+<property>
+    <name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
+    <value>${yarn.nodemanager.linux-container-executor.cgroups.mount-path}</value>
+</property>
+<property>
+    <name>yarn.nodemanager.linux-container-executor.group</name>
+    <value>${yarn.nodemanager.linux-container-executor.group}</value>
+</property>
+<property>
+    <name>yarn.nodemanager.linux-container-executor.path</name>
+    <value>${yarn.home}/bin/container-executor</value>
+</property>
+```
+
+And, following to ```$YARN_HOME/etc/hadoop/myriad-default-config.yml```:
+
+```yaml
+...
+nodemanager:
+    cgroups: true
+...
 ```
 
 **Please note at time of this writing, YARN's NodeManager only works with CPU subsystem.**
