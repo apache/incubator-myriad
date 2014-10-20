@@ -20,14 +20,13 @@ The name _Myriad_ means, _countless or extremely great number_. In context of th
 ## Roadmap
 Myriad is a work in progress, please keep checking this section for updates.
 
-- [ ] Support multiple clusters
-- [ ] Custom Executor for managing NodeManager
+- [*] Custom Executor for managing NodeManager
 - [ ] Support multi-tenancy for node-managers
-- [ ] Support unique constraint to let only one node-manager run on a slave
+- [*] Support unique constraint to let only one node-manager run on a slave
 - [ ] Configuration store for storing rules and policies for clusters managed by Myriad
-- [ ] NodeManager Profiles for each cluster
+- [*] NodeManager Profiles
 - [ ] High Availability mode for framework
-- [ ] Framework checkpointing
+- [*] Framework checkpointing
 - [ ] Framework re-conciliation
 
 ## Videos and SLides
