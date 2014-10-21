@@ -12,18 +12,19 @@ YARN's configuration files and is already present on Resource Manager's classpat
 
 # Address of the mesos master
 mesosMaster: 10.0.2.15:5050
+# mesosMaster: zk://10.0.2.15:2181/mesos
 
 # Whether to check point myriad's mesos framework or not
 checkpoint: false
 
-# Myriad's mesos framework failover timeout. This tells mesos
+# Myriad's mesos framework failover timeout in milliseconds. This tells mesos
 # to expect myriad would failover within this time interval.
 frameworkFailoverTimeout: 43200000
 
 # Myriad's mesos framework name.
 frameworkName: MyriadAlpha
 
-# Address of the ZK ensemble (separate my comma, if multiple zk servers are used)
+# Address of the ZK ensemble (separate by comma, if multiple zk servers are used)
 zkServers: localhost:2181
 
 # ZK Session timeout
@@ -34,7 +35,7 @@ zkTimeout: 20000
 profiles:
   small:
     cpu: 1
-    mem: 1100
+    mem: 1024
   medium:
     cpu: 2
     mem: 2048
@@ -56,8 +57,9 @@ nodemanager:
 executor:
   jvmMaxMemoryMB: 256   # Xmx for myriad's executor that launches Node Manager.
   path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar  # Path for the myriad's executor binary.
+                                                                            # Also supports, hdfs:// notation.
 
-# Environment variables required to launch Node Manager process.
+# Environment variables required to launch Node Manager process. Admin can also pass other environment variables to NodeManager.
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
 
