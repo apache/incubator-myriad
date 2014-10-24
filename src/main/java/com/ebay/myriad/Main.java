@@ -23,7 +23,7 @@ import com.ebay.myriad.health.MesosDriverHealthCheck;
 import com.ebay.myriad.health.MesosMasterHealthCheck;
 import com.ebay.myriad.health.ZookeeperHealthCheck;
 import com.ebay.myriad.scheduler.*;
-import com.ebay.myriad.scheduler.yarn.YarnSchedulerInterceptor;
+import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.webapp.MyriadWebServer;
 import com.ebay.myriad.webapp.WebAppGuiceModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,6 +32,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,16 +50,21 @@ public class Main {
     private ScheduledExecutorService rebalancerService;
     private HealthCheckRegistry healthCheckRegistry;
 
-    public static void initialize(Configuration hadoopConf, YarnSchedulerInterceptor interceptor) throws Exception {
+    public static void initialize(Configuration hadoopConf,
+                                  AbstractYarnScheduler yarnScheduler,
+                                  InterceptorRegistry registry) throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         MyriadConfiguration cfg = mapper.readValue(
                 Thread.currentThread().getContextClassLoader().getResource("myriad-config-default.yml"),
                 MyriadConfiguration.class);
-        new Main().run(cfg, hadoopConf, interceptor);
+        new Main().run(cfg, hadoopConf, yarnScheduler, registry);
     }
 
-    public void run(MyriadConfiguration cfg, Configuration hadoopConf, YarnSchedulerInterceptor interceptor) throws Exception {
-        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, interceptor);
+    public void run(MyriadConfiguration cfg,
+                    Configuration hadoopConf,
+                    AbstractYarnScheduler yarnScheduler,
+                    InterceptorRegistry registry) throws Exception {
+        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, yarnScheduler, registry);
         Injector injector = Guice.createInjector(
             myriadModule,
             new WebAppGuiceModule());

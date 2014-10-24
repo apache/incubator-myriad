@@ -20,7 +20,7 @@ import com.ebay.myriad.policy.LeastAMNodesFirstPolicy;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.scheduler.*;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
-import com.ebay.myriad.scheduler.yarn.YarnSchedulerInterceptor;
+import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.MyriadState;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.inject.AbstractModule;
@@ -28,6 +28,7 @@ import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.mesos.state.ZooKeeperState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,20 +41,26 @@ public class MyriadModule extends AbstractModule {
 
     private MyriadConfiguration cfg;
     private Configuration hadoopConf;
-    private YarnSchedulerInterceptor interceptor;
+    private AbstractYarnScheduler yarnScheduler;
+    private InterceptorRegistry interceptorRegistry;
 
-    public MyriadModule(MyriadConfiguration cfg, Configuration hadoopConf, YarnSchedulerInterceptor interceptor) {
+    public MyriadModule(MyriadConfiguration cfg,
+                        Configuration hadoopConf,
+                        AbstractYarnScheduler yarnScheduler,
+                        InterceptorRegistry interceptorRegistry) {
         this.cfg = cfg;
         this.hadoopConf = hadoopConf;
-        this.interceptor = interceptor;
+        this.yarnScheduler = yarnScheduler;
+        this.interceptorRegistry = interceptorRegistry;
     }
 
     @Override
     protected void configure() {
         LOGGER.debug("Configuring guice");
         bind(MyriadConfiguration.class).toInstance(cfg);
-        bind(YarnSchedulerInterceptor.class).toInstance(interceptor);
         bind(Configuration.class).toInstance(hadoopConf);
+        bind(AbstractYarnScheduler.class).toInstance(yarnScheduler);
+        bind(InterceptorRegistry.class).toInstance(interceptorRegistry);
         bind(MyriadDriver.class).in(Scopes.SINGLETON);
         bind(MyriadDriverManager.class).in(Scopes.SINGLETON);
         bind(MyriadScheduler.class).in(Scopes.SINGLETON);

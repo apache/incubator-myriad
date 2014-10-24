@@ -1,5 +1,7 @@
 package com.ebay.myriad.scheduler.yarn;
 
+import com.ebay.myriad.scheduler.yarn.interceptor.CompositeInterceptor;
+import com.ebay.myriad.scheduler.yarn.interceptor.YarnSchedulerInterceptor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
@@ -17,7 +19,7 @@ public class MyriadCapacityScheduler extends CapacityScheduler {
 
     public MyriadCapacityScheduler() {
         super();
-        this.yarnSchedulerInterceptor = new MyriadYarnSchedulerInterceptor();
+        this.yarnSchedulerInterceptor = new CompositeInterceptor();
     }
 
     /**

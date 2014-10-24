@@ -1,6 +1,7 @@
 package com.ebay.myriad.policy;
 
-import com.ebay.myriad.scheduler.yarn.YarnSchedulerInterceptor;
+import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
+import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
@@ -8,6 +9,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnSched
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeRemovedSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateSchedulerEvent;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,10 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * A scale down policy that maintains returns a list of nodes running least number of AMs.
  */
-public class LeastAMNodesFirstPolicy implements NodeScaleDownPolicy, YarnSchedulerInterceptor.EventListener {
+public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScaleDownPolicy {
     private static final Logger LOGGER = LoggerFactory.getLogger(LeastAMNodesFirstPolicy.class);
 
-    private final YarnSchedulerInterceptor interceptor;
     private final AbstractYarnScheduler yarnScheduler;
 
     //TODO(Santosh): Should figure out the right values for the hashmap properties.
@@ -29,9 +30,9 @@ public class LeastAMNodesFirstPolicy implements NodeScaleDownPolicy, YarnSchedul
     private Map<String, SchedulerNode> schedulerNodes = new ConcurrentHashMap<>(200, 0.75f, 50);
 
     @Inject
-    public LeastAMNodesFirstPolicy(YarnSchedulerInterceptor interceptor) {
-        this.interceptor = interceptor;
-        this.yarnScheduler = this.interceptor.registerEventListener(this);
+    public LeastAMNodesFirstPolicy(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler) {
+        registry.register(this);
+        this.yarnScheduler = yarnScheduler;
     }
 
     @Override
@@ -78,27 +79,37 @@ public class LeastAMNodesFirstPolicy implements NodeScaleDownPolicy, YarnSchedul
         return hosts;
     }
 
+    @Override
+    public void onEventHandled(SchedulerEvent event) {
+        switch (event.getType()) {
+            case NODE_UPDATE:
+                onNodeUpdated((NodeUpdateSchedulerEvent) event);
+                break;
+
+            case NODE_REMOVED:
+                onNodeRemoved((NodeRemovedSchedulerEvent) event);
+                break;
+        }
+    }
+
     /**
      * Called whenever a NM HBs to RM. The NM's updates will already be recorded in the
      * SchedulerNode before this method is called.
      *
      * @param event
      */
-    @Override
-    public void onNodeUpdated(NodeUpdateSchedulerEvent event) {
+    private void onNodeUpdated(NodeUpdateSchedulerEvent event) {
         NodeId nodeID = event.getRMNode().getNodeID();
         SchedulerNode schedulerNode = yarnScheduler.getSchedulerNode(nodeID);
         schedulerNodes.put(nodeID.getHost(), schedulerNode); // keep track of only one node per host
     }
 
-    @Override
-    public void onNodeRemoved(NodeRemovedSchedulerEvent event) {
+    private void onNodeRemoved(NodeRemovedSchedulerEvent event) {
         SchedulerNode schedulerNode = schedulerNodes.get(event.getRemovedRMNode().getNodeID().getHost());
         if (schedulerNode.getNodeID().equals(event.getRemovedRMNode().getNodeID())) {
             schedulerNodes.remove(schedulerNode.getNodeID().getHost());
         }
     }
-
 
     private Integer getNumAMContainers(List<RMContainer> containers) {
         int count = 0;
