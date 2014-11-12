@@ -63,3 +63,4 @@ local.properties
 *.iml
 *.ipr
 *.iws
+.idea/
