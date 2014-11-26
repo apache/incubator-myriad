@@ -29,5 +29,5 @@ Myriad is a work in progress, please keep checking this section for updates.
 - [x] Framework checkpointing
 - [ ] Framework re-conciliation
 
-## Videos and SLides
+## Videos and Slides
 * MesosCon 2014 - Running YARN alongside Mesos [(video)](https://www.youtube.com/watch?v=d7vZWm_xS9c) [(slides)](https://speakerdeck.com/mohit/running-yarn-alongside-mesos-mesoscon-2014)
