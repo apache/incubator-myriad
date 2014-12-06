@@ -59,8 +59,8 @@ public class MyriadOperations {
         this.schedulerState.addNodes(nodes);
     }
 
-    public void flexDownCluster(int numInstances) {
-        LOGGER.info("About to flex down {} instances", numInstances);
+    public void flexDownCluster(int numInstancesToScaleDown) {
+        LOGGER.info("About to flex down {} instances", numInstancesToScaleDown);
 
         int numScaledDown = 0;
         Set<NodeTask> activeTasks = Sets.newHashSet(this.schedulerState.getActiveTasks());
@@ -71,7 +71,7 @@ public class MyriadOperations {
         }
 
         // TODO(Santosh): Make this more efficient by using a Map<HostName, NodeTask> in scheduler state
-        for (int i = 0; i < numInstances; i++) {
+        for (int i = 0; i < numInstancesToScaleDown; i++) {
             for (NodeTask nodeTask : activeTasks) {
                 if (nodesToScaleDown.size() > i && nodesToScaleDown.get(i).equals(nodeTask.getHostname())) {
                     this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
@@ -83,22 +83,37 @@ public class MyriadOperations {
                 }
             }
         }
+        int numActiveTasksScaledDown = numScaledDown;
 
-        int numPendingTasksScaledDown = 0;
-        if (numScaledDown < numInstances) {
-            Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds());
-            // flex down pending tasks, if any
-            for (Protos.TaskID taskId : pendingTasks) {
+        // Flex down Staging tasks, if any
+        if (numScaledDown < numInstancesToScaleDown) {
+            Set<Protos.TaskID> stagingTasks = Sets.newHashSet(this.schedulerState.getStagingTaskIds());
+
+            for (Protos.TaskID taskId : stagingTasks) {
                 this.schedulerState.makeTaskKillable(taskId);
                 numScaledDown++;
-                numPendingTasksScaledDown++;
-                if (numScaledDown == numInstances) {
+                if (numScaledDown == numInstancesToScaleDown) {
                     break;
                 }
             }
         }
+        int numStagingTasksScaledDown = numScaledDown - numActiveTasksScaledDown;
 
-        LOGGER.info("Flexed down {} of {} instances including {} pending instances.",
-            numScaledDown, numInstances, numPendingTasksScaledDown);
+        // Flex down Pending tasks, if any
+        if (numScaledDown < numInstancesToScaleDown) {
+            Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds());
+
+            for (Protos.TaskID taskId : pendingTasks) {
+                this.schedulerState.makeTaskKillable(taskId);
+                numScaledDown++;
+                if (numScaledDown == numInstancesToScaleDown) {
+                    break;
+                }
+            }
+        }
+        int numPendingTasksScaledDown = numScaledDown - numStagingTasksScaledDown;
+
+        LOGGER.info("Flexed down {} of {} instances including {} staging instances, and {} pending instances.",
+            numScaledDown, numInstancesToScaleDown, numStagingTasksScaledDown, numPendingTasksScaledDown);
     }
 }
