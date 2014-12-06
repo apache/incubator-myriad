@@ -65,6 +65,7 @@ public class ResourceOffersEventHandler implements
             if (CollectionUtils.isNotEmpty(pendingTasks)) {
                 for (Offer offer : offers) {
                     boolean offerMatch = false;
+                    Protos.TaskID launchedTaskId = null;
                     for (Protos.TaskID pendingTaskId : pendingTasks) {
                         NodeTask taskToLaunch = schedulerState
                                 .getTask(pendingTaskId);
@@ -72,25 +73,27 @@ public class ResourceOffersEventHandler implements
                         if (matches(offer, profile)
                                 && SchedulerUtils.isUniqueHostname(offer,
                                 schedulerState.getActiveTasks())) {
-                            LOGGER.debug("Offer {} matched profile {}", offer,
-                                    profile);
                             TaskInfo task = taskFactory.createTask(offer, pendingTaskId,
                                     taskToLaunch);
                             List<OfferID> offerIds = new ArrayList<>();
                             offerIds.add(offer.getId());
                             List<TaskInfo> tasks = new ArrayList<>();
                             tasks.add(task);
-
                             LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
-                            LOGGER.debug("Launching task: {} using offer: {}", task, offer);
+                            LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
 
                             driver.launchTasks(offerIds, tasks);
-                            schedulerState.makeTaskStaging(pendingTaskId);
+                            launchedTaskId = pendingTaskId;
+
                             taskToLaunch.setHostname(offer.getHostname());
                             taskToLaunch.setSlaveId(offer.getSlaveId());
                             offerMatch = true;
                             break;
                         }
+                    }
+                    if (null != launchedTaskId) {
+                        schedulerState.makeTaskStaging(launchedTaskId);
+                        launchedTaskId = null;
                     }
                     if (!offerMatch) {
                         LOGGER.info(
