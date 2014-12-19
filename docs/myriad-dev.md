@@ -105,7 +105,7 @@ Optional: If you would like to enable cgroups, please add following to ```yarn-s
 </property>
 ```
 
-And, following to ```$YARN_HOME/etc/hadoop/myriad-default-config.yml```:
+And, following to ```$YARN_HOME/etc/hadoop/myriad-config-default.yml```:
 
 ```yaml
 ...
