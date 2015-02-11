@@ -46,6 +46,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/trusty64"
   config.vm.box_url = "https://vagrantcloud.com/ubuntu/trusty64/version/1/provider/virtualbox.box"
 
+  # Consistent IP for demos and tutorials (10.141.141.10 is mesosphere playa address)
+  config.vm.network :private_network, ip: "10.141.141.20"
+
   # Forward mesos master and slave ports
   config.vm.network "forwarded_port", guest: 5005, host: 5005
   config.vm.network "forwarded_port", guest: 5050, host: 5050
