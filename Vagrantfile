@@ -44,7 +44,7 @@ SCRIPT
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/trusty64"
-  config.vm.box_url = "https://vagrantcloud.com/ubuntu/trusty64/version/1/provider/virtualbox.box"
+  config.vm.box_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64"
 
   # Forward mesos master and slave ports
   config.vm.network "forwarded_port", guest: 5005, host: 5005
