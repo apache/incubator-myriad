@@ -13,6 +13,13 @@ echo "${PREFIX} Installing pre-reqs..."
 
 # For installing Java 8
 add-apt-repository ppa:webupd8team/java
+
+# For Mesos
+apt-key adv --keyserver keyserver.ubuntu.com --recv E56151BF
+DISTRO=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
+CODENAME=$(lsb_release -cs)
+echo "deb http://repos.mesosphere.io/${DISTRO} ${CODENAME} main" | sudo tee /etc/apt/sources.list.d/mesosphere.list
+
 apt-get -y update
 echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 apt-get -y install oracle-java8-installer
@@ -22,12 +29,9 @@ apt-get -y install zookeeperd
 apt-get -y install aria2
 apt-get -y install gradle 
 
-MESOS_VERSION="0.20.0"
-echo "${PREFIX}Downloading mesos version: ${MESOS_VERSION} for ubuntu: 14.04"
-aria2c -x2 http://downloads.mesosphere.io/master/ubuntu/14.04/mesos_${MESOS_VERSION}-1.0.ubuntu1404_amd64.deb
-
-echo "${PREFIX}Installing mesos..."
-dpkg --install mesos_${MESOS_VERSION}-1.0.ubuntu1404_amd64.deb
+MESOS_VERSION="0.21.1"
+echo "${PREFIX}Installing mesos version: ${MESOS_VERSION}..."
+apt-get -y install mesos
 echo "Done"
 
 ln -s /usr/lib/jvm/java-8-oracle/jre/lib/amd64/server/libjvm.so /usr/lib/libjvm.so
