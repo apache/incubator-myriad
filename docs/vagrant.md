@@ -42,7 +42,7 @@ If everything goes fine you'll see following processes running (process ids will
 To build myriad scheduler inside VM, you can do following:
 ```shell
 cd /vagrant
-gradle build
+./gradlew build
 ```
 
 At this point, myriad's scheduler jar and all the runtime dependencies will be available here: /vagrant/build/libs/*. Please copy these jars to $YARN_HOME/share/hadoop/yarn/lib/.
@@ -50,7 +50,7 @@ At this point, myriad's scheduler jar and all the runtime dependencies will be a
 To build self-contained executable JAR, you can run following:
 ```shell
 cd /vagrant
-gradle capsuleExecutor
+./gradlew capsuleExecutor
 ```
 
 At this point, the self-contained myriad executor jar will be available here: /vagrant/build/libs/myriad-executor-x.y.z.jar. Please copy this jar to /usr/local/libexec/mesos/.

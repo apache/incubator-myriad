@@ -20,7 +20,6 @@ apt-get -y install oracle-java8-set-default
 apt-get -y install libcurl3
 apt-get -y install zookeeperd
 apt-get -y install aria2
-apt-get -y install gradle 
 
 MESOS_VERSION="0.20.0"
 echo "${PREFIX}Downloading mesos version: ${MESOS_VERSION} for ubuntu: 14.04"
