@@ -24,6 +24,8 @@ public interface TaskFactory {
     class NMTaskFactoryImpl implements TaskFactory {
         public static final String EXECUTOR_NAME = "myriad_task";
         public static final String EXECUTOR_PREFIX = "myriad_executor";
+        public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
+        private static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
 
         private static final Logger LOGGER = LoggerFactory
                 .getLogger(NMTaskFactoryImpl.class);
@@ -64,6 +66,25 @@ public interface TaskFactory {
                     .getJvmOpts().orNull());
             nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
             nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());
+
+            // if RM's hostname is passed in as a system property, pass it along
+            // to Node Managers launched via Myriad
+            String rmHostName = System.getProperty(YARN_RESOURCEMANAGER_HOSTNAME);
+            if (rmHostName != null && !rmHostName.isEmpty()) {
+
+                String nmOpts = nmTaskConfig.getYarnEnvironment().get(YARN_NODEMANAGER_OPTS_KEY);
+                if (nmOpts == null) {
+                    nmOpts = "";
+                }
+                nmOpts += " " + "-D" + YARN_RESOURCEMANAGER_HOSTNAME + "=" + rmHostName;
+                nmTaskConfig.getYarnEnvironment().put(YARN_NODEMANAGER_OPTS_KEY, nmOpts);
+                LOGGER.info(YARN_RESOURCEMANAGER_HOSTNAME + " is set to " + rmHostName +
+                    " via YARN_RESOURCEMANAGER_OPTS. Passing it into YARN_NODEMANAGER_OPTS.");
+            }
+//            else {
+                // TODO(Santosh): Handle this case. Couple of options:
+                // 1. Lookup a hostname here and use it as "RM's hostname"
+                // 2. Abort here.. RM cannot start unless a hostname is passed in as it requires it to pass to NMs.
 
             String taskConfigJSON = new Gson().toJson(nmTaskConfig);
 
