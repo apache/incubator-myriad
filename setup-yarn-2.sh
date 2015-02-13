@@ -5,7 +5,7 @@ HADOOP_VER=2.5.2
 # Download Hadoop
 cd ~
 if [ ! -f hadoop-${HADOOP_VER}.tar.gz ]; then
-wget http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
+	wget http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
 fi
 
 sudo tar vxzf hadoop-${HADOOP_VER}.tar.gz -C /usr/local

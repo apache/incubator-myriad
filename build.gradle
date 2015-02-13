@@ -56,6 +56,7 @@ dependencies {
     compile "org.apache.curator:curator-framework:2.6.0"
     testCompile 'junit:junit:4.11'
     testCompile 'commons-collections:commons-collections:3.2.1'
+    testCompile "org.mockito:mockito-core:1.+"
 }
 
 
@@ -87,6 +88,24 @@ task capsule(type: Jar, dependsOn: jar) {
 task copyRunTimeDeps(type: Sync) {
     from configurations.runtime
     into "$buildDir/libs"
+}
+
+processResources {
+    exclude ('*/node_modules/**')
+}
+
+sourceSets {
+    main {
+        resources {
+            include '*.*'
+            include 'webapp/public/**'
+            exclude 'webapp/node_modules/**'
+            exclude 'webapp/css'
+            exclude 'webapp/img'
+            exclude 'webapp/js'
+            exclude 'webapp/*.*'
+        }
+    }
 }
 
 jar {
