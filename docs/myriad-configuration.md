@@ -10,7 +10,7 @@ YARN's configuration files and is already present on Resource Manager's classpat
 
 ```yaml
 
-# Address of the mesos master
+# Address of the mesos master - <IP:port> or ZooKeeper path
 mesosMaster: 10.0.2.15:5050
 # mesosMaster: zk://10.0.2.15:2181/mesos
 
@@ -61,6 +61,7 @@ executor:
 
 # Environment variables required to launch Node Manager process. Admin can also pass other environment variables to NodeManager.
 yarnEnvironment:
-  YARN_HOME: /usr/local/hadoop
+  YARN_HOME: /usr/local/hadoop # Or /opt/mapr/hadoop/hadoop-2.5.1/ if using MapR's Hadoop
+  YARN_NODEMANAGER_OPTS: -Dnodemanager.resource.io-spindles=4.0 # Required only if using MapR's Hadoop
 
 ```
