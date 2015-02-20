@@ -1,10 +1,9 @@
 # Myriad Configuration Properties
 
-Myriad's component that plugs into Resource Manager, exposes configuration properties that admins can modify. 
+Myriad Scheduler (the component that plugs into Resource Manager process), exposes configuration properties that admins can modify. 
 It expects a file ```myriad-config-default.yml``` to be present on the Resource Manager's java classpath. 
 
-* A good practice is to place this file under ```$YARN_HOME/etc/hadoop/```, since this directory holds 
-YARN's configuration files and is already present on Resource Manager's classpath.
+Currently, this file is built into Myriad Scheduler jar. So, if you need to modify some of the properties in this file, please modify them **before** building Myriad Scheduler.
 
 ## Properties
 
