@@ -4,16 +4,26 @@ import com.google.gson.Gson;
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
-import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos.ExecutorInfo;
+import org.apache.mesos.Protos.FrameworkInfo;
+import org.apache.mesos.Protos.SlaveInfo;
+import org.apache.mesos.Protos.Status;
+import org.apache.mesos.Protos.TaskID;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskState;
+import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.Protos.TaskStatus.Builder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.Map;
-import java.util.Set;
 
 public class MyriadExecutor implements Executor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyriadExecutor.class);
     public static final String ENV_YARN_NODEMANAGER_OPTS = "YARN_NODEMANAGER_OPTS";
 
     /**
@@ -74,41 +84,40 @@ public class MyriadExecutor implements Executor {
     private Process process;
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Starting MyriadExecutor...");
-        MesosExecutorDriver driver = new MesosExecutorDriver(
-                new MyriadExecutor());
+        LOGGER.info("Starting MyriadExecutor...");
+        MesosExecutorDriver driver = new MesosExecutorDriver(new MyriadExecutor());
         System.exit(driver.run() == Status.DRIVER_STOPPED ? 0 : 1);
     }
 
     @Override
-    public void registered(ExecutorDriver driver, ExecutorInfo executorInfo,
-                           FrameworkInfo frameworkInfo, SlaveInfo slaveInfo) {
-        System.out.println("Registered "+ executorInfo +" for framework " + frameworkInfo + " on mesos slave " + slaveInfo);
+    public void registered(ExecutorDriver driver,
+                           ExecutorInfo executorInfo,
+                           FrameworkInfo frameworkInfo,
+                           SlaveInfo slaveInfo) {
+        LOGGER.debug("Registered ", executorInfo, " for framework ", frameworkInfo, " on mesos slave ", slaveInfo);
         this.slaveInfo = slaveInfo;
     }
 
     @Override
     public void reregistered(ExecutorDriver driver, SlaveInfo slaveInfo) {
-        System.out.println("ReRegistered");
+        LOGGER.debug("ReRegistered");
     }
 
     @Override
     public void disconnected(ExecutorDriver driver) {
-        System.out.println("Disconnected");
+        LOGGER.info("Disconnected");
     }
 
     @Override
     public void launchTask(final ExecutorDriver driver, final TaskInfo task) {
         new Thread(new Runnable() {
             public void run() {
-                Builder statusBuilder = TaskStatus.newBuilder().setTaskId(
-                        task.getTaskId());
+                Builder statusBuilder = TaskStatus.newBuilder()
+                        .setTaskId(task.getTaskId());
                 try {
-                    NMTaskConfig taskConfig = GSON.fromJson(task.getData()
-                            .toStringUtf8(), NMTaskConfig.class);
-                    System.out.println("TaskConfig: " + taskConfig);
-                    ProcessBuilder processBuilder = buildProcessBuilder(task,
-                            taskConfig);
+                    NMTaskConfig taskConfig = GSON.fromJson(task.getData().toStringUtf8(), NMTaskConfig.class);
+                    LOGGER.info("TaskConfig: ", taskConfig);
+                    ProcessBuilder processBuilder = buildProcessBuilder(task, taskConfig);
                     MyriadExecutor.this.process = processBuilder.start();
 
                     int waitFor = MyriadExecutor.this.process.waitFor();
@@ -119,10 +128,10 @@ public class MyriadExecutor implements Executor {
                         statusBuilder.setState(TaskState.TASK_FAILED);
                     }
                 } catch (InterruptedException | IOException e) {
-                    System.out.println(e);
+                    LOGGER.error("launchTask", e);
                     statusBuilder.setState(TaskState.TASK_FAILED);
                 } catch (RuntimeException e) {
-                    System.out.println(e);
+                    LOGGER.error("launchTask", e);
                     statusBuilder.setState(TaskState.TASK_FAILED);
                     throw e;
                 } finally {
@@ -130,28 +139,28 @@ public class MyriadExecutor implements Executor {
                 }
             }
         }).start();
-        TaskStatus status = TaskStatus.newBuilder().setTaskId(task.getTaskId())
-                .setState(TaskState.TASK_RUNNING).build();
+
+        TaskStatus status = TaskStatus.newBuilder()
+                .setTaskId(task.getTaskId())
+                .setState(TaskState.TASK_RUNNING)
+                .build();
         driver.sendStatusUpdate(status);
     }
 
-    private ProcessBuilder buildProcessBuilder(TaskInfo task,
-                                               NMTaskConfig taskConfig) {
+    private ProcessBuilder buildProcessBuilder(TaskInfo task, NMTaskConfig taskConfig) {
         ProcessBuilder processBuilder = new ProcessBuilder("sudo", "-E", "-u", taskConfig.getUser(), "-H", "bash", "-c", "$YARN_HOME/bin/yarn nodemanager");
 
         Map<String, String> environment = processBuilder.environment();
 
-        Map<String, String> yarnEnvironment = taskConfig.getYarnEnvironment();
-        if (yarnEnvironment != null) {
-            Set<String> keys = yarnEnvironment.keySet();
-            for (String key : keys) {
-                String val = yarnEnvironment.get(key);
-                environment.put(key, val);
+        Map<String, String> yarnEnvironmentMap = taskConfig.getYarnEnvironment();
+        if (yarnEnvironmentMap != null) {
+            for (Map.Entry<String, String> yarnEnvironment : yarnEnvironmentMap.entrySet()) {
+                environment.put(yarnEnvironment.getKey(), yarnEnvironment.getValue());
             }
         }
 
         String ENV_NM_OPTS = getNMOpts(taskConfig);
-        System.out.printf("%s: %s", ENV_YARN_NODEMANAGER_OPTS, ENV_NM_OPTS);
+        LOGGER.info(ENV_YARN_NODEMANAGER_OPTS, ": ", ENV_NM_OPTS);
 
         if (environment.containsKey(ENV_YARN_NODEMANAGER_OPTS)) {
             String existingOpts = environment.get(ENV_YARN_NODEMANAGER_OPTS);
@@ -166,7 +175,9 @@ public class MyriadExecutor implements Executor {
 
     private void makeWritable(String path) {
         File file = new File(path);
-        file.setWritable(true, false);
+        if (!file.setWritable(true, false)) {
+            LOGGER.error(path, " is not writable");
+        }
     }
 
     private String getNMOpts(NMTaskConfig taskConfig) {
@@ -192,8 +203,8 @@ public class MyriadExecutor implements Executor {
             // Otherwise configure to use Default
             ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS, DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS);
         }
-        ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_CPU_VCORES, taskConfig.getAdvertisableCpus()+"");
-        ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_MEM_MB, taskConfig.getAdvertisableMem()+"");
+        ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_CPU_VCORES, taskConfig.getAdvertisableCpus() + "");
+        ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_MEM_MB, taskConfig.getAdvertisableMem() + "");
         return ENV_NM_OPTS;
     }
 
@@ -205,25 +216,27 @@ public class MyriadExecutor implements Executor {
 
     @Override
     public void killTask(ExecutorDriver driver, TaskID taskId) {
-        System.out.println("KillTask received for taskId: " + taskId.getValue());
+        LOGGER.debug("KillTask received for taskId: " + taskId.getValue());
         this.process.destroy();
-        TaskStatus status = TaskStatus.newBuilder().setTaskId(taskId)
-                .setState(TaskState.TASK_KILLED).build();
+        TaskStatus status = TaskStatus.newBuilder()
+                .setTaskId(taskId)
+                .setState(TaskState.TASK_KILLED)
+                .build();
         driver.sendStatusUpdate(status);
     }
 
     @Override
     public void frameworkMessage(ExecutorDriver driver, byte[] data) {
-        System.out.println("Framework message received: " + new String(data));
+        LOGGER.info("Framework message received: ", new String(data, Charset.defaultCharset()));
     }
 
     @Override
     public void shutdown(ExecutorDriver driver) {
-        System.out.println("Shutdown");
+        LOGGER.debug("Shutdown");
     }
 
     @Override
     public void error(ExecutorDriver driver, String message) {
-        System.out.println("Error message: " + message);
+        LOGGER.error("Error message: " + message);
     }
 }

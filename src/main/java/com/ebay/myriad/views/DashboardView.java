@@ -23,11 +23,16 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class DashboardView {
-    public static final String TEMPLATE_NAME = "master.mustache";
-    public SchedulerState schedulerState;
+    // todo:  (kgs) appears to be used
+//    public static final String TEMPLATE_NAME = "master.mustache";
+    private SchedulerState schedulerState;
 
     public DashboardView(SchedulerState schedulerState) {
         this.schedulerState = schedulerState;
+    }
+
+    public SchedulerState getSchedulerState() {
+        return schedulerState;
     }
 
     public Collection<String> getPendingTasks() {

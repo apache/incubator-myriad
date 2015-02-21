@@ -22,7 +22,11 @@ import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.health.MesosDriverHealthCheck;
 import com.ebay.myriad.health.MesosMasterHealthCheck;
 import com.ebay.myriad.health.ZookeeperHealthCheck;
-import com.ebay.myriad.scheduler.*;
+import com.ebay.myriad.scheduler.MyriadDriverManager;
+import com.ebay.myriad.scheduler.NMProfile;
+import com.ebay.myriad.scheduler.NMProfileManager;
+import com.ebay.myriad.scheduler.Rebalancer;
+import com.ebay.myriad.scheduler.TaskTerminator;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.webapp.MyriadWebServer;
 import com.ebay.myriad.webapp.WebAppGuiceModule;
@@ -66,8 +70,8 @@ public class Main {
                     InterceptorRegistry registry) throws Exception {
         MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, yarnScheduler, registry);
         Injector injector = Guice.createInjector(
-            myriadModule,
-            new WebAppGuiceModule());
+                myriadModule,
+                new WebAppGuiceModule());
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Bindings: " + injector.getAllBindings());
@@ -116,28 +120,22 @@ public class Main {
                 injector.getInstance(MesosDriverHealthCheck.class));
     }
 
-    private void initProfiles(final MyriadConfiguration cfg,
-                              Injector injector) {
+    private void initProfiles(final MyriadConfiguration cfg, Injector injector) {
         LOGGER.info("Initializing Profiles");
-        NMProfileManager profileManager = injector
-                .getInstance(NMProfileManager.class);
+        NMProfileManager profileManager = injector.getInstance(NMProfileManager.class);
         Map<String, Map<String, String>> profiles = cfg.getProfiles();
         if (MapUtils.isNotEmpty(profiles)) {
-            for (String profileKey : profiles.keySet()) {
-                Map<String, String> profileResourceMap = profiles
-                        .get(profileKey);
+            for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {
+                Map<String, String> profileResourceMap = profile.getValue();
                 if (MapUtils.isNotEmpty(profiles)
                         && profileResourceMap.containsKey("cpu")
                         && profileResourceMap.containsKey("mem")) {
-                    Long cpu = Long.parseLong(profileResourceMap
-                            .get("cpu"));
-                    Long mem = Long.parseLong(profileResourceMap
-                            .get("mem"));
+                    Long cpu = Long.parseLong(profileResourceMap.get("cpu"));
+                    Long mem = Long.parseLong(profileResourceMap.get("mem"));
 
-                    profileManager.add(new NMProfile(profileKey, cpu, mem));
+                    profileManager.add(new NMProfile(profile.getKey(), cpu, mem));
                 } else {
-                    LOGGER.error("Invalid definition for profile: "
-                            + profileKey);
+                    LOGGER.error("Invalid definition for profile: " + profile.getKey());
                 }
             }
         }
@@ -157,8 +155,7 @@ public class Main {
             LOGGER.info("Initializing Rebalancer");
             rebalancerService = Executors.newScheduledThreadPool(1);
             rebalancerService.scheduleAtFixedRate(
-                    injector.getInstance(Rebalancer.class), 100, 5000,
-                    TimeUnit.MILLISECONDS);
+                    injector.getInstance(Rebalancer.class), 100, 5000, TimeUnit.MILLISECONDS);
         } else {
             LOGGER.info("Rebalancer is not turned on");
         }

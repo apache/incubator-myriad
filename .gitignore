@@ -64,3 +64,4 @@ local.properties
 *.ipr
 *.iws
 .idea/
+out
