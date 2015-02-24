@@ -69,6 +69,7 @@ public class TaskUtils {
                     .getResourceAsStream("yarn-site.xml");
 
             doc = builder.parse(new InputSource(resourceAsStream));
+	    resourceAsStream.close();
 
             XPathFactory xFactory = XPathFactory.newInstance();
 

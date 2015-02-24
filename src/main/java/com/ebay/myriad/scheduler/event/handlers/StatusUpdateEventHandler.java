@@ -58,7 +58,6 @@ public class StatusUpdateEventHandler implements
                 break;
             case TASK_RUNNING:
                 schedulerState.makeTaskActive(taskId);
-                NodeTask task = schedulerState.getTask(taskId);
                 break;
             case TASK_FINISHED:
                 schedulerState.removeTask(taskId);
