@@ -123,6 +123,12 @@ public class MyriadConfiguration {
     @NotEmpty
     private Map<String, String> yarnEnvironment;
 
+    @JsonProperty
+    private String mesosAuthenticationPrincipal;
+
+    @JsonProperty
+    private String mesosAuthenticationSecretFilename;
+
     public String getMesosMaster() {
         return mesosMaster;
     }
@@ -182,4 +188,9 @@ public class MyriadConfiguration {
     public Map<String, String> getYarnEnvironment() {
         return yarnEnvironment;
     }
+
+    public String getMesosAuthenticationSecretFilename() { return mesosAuthenticationSecretFilename; }
+
+    public String getMesosAuthenticationPrincipal(){ return mesosAuthenticationPrincipal; }
+
 }
