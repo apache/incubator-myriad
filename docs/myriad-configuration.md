@@ -69,4 +69,10 @@ yarnEnvironment:
   YARN_HOME: /usr/local/hadoop # Or /opt/mapr/hadoop/hadoop-2.5.1/ if using MapR's Hadoop
   YARN_NODEMANAGER_OPTS: -Dnodemanager.resource.io-spindles=4.0 # Required only if using MapR's Hadoop
 
+# Authentication principal for Myriad's mesos framework
+mesosAuthenticationPrincipal: some_principal
+
+# Authentication secret filename for Myriad's mesos framework
+mesosAuthenticationSecretFilename: /path/to/secret/filename
+
 ```
