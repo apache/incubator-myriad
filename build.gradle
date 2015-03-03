@@ -2,6 +2,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'idea'
 apply from: 'gradle/spock.gradle'
+apply from: 'gradle/quality.gradle'
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'

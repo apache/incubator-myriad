@@ -18,6 +18,7 @@ package com.ebay.myriad.scheduler;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.protobuf.InvalidProtocolBufferException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.FrameworkInfo;
@@ -43,6 +44,10 @@ public class MyriadDriver {
                 .setName(cfg.getFrameworkName())
                 .setCheckpoint(cfg.getCheckpoint())
                 .setFailoverTimeout(cfg.getFrameworkFailoverTimeout());
+
+        if(StringUtils.isNotEmpty(cfg.getFrameworkRole())){
+            frameworkInfoBuilder.setRole(cfg.getFrameworkRole());
+        }
 
         FrameworkID frameworkId;
         try {

@@ -20,16 +20,16 @@ import com.ebay.myriad.configuration.MyriadConfiguration;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 public class MesosMasterHealthCheck extends HealthCheck {
     public static final String NAME = "mesos-master";
 
-    private static final Logger LOGGER = Logger
-            .getLogger(MesosMasterHealthCheck.class.getName());
+    private static final Logger LOGGER = LoggerFactory.getLogger(MesosMasterHealthCheck.class);
 
     private MyriadConfiguration cfg;
 
@@ -42,6 +42,7 @@ public class MesosMasterHealthCheck extends HealthCheck {
     protected Result check() throws Exception {
         String mesosMaster = cfg.getMesosMaster();
         int zkIndex = mesosMaster.indexOf("zk://", 0);
+        Result result = Result.unhealthy("Unable to connect to: " + mesosMaster);
         if (zkIndex >= 0) {
             String zkHostPorts = mesosMaster.substring(5,
                     mesosMaster.indexOf("/", 5));
@@ -50,27 +51,31 @@ public class MesosMasterHealthCheck extends HealthCheck {
 
             for (String hostPort : hostPorts) {
                 CuratorFramework client = CuratorFrameworkFactory.newClient(
-                        hostPort, new ExponentialBackoffRetry(1000, 3));
+                        hostPort,
+                        new ExponentialBackoffRetry(1000, 3));
                 client.start();
                 client.blockUntilConnected(5, TimeUnit.SECONDS);
 
                 switch (client.getState()) {
                     case STARTED:
-                        return Result.healthy();
+                        result = Result.healthy();
+                        break;
                     case STOPPED:
-                        LOGGER.fine("Unable to reach: " + hostPort);
+                        LOGGER.info("Unable to reach: ", hostPort);
+                        break;
                     case LATENT:
-                        LOGGER.fine("Unable to reach: " + hostPort);
+                        LOGGER.info("Unable to reach: ", hostPort);
+                        break;
                     default:
-                        LOGGER.fine("Unable to reach: " + hostPort);
+                        LOGGER.info("Unable to reach: ", hostPort);
                 }
             }
         } else {
             if (HealthCheckUtils.checkHostPort(mesosMaster)) {
-                return Result.healthy();
+                result = Result.healthy();
             }
         }
 
-        return Result.unhealthy("Unable to connect to: " + mesosMaster);
+        return result;
     }
 }

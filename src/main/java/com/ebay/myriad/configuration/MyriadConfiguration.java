@@ -60,6 +60,9 @@ public class MyriadConfiguration {
     private String frameworkName;
 
     @JsonProperty
+    private String frameworkRole;
+
+    @JsonProperty
     private
     @NotEmpty
     Map<String, Map<String, String>> profiles;
@@ -107,6 +110,10 @@ public class MyriadConfiguration {
     public String getFrameworkName() {
         return Strings.isNullOrEmpty(this.frameworkName) ? DEFAULT_FRAMEWORK_NAME
                 : this.frameworkName;
+    }
+
+    public String getFrameworkRole() {
+        return frameworkRole;
     }
 
     public Map<String, Map<String, String>> getProfiles() {

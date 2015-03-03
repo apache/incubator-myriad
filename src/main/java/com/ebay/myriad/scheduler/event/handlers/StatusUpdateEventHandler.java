@@ -16,7 +16,6 @@
 package com.ebay.myriad.scheduler.event.handlers;
 
 import com.ebay.myriad.scheduler.event.StatusUpdateEvent;
-import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
 import org.apache.mesos.Protos.TaskID;
@@ -27,16 +26,16 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
-public class StatusUpdateEventHandler implements
-        EventHandler<StatusUpdateEvent> {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(StatusUpdateEventHandler.class);
+public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StatusUpdateEventHandler.class);
 
     @Inject
     private SchedulerState schedulerState;
 
     @Override
-    public void onEvent(StatusUpdateEvent event, long sequence,
+    public void onEvent(StatusUpdateEvent event,
+                        long sequence,
                         boolean endOfBatch) throws Exception {
         TaskStatus status = event.getStatus();
         this.schedulerState.updateTask(status);
@@ -45,8 +44,7 @@ public class StatusUpdateEventHandler implements
             LOGGER.warn("Task: {} not found, status: {}", taskId, status.getState());
             return;
         }
-        LOGGER.info("Status Update for task: {} | state: {}", taskId,
-                status.getState());
+        LOGGER.info("Status Update for task: {} | state: {}", taskId, status.getState());
         TaskState state = status.getState();
 
         switch (state) {
@@ -77,5 +75,4 @@ public class StatusUpdateEventHandler implements
                 break;
         }
     }
-
 }

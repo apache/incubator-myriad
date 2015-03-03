@@ -2,6 +2,7 @@ mesosMaster: 10.0.2.15:5050
 checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadAlpha
+frameworkRole: 
 nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: localhost:2181
 zkTimeout: 20000

@@ -14,7 +14,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -41,7 +45,7 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
 
         if (LOGGER.isDebugEnabled()) {
             for (SchedulerNode node : nodes) {
-                    LOGGER.debug("Host {} is running {} containers including {} App Masters",
+                LOGGER.debug("Host {} is running {} containers including {} App Masters",
                         node.getNodeID().getHost(), node.getRunningContainers().size(),
                         getNumAMContainers(node.getRunningContainers()));
             }
@@ -81,14 +85,22 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
 
     @Override
     public void onEventHandled(SchedulerEvent event) {
-        switch (event.getType()) {
-            case NODE_UPDATE:
-                onNodeUpdated((NodeUpdateSchedulerEvent) event);
-                break;
 
-            case NODE_REMOVED:
-                onNodeRemoved((NodeRemovedSchedulerEvent) event);
-                break;
+        try {
+            switch (event.getType()) {
+                case NODE_UPDATE:
+                    onNodeUpdated((NodeUpdateSchedulerEvent) event);
+                    break;
+
+                case NODE_REMOVED:
+                    onNodeRemoved((NodeRemovedSchedulerEvent) event);
+                    break;
+                default:
+                    LOGGER.warn("event type not supported");
+                    break;
+            }
+        } catch (ClassCastException e) {
+            LOGGER.error("incorrect event object", e);
         }
     }
 
