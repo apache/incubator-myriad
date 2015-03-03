@@ -23,6 +23,7 @@ import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.MyriadState;
 import com.ebay.myriad.state.SchedulerState;
+import com.ebay.myriad.webapp.HttpConnectorProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
@@ -68,6 +69,7 @@ public class MyriadModule extends AbstractModule {
         bind(DisruptorManager.class).in(Scopes.SINGLETON);
         bind(TaskFactory.class).to(NMTaskFactoryImpl.class);
         bind(ReconcileService.class).in(Scopes.SINGLETON);
+        bind(HttpConnectorProvider.class).in(Scopes.SINGLETON);
 
         //TODO(Santosh): Should be configurable as well
         bind(NodeScaleDownPolicy.class).to(LeastAMNodesFirstPolicy.class).in(Scopes.SINGLETON);
