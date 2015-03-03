@@ -37,7 +37,7 @@ To deploy Myriad Scheduler, please follow the below steps:
 1. Build Myriad Scheduler
 2. Copy all jars under ```PROJECT_HOME/build/libs/``` directory, to YARN ResourceManager's classpath. For ex: Copy all jars to ```$YARN_HOME/share/hadoop/yarn/lib/```
 
-### Deploying Myriad Scheduler
+### Deploying Myriad Executor
 To deploy Myriad Executor, please follow the below steps:
 
 1. Build Myriad Executor
