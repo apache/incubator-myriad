@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'idea'
+apply from: 'gradle/spock.gradle'
 
 sourceCompatibility = '1.7'
 targetCompatibility = '1.7'
@@ -52,6 +53,7 @@ dependencies {
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.4.2"
     compile "org.apache.curator:curator-framework:2.6.0"
     testCompile 'junit:junit:4.11'
+    testCompile 'commons-collections:commons-collections:3.2.1'
 }
 
 
