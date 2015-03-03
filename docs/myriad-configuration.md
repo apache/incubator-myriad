@@ -23,6 +23,9 @@ frameworkFailoverTimeout: 43200000
 # Myriad's mesos framework name.
 frameworkName: MyriadAlpha
 
+# Myriad's mesos framework role.
+frameworkRole: someRoleName
+
 # Address of the ZK ensemble (separate by comma, if multiple zk servers are used)
 zkServers: localhost:2181
 
