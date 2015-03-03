@@ -14,7 +14,7 @@ group       = "com.ebay.myriad"
 version     = "0.0.1"
 
 ext {
-    mesosVer = "0.20.1"
+    mesosVer = "0.21.1"
     hadoopVer = "2.5.0"
     metricsVer = "3.1.0"
 }
