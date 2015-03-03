@@ -9,13 +9,21 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
+import org.apache.mesos.Protos.ExecutorID;
+import org.apache.mesos.Protos.ExecutorInfo;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.TaskID;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Scalar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+import java.nio.charset.Charset;
 import java.util.Objects;
 
 public interface TaskFactory {
@@ -27,8 +35,7 @@ public interface TaskFactory {
         public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
         private static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
 
-        private static final Logger LOGGER = LoggerFactory
-                .getLogger(NMTaskFactoryImpl.class);
+        private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
         private MyriadConfiguration cfg;
         private TaskUtils taskUtils;
 
@@ -60,10 +67,8 @@ public interface TaskFactory {
             nmTaskConfig.setAdvertisableCpus(profile.getCpus());
             nmTaskConfig.setAdvertisableMem(profile.getMemory());
             NodeManagerConfiguration nodeManagerConfiguration = this.cfg.getNodeManagerConfiguration();
-            nmTaskConfig.setUser(nodeManagerConfiguration
-                    .getUser().orNull());
-            nmTaskConfig.setJvmOpts(nodeManagerConfiguration
-                    .getJvmOpts().orNull());
+            nmTaskConfig.setUser(nodeManagerConfiguration.getUser().orNull());
+            nmTaskConfig.setJvmOpts(nodeManagerConfiguration.getJvmOpts().orNull());
             nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
             nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());
 
@@ -79,28 +84,32 @@ public interface TaskFactory {
                 nmOpts += " " + "-D" + YARN_RESOURCEMANAGER_HOSTNAME + "=" + rmHostName;
                 nmTaskConfig.getYarnEnvironment().put(YARN_NODEMANAGER_OPTS_KEY, nmOpts);
                 LOGGER.info(YARN_RESOURCEMANAGER_HOSTNAME + " is set to " + rmHostName +
-                    " via YARN_RESOURCEMANAGER_OPTS. Passing it into YARN_NODEMANAGER_OPTS.");
+                        " via YARN_RESOURCEMANAGER_OPTS. Passing it into YARN_NODEMANAGER_OPTS.");
             }
 //            else {
-                // TODO(Santosh): Handle this case. Couple of options:
-                // 1. Lookup a hostname here and use it as "RM's hostname"
-                // 2. Abort here.. RM cannot start unless a hostname is passed in as it requires it to pass to NMs.
+            // TODO(Santosh): Handle this case. Couple of options:
+            // 1. Lookup a hostname here and use it as "RM's hostname"
+            // 2. Abort here.. RM cannot start unless a hostname is passed in as it requires it to pass to NMs.
 
             String taskConfigJSON = new Gson().toJson(nmTaskConfig);
 
             Scalar taskMemory = Value.Scalar.newBuilder()
-                    .setValue(taskUtils.getTaskMemory(profile)).build();
+                    .setValue(taskUtils.getTaskMemory(profile))
+                    .build();
             Scalar taskCpus = Value.Scalar.newBuilder()
-                    .setValue(taskUtils.getTaskCpus(profile)).build();
+                    .setValue(taskUtils.getTaskCpus(profile))
+                    .build();
             Scalar executorMemory = Value.Scalar.newBuilder()
-                    .setValue(taskUtils.getExecutorMemory()).build();
+                    .setValue(taskUtils.getExecutorMemory())
+                    .build();
             Scalar executorCpus = Value.Scalar.newBuilder()
-                    .setValue(taskUtils.getExecutorCpus()).build();
+                    .setValue(taskUtils.getExecutorCpus())
+                    .build();
 
-            String executorPath = cfg.getMyriadExecutorConfiguration()
-                    .getPath();
+            String executorPath = cfg.getMyriadExecutorConfiguration().getPath();
             URI executorURI = URI.newBuilder().setValue(executorPath)
-                    .setExecutable(true).build();
+                    .setExecutable(true)
+                    .build();
 
             CommandInfo commandInfo = CommandInfo.newBuilder()
                     .addUris(executorURI).setUser("root")
@@ -117,28 +126,33 @@ public interface TaskFactory {
                     .addResources(
                             Resource.newBuilder().setName("cpus")
                                     .setType(Value.Type.SCALAR)
-                                    .setScalar(executorCpus).build())
+                                    .setScalar(executorCpus)
+                                    .build())
                     .addResources(
                             Resource.newBuilder().setName("mem")
                                     .setType(Value.Type.SCALAR)
-                                    .setScalar(executorMemory).build())
+                                    .setScalar(executorMemory)
+                                    .build())
                     .setExecutorId(executorId).setCommand(commandInfo).build();
 
             TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
-                    .setName("task-" + taskId.getValue()).setTaskId(taskId)
+                    .setName("task-" + taskId.getValue())
+                    .setTaskId(taskId)
                     .setSlaveId(offer.getSlaveId());
 
             // TODO (mohit): Configure ports for multi-tenancy
-            ByteString data = ByteString.copyFrom(taskConfigJSON.getBytes());
+            ByteString data = ByteString.copyFrom(taskConfigJSON.getBytes(Charset.defaultCharset()));
             return taskBuilder
                     .addResources(
                             Resource.newBuilder().setName("cpus")
                                     .setType(Value.Type.SCALAR)
-                                    .setScalar(taskCpus).build())
+                                    .setScalar(taskCpus)
+                                    .build())
                     .addResources(
                             Resource.newBuilder().setName("mem")
                                     .setType(Value.Type.SCALAR)
-                                    .setScalar(taskMemory).build())
+                                    .setScalar(taskMemory)
+                                    .build())
                     .setExecutor(executorInfo).setData(data).build();
         }
     }

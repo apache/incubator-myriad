@@ -1,0 +1,5 @@
+apply plugin: 'findbugs'
+
+tasks.withType(FindBugs) {
+  excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
+}
