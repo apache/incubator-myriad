@@ -25,13 +25,21 @@ import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.OfferID;
+import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.Value;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -142,10 +150,12 @@ public class ResourceOffersEventHandler implements
             }
         }
 
-        if (cpus < 0)
+        if (cpus < 0) {
             LOGGER.error("No cpus resource present");
-        if (mem < 0)
+        }
+        if (mem < 0) {
             LOGGER.error("No mem resource present");
+        }
 
         Map<String, String> requestAttributes = new HashMap<>();
 
