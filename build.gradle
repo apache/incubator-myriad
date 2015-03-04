@@ -38,22 +38,22 @@ repositories {
 
 dependencies {
     capsule "co.paralleluniverse:capsule:0.7.1"
-    myriadExecutorConf 'org.slf4j:slf4j-log4j12:1.7.7'
+    myriadExecutorConf 'org.slf4j:slf4j-log4j12:1.7.10'
     compile "org.apache.mesos:mesos:${mesosVer}"
     compile "org.apache.hadoop:hadoop-common:${hadoopVer}"
     compile "org.apache.hadoop:hadoop-yarn-common:${hadoopVer}"
     compile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}"
-    compile 'com.google.code.gson:gson:2.3'
+    compile 'com.google.code.gson:gson:2.3.1'
     compile "com.lmax:disruptor:3.3.0"
     compile "io.dropwizard.metrics:metrics-core:${metricsVer}"
     compile "io.dropwizard.metrics:metrics-annotation:${metricsVer}"
     compile "io.dropwizard.metrics:metrics-healthchecks:${metricsVer}"
     compile "org.hibernate:hibernate-validator:5.1.2.Final"
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.4.2"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.4.2"
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.4.2"
-    compile "org.apache.curator:curator-framework:2.6.0"
-    testCompile 'junit:junit:4.11'
+    compile "com.fasterxml.jackson.core:jackson-annotations:2.5.1"
+    compile "com.fasterxml.jackson.core:jackson-databind:2.5.1"
+    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.5.1"
+    compile "org.apache.curator:curator-framework:2.7.1"
+    testCompile 'junit:junit:4.12'
     testCompile 'commons-collections:commons-collections:3.2.1'
 }
 
