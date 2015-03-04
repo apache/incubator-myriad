@@ -31,6 +31,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * Defines the REST API for the current state of Myriad
+ */
 @Path("/api/state")
 @Produces(MediaType.APPLICATION_JSON)
 public class SchedulerStateResource {

@@ -2,6 +2,9 @@ package com.ebay.myriad.executor;
 
 import java.util.Map;
 
+/**
+ * Node Manger Task Configuraiton
+ */
 public class NMTaskConfig {
     private String user;
     private String yarnHome;

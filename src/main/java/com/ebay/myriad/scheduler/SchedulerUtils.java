@@ -29,6 +29,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Provides utilities for scheduling with the mesos offers
+ */
 public class SchedulerUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerUtils.class);
 

@@ -3,6 +3,9 @@ package com.ebay.myriad.configuration;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
+/**
+ * Node Manager Configuration
+ */
 public class NodeManagerConfiguration {
     /**
      * Allot 10% more memory to account for JVM overhead.
@@ -63,5 +66,7 @@ public class NodeManagerConfiguration {
         return Optional.fromNullable(user);
     }
 
-    public Optional<Boolean> getCgroups() { return Optional.fromNullable(cgroups); }
+    public Optional<Boolean> getCgroups() {
+        return Optional.fromNullable(cgroups);
+    }
 }

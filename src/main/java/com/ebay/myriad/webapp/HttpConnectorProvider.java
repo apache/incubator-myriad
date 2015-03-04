@@ -7,6 +7,9 @@ import org.mortbay.jetty.nio.SelectChannelConnector;
 
 import javax.inject.Inject;
 
+/**
+ * The factory for creating the http connector for the myriad scheduler
+ */
 public class HttpConnectorProvider implements Provider<Connector> {
 
     private final Configuration hadoopConf;
@@ -20,7 +23,7 @@ public class HttpConnectorProvider implements Provider<Connector> {
     public Connector get() {
         SelectChannelConnector ret = new SelectChannelConnector();
         ret.setHost("0.0.0.0");
-        //TODO Santosh: get the port from yarn-site.xml via hadoopConf
+        //TODO (Santosh): get the port from yarn-site.xml via hadoopConf
         ret.setPort(8192);
 
         return ret;

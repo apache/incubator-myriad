@@ -26,9 +26,11 @@ import javax.inject.Inject;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Manager for the myriad scheduler driver
+ */
 public class MyriadDriverManager {
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(MyriadDriverManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyriadDriverManager.class);
     private final Lock driverLock;
     private MyriadDriver driver;
     private Status driverStatus;

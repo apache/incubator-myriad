@@ -22,14 +22,14 @@ import org.apache.mesos.Protos.SlaveID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ExecutorLostEventHandler implements
-        EventHandler<ExecutorLostEvent> {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ExecutorLostEventHandler.class);
+/**
+ * handles and logs executor lost events
+ */
+public class ExecutorLostEventHandler implements EventHandler<ExecutorLostEvent> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorLostEventHandler.class);
 
     @Override
-    public void onEvent(ExecutorLostEvent event, long sequence,
-                        boolean endOfBatch) throws Exception {
+    public void onEvent(ExecutorLostEvent event, long sequence, boolean endOfBatch) throws Exception {
         ExecutorID executorId = event.getExecutorId();
         SlaveID slaveId = event.getSlaveId();
         int exitStatus = event.getExitStatus();

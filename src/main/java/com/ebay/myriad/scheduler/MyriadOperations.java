@@ -30,9 +30,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Myriad scheduler operations
+ */
 public class MyriadOperations {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(MyriadOperations.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyriadOperations.class);
     private final SchedulerState schedulerState;
     private MyriadConfiguration cfg;
     private NMProfileManager profileManager;
@@ -67,7 +69,7 @@ public class MyriadOperations {
         List<String> nodesToScaleDown = nodeScaleDownPolicy.getNodesToScaleDown();
         if (activeTasks.size() > nodesToScaleDown.size()) {
             LOGGER.info("Will skip flexing down {} Node Manager instances that were launched but " +
-                "have not yet registered with Resource Manager.", activeTasks.size() - nodesToScaleDown.size());
+                    "have not yet registered with Resource Manager.", activeTasks.size() - nodesToScaleDown.size());
         }
 
         // TODO(Santosh): Make this more efficient by using a Map<HostName, NodeTask> in scheduler state
@@ -78,7 +80,7 @@ public class MyriadOperations {
                     numScaledDown++;
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Marked NodeTask {} on host {} for kill.",
-                            nodeTask.getTaskStatus().getTaskId(), nodeTask.getHostname());
+                                nodeTask.getTaskStatus().getTaskId(), nodeTask.getHostname());
                     }
                 }
             }
@@ -114,6 +116,6 @@ public class MyriadOperations {
         int numPendingTasksScaledDown = numScaledDown - numStagingTasksScaledDown;
 
         LOGGER.info("Flexed down {} of {} instances including {} staging instances, and {} pending instances.",
-            numScaledDown, numInstancesToScaleDown, numStagingTasksScaledDown, numPendingTasksScaledDown);
+                numScaledDown, numInstancesToScaleDown, numStagingTasksScaledDown, numPendingTasksScaledDown);
     }
 }

@@ -26,9 +26,15 @@ import javax.inject.Inject;
 import java.nio.charset.Charset;
 import java.util.Objects;
 
+/**
+ * Creates Tasks based on mesos offers
+ */
 public interface TaskFactory {
     TaskInfo createTask(Offer offer, TaskID taskId, NodeTask nodeTask);
 
+    /**
+     * The Node Manager Task factory implementation
+     */
     class NMTaskFactoryImpl implements TaskFactory {
         public static final String EXECUTOR_NAME = "myriad_task";
         public static final String EXECUTOR_PREFIX = "myriad_executor";

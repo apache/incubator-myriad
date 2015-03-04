@@ -18,6 +18,9 @@ package com.ebay.myriad.scheduler.event;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
+/**
+ * framework message event
+ */
 public class FrameworkMessageEvent {
     private SchedulerDriver driver;
     private Protos.ExecutorID executorId;

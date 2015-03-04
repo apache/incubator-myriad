@@ -21,6 +21,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.UUID;
 
+/**
+ * Model which represents the configuration of a cluster
+ */
 public class Cluster {
     private String clusterId;
     private String clusterName;

@@ -28,8 +28,7 @@ import javax.inject.Inject;
  * configured rules and policies.
  */
 public class Rebalancer implements Runnable {
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(Rebalancer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Rebalancer.class);
 
     private MyriadConfiguration cfg;
     private SchedulerState schedulerState;

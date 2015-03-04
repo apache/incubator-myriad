@@ -35,6 +35,9 @@ import org.apache.mesos.SchedulerDriver;
 import javax.inject.Inject;
 import java.util.List;
 
+/**
+ * Myriad Scheduler
+ */
 public class MyriadScheduler implements Scheduler {
     private DisruptorManager disruptorManager;
 

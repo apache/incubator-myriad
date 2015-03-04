@@ -21,13 +21,14 @@ import org.apache.mesos.Protos.SlaveID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * handles and logs mesos slave lost events
+ */
 public class SlaveLostEventHandler implements EventHandler<SlaveLostEvent> {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(SlaveLostEventHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SlaveLostEventHandler.class);
 
     @Override
-    public void onEvent(SlaveLostEvent event, long sequence, boolean endOfBatch)
-            throws Exception {
+    public void onEvent(SlaveLostEvent event, long sequence, boolean endOfBatch) throws Exception {
         SlaveID slaveId = event.getSlaveId();
         LOGGER.info("Slave {} lost!", slaveId);
     }

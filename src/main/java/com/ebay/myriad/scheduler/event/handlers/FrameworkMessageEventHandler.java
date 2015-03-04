@@ -22,14 +22,14 @@ import org.apache.mesos.Protos.SlaveID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FrameworkMessageEventHandler implements
-        EventHandler<FrameworkMessageEvent> {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(FrameworkMessageEventHandler.class);
+/**
+ * handles and logs mesos framework messages
+ */
+public class FrameworkMessageEventHandler implements EventHandler<FrameworkMessageEvent> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FrameworkMessageEventHandler.class);
 
     @Override
-    public void onEvent(FrameworkMessageEvent event, long sequence,
-                        boolean endOfBatch) throws Exception {
+    public void onEvent(FrameworkMessageEvent event, long sequence, boolean endOfBatch) throws Exception {
         ExecutorID executorId = event.getExecutorId();
         SlaveID slaveId = event.getSlaveId();
         LOGGER.info("Received framework message from executor {} of slave {}",

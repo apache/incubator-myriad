@@ -18,7 +18,11 @@ package com.ebay.myriad.health;
 import java.io.IOException;
 import java.net.Socket;
 
+/**
+ * Health Check Utilities
+ */
 public class HealthCheckUtils {
+
     public static boolean checkHostPort(String connectionString) {
         String[] split = connectionString.split(":");
         String serverAddress = split[0];

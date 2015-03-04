@@ -17,6 +17,9 @@ package com.ebay.myriad.scheduler.event;
 
 import org.apache.mesos.SchedulerDriver;
 
+/**
+ * Error event in the system
+ */
 public class ErrorEvent {
     private SchedulerDriver driver;
     private String message;

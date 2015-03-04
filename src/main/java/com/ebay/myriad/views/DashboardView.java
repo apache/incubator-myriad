@@ -22,6 +22,9 @@ import com.ebay.myriad.state.SchedulerState;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * The dashboard view of the state of myriad
+ */
 public class DashboardView {
     // todo:  (kgs) appears to be used
 //    public static final String TEMPLATE_NAME = "master.mustache";

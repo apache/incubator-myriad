@@ -20,14 +20,14 @@ import com.lmax.disruptor.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DisconnectedEventHandler implements
-        EventHandler<DisconnectedEvent> {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(DisconnectedEventHandler.class);
+/**
+ * handles and logs disconnected events
+ */
+public class DisconnectedEventHandler implements EventHandler<DisconnectedEvent> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DisconnectedEventHandler.class);
 
     @Override
-    public void onEvent(DisconnectedEvent event, long sequence,
-                        boolean endOfBatch) throws Exception {
+    public void onEvent(DisconnectedEvent event, long sequence, boolean endOfBatch) throws Exception {
         LOGGER.info("Framework disconnected!");
     }
 

@@ -8,6 +8,9 @@ import org.mortbay.jetty.servlet.*;
 
 import javax.inject.Inject;
 
+/**
+ * The myriad web server configuration for jetty
+ */
 public class MyriadWebServer {
     private final Server jetty;
     private final Connector connector;

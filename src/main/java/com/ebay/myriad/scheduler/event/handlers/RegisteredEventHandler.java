@@ -24,9 +24,11 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
+/**
+ * handles and logs mesos registered events
+ */
 public class RegisteredEventHandler implements EventHandler<RegisteredEvent> {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(RegisteredEventHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RegisteredEventHandler.class);
 
     @Inject
     private SchedulerState schedulerState;
@@ -35,8 +37,7 @@ public class RegisteredEventHandler implements EventHandler<RegisteredEvent> {
     private ReconcileService reconcileService;
 
     @Override
-    public void onEvent(RegisteredEvent event, long sequence, boolean endOfBatch)
-            throws Exception {
+    public void onEvent(RegisteredEvent event, long sequence, boolean endOfBatch) throws Exception {
         LOGGER.info("Received event: {} with frameworkId: {}", event, event.getFrameworkId());
         schedulerState.getMyriadState().setFrameworkId(event.getFrameworkId());
         reconcileService.reconcile(event.getDriver());

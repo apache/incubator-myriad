@@ -20,14 +20,14 @@ import com.lmax.disruptor.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OfferRescindedEventHandler implements
-        EventHandler<OfferRescindedEvent> {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(OfferRescindedEventHandler.class);
+/**
+ * handles and logs offer rescinded events
+ */
+public class OfferRescindedEventHandler implements EventHandler<OfferRescindedEvent> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OfferRescindedEventHandler.class);
 
     @Override
-    public void onEvent(OfferRescindedEvent event, long sequence,
-                        boolean endOfBatch) throws Exception {
+    public void onEvent(OfferRescindedEvent event, long sequence, boolean endOfBatch) throws Exception {
         LOGGER.info("OfferRescinded event: {}", event);
     }
 

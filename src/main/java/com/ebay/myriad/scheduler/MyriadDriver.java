@@ -31,15 +31,18 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * The driver for the Myriad scheduler
+ */
 public class MyriadDriver {
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(MyriadDriver.class);
+    private static final  Logger LOGGER = LoggerFactory.getLogger(MyriadDriver.class);
 
     private final MesosSchedulerDriver driver;
 
     @Inject
     public MyriadDriver(final MyriadScheduler scheduler,
-                        final MyriadConfiguration cfg, final SchedulerState schedulerState) {
+                        final MyriadConfiguration cfg,
+                        final SchedulerState schedulerState) {
         Builder frameworkInfoBuilder = FrameworkInfo.newBuilder().setUser("")
                 .setName(cfg.getFrameworkName())
                 .setCheckpoint(cfg.getCheckpoint())

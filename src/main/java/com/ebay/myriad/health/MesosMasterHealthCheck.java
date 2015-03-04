@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Health check for Mesos master
+ */
 public class MesosMasterHealthCheck extends HealthCheck {
     public static final String NAME = "mesos-master";
 
