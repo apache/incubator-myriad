@@ -35,7 +35,7 @@ import java.util.concurrent.ExecutionException;
  * The driver for the Myriad scheduler
  */
 public class MyriadDriver {
-    private static final  Logger LOGGER = LoggerFactory.getLogger(MyriadDriver.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyriadDriver.class);
 
     private final MesosSchedulerDriver driver;
 
@@ -48,7 +48,7 @@ public class MyriadDriver {
                 .setCheckpoint(cfg.getCheckpoint())
                 .setFailoverTimeout(cfg.getFrameworkFailoverTimeout());
 
-        if(StringUtils.isNotEmpty(cfg.getFrameworkRole())){
+        if (StringUtils.isNotEmpty(cfg.getFrameworkRole())) {
             frameworkInfoBuilder.setRole(cfg.getFrameworkRole());
         }
 

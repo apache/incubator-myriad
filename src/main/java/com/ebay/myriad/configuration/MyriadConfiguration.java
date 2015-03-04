@@ -31,24 +31,24 @@ import java.util.Map;
  * zkServers: localhost:2181
  * zkTimeout: 20000
  * profiles:
- *  small:
- *      cpu: 1
- *      mem: 1100
- *  medium:
- *      cpu: 2
- *      mem: 2048
- *  large:
- *      cpu: 4
- *      mem: 4096
+ * small:
+ * cpu: 1
+ * mem: 1100
+ * medium:
+ * cpu: 2
+ * mem: 2048
+ * large:
+ * cpu: 4
+ * mem: 4096
  * rebalancer: false
  * nodemanager:
- *  jvmMaxMemoryMB: 1024
- *  user: hduser
- *  cpus: 0.2
- *  cgroups: false
+ * jvmMaxMemoryMB: 1024
+ * user: hduser
+ * cpus: 0.2
+ * cgroups: false
  * executor:
- *  jvmMaxMemoryMB: 256
- *  path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar
+ * jvmMaxMemoryMB: 256
+ * path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar
  * yarnEnvironment:
  * YARN_HOME: /usr/local/hadoop
  */
@@ -91,7 +91,7 @@ public class MyriadConfiguration {
     private String frameworkRole;
 
     @JsonProperty
-	@NotEmpty 
+    @NotEmpty
     private Map<String, Map<String, String>> profiles;
 
     @JsonProperty
