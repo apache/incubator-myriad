@@ -18,13 +18,13 @@ package com.ebay.myriad.api.model;
 import com.google.gson.Gson;
 import org.hibernate.validator.constraints.NotEmpty;
 
+/**
+ * Flex down request parameters
+ */
 public class FlexDownClusterRequest {
 
     @NotEmpty
     public Integer instances;
-
-    public FlexDownClusterRequest() {
-    }
 
     public FlexDownClusterRequest(Integer instances) {
         this.instances = instances;

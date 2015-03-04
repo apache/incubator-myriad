@@ -45,6 +45,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Main entry point for myriad scheduler
+ *
+ */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
@@ -81,8 +85,9 @@ public class Main {
 
         initWebApp(injector);
         initHealthChecks(injector);
-        initProfiles(cfg, injector);
+        initProfiles(injector);
         initDisruptors(injector);
+
         initRebalancerService(cfg, injector);
         initTerminatorService(injector);
         startMesosDriver(injector);
@@ -120,10 +125,10 @@ public class Main {
                 injector.getInstance(MesosDriverHealthCheck.class));
     }
 
-    private void initProfiles(final MyriadConfiguration cfg, Injector injector) {
+    private void initProfiles(Injector injector) {
         LOGGER.info("Initializing Profiles");
         NMProfileManager profileManager = injector.getInstance(NMProfileManager.class);
-        Map<String, Map<String, String>> profiles = cfg.getProfiles();
+        Map<String, Map<String, String>> profiles = injector.getInstance(MyriadConfiguration.class).getProfiles();
         if (MapUtils.isNotEmpty(profiles)) {
             for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {
                 Map<String, String> profileResourceMap = profile.getValue();

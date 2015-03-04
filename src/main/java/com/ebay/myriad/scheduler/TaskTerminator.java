@@ -32,8 +32,7 @@ import java.util.Set;
  * {@link TaskTerminator} is responsible for killing tasks.
  */
 public class TaskTerminator implements Runnable {
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(MyriadDriverManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyriadDriverManager.class);
 
     private MyriadConfiguration cfg;
     private SchedulerState schedulerState;

@@ -21,6 +21,9 @@ import org.apache.mesos.Protos.Status;
 
 import javax.inject.Inject;
 
+/**
+ * Health Check that Mesos Master is running
+ */
 public class MesosDriverHealthCheck extends HealthCheck {
 
     public static final String NAME = "mesos-driver";
@@ -34,10 +37,10 @@ public class MesosDriverHealthCheck extends HealthCheck {
     @Override
     protected Result check() throws Exception {
         Status driverStatus = driverManager.getDriverStatus();
-        if (Status.DRIVER_RUNNING == driverStatus)
+        if (Status.DRIVER_RUNNING == driverStatus) {
             return Result.healthy();
-        else
+        } else {
             return Result.unhealthy("Driver status: " + driverStatus);
+        }
     }
-
 }

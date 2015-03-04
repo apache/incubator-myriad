@@ -26,6 +26,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 
+/**
+ * handles and logs mesos status update events
+ */
 public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusUpdateEventHandler.class);

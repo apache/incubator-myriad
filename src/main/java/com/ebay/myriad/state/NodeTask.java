@@ -19,6 +19,9 @@ import com.ebay.myriad.scheduler.NMProfile;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.mesos.Protos;
 
+/**
+ * Represents a task to be launched by the executor
+ */
 public class NodeTask {
     @JsonProperty
     private NMProfile profile;
@@ -30,7 +33,6 @@ public class NodeTask {
     private Protos.TaskStatus taskStatus;
 
     public NodeTask(NMProfile profile) {
-        super();
         this.profile = profile;
         this.hostname = "";
     }

@@ -17,6 +17,9 @@ package com.ebay.myriad.scheduler.event;
 
 import org.apache.mesos.SchedulerDriver;
 
+/**
+ * Event to disconnect from mesos
+ */
 public class DisconnectedEvent {
     private SchedulerDriver driver;
 

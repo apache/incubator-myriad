@@ -20,6 +20,9 @@ import org.apache.mesos.SchedulerDriver;
 
 import java.util.List;
 
+/**
+ * resource offer event
+ */
 public class ResourceOffersEvent {
     private SchedulerDriver driver;
     private List<Protos.Offer> offers;

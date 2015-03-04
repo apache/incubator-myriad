@@ -48,6 +48,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 
+/**
+ * utility class for working with tasks and node manager profiles
+ */
 public class TaskUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
 
@@ -76,7 +79,7 @@ public class TaskUtils {
                     TaskUtils.class.getClassLoader().getResourceAsStream("yarn-site.xml");
 
             doc = builder.parse(new InputSource(resourceAsStream));
-	    resourceAsStream.close();
+            resourceAsStream.close();
 
             XPathFactory xFactory = XPathFactory.newInstance();
 

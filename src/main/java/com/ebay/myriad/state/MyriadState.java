@@ -7,8 +7,11 @@ import org.apache.mesos.state.ZooKeeperState;
 
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Model that represents the state of Myriad
+ */
 public class MyriadState {
-    private static String KEY_FRAMEWORK_ID = "frameworkId";
+    private static final String KEY_FRAMEWORK_ID = "frameworkId";
 
     private ZooKeeperState zkState;
 

@@ -18,6 +18,9 @@ package com.ebay.myriad.scheduler.event;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
+/**
+ * mesos status update event
+ */
 public class StatusUpdateEvent {
     private SchedulerDriver driver;
     private Protos.TaskStatus status;

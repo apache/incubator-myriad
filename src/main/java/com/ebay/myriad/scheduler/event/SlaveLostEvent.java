@@ -18,6 +18,9 @@ package com.ebay.myriad.scheduler.event;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
+/**
+ * mesos slave lost event
+ */
 public class SlaveLostEvent {
     private SchedulerDriver driver;
     private Protos.SlaveID slaveId;

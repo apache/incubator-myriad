@@ -22,9 +22,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Node Manager Profile Manager
+ */
 public class NMProfileManager {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(NMProfileManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NMProfileManager.class);
 
     private Map<String, NMProfile> profiles = new ConcurrentHashMap<>();
 

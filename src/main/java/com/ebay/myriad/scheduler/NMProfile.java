@@ -17,6 +17,9 @@ package com.ebay.myriad.scheduler;
 
 import com.google.gson.Gson;
 
+/**
+ * Node Manager Profile
+ */
 public class NMProfile {
     private String name;
 

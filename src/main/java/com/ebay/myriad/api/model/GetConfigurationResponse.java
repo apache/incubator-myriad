@@ -20,12 +20,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
 
+/**
+ * The current configuration of Myriad
+ */
 public class GetConfigurationResponse {
     private MyriadConfiguration cfg;
-
-    public GetConfigurationResponse() {
-        super();
-    }
 
     public GetConfigurationResponse(MyriadConfiguration cfg) {
         this.cfg = cfg;

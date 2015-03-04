@@ -17,6 +17,9 @@ package com.ebay.myriad.api.model;
 
 import java.util.Collection;
 
+/**
+ * Response for the current state of Myriad
+ */
 public class GetSchedulerStateResponse {
     private Collection<String> pendingTasks;
     private Collection<String> stagingTasks;
@@ -30,7 +33,6 @@ public class GetSchedulerStateResponse {
     public GetSchedulerStateResponse(Collection<String> pendingTasks,
                                      Collection<String> stagingTasks, Collection<String> activeTasks,
                                      Collection<String> killableTasks) {
-        super();
         this.pendingTasks = pendingTasks;
         this.stagingTasks = stagingTasks;
         this.activeTasks = activeTasks;

@@ -12,9 +12,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
+/**
+ * {@link ReconcileService} is responsible for reconciling tasks with the mesos master
+ */
 public class ReconcileService {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ReconcileService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReconcileService.class);
 
     public static final long DEFAULT_RECONCILATION_DELAY_MS = 10000;
     public static final long MAX_RECONCILE_ATTEMPTS = 10;

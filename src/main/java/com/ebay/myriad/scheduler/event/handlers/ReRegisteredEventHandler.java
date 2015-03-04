@@ -23,10 +23,11 @@ import com.lmax.disruptor.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ReRegisteredEventHandler implements
-        EventHandler<ReRegisteredEvent> {
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ReRegisteredEventHandler.class);
+/**
+ * handles and logs mesos re-register events
+ */
+public class ReRegisteredEventHandler implements EventHandler<ReRegisteredEvent> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReRegisteredEventHandler.class);
 
     @Inject
     private SchedulerState state;
@@ -35,10 +36,8 @@ public class ReRegisteredEventHandler implements
     private ReconcileService reconcileService;
 
     @Override
-    public void onEvent(ReRegisteredEvent event, long sequence,
-                        boolean endOfBatch) throws Exception {
+    public void onEvent(ReRegisteredEvent event, long sequence, boolean endOfBatch) throws Exception {
         LOGGER.info("Framework re-registered: {}", event);
         reconcileService.reconcile(event.getDriver());
     }
-
 }

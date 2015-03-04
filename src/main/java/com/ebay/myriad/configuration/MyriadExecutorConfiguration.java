@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import org.hibernate.validator.constraints.NotEmpty;
 
+/**
+ *  Configuration for the Executor
+ */
 public class MyriadExecutorConfiguration {
     /**
      * Translates to -Xmx for the NodeManager JVM.
@@ -22,5 +25,4 @@ public class MyriadExecutorConfiguration {
     public String getPath() {
         return path;
     }
-
 }

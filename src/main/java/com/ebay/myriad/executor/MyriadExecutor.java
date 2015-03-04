@@ -22,6 +22,9 @@ import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.Map;
 
+/**
+ * Myriad's Executor
+ */
 public class MyriadExecutor implements Executor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MyriadExecutor.class);
     public static final String ENV_YARN_NODEMANAGER_OPTS = "YARN_NODEMANAGER_OPTS";
@@ -159,14 +162,14 @@ public class MyriadExecutor implements Executor {
             }
         }
 
-        String ENV_NM_OPTS = getNMOpts(taskConfig);
-        LOGGER.info(ENV_YARN_NODEMANAGER_OPTS, ": ", ENV_NM_OPTS);
+        String envNMOptions = getNMOpts(taskConfig);
+        LOGGER.info(ENV_YARN_NODEMANAGER_OPTS, ": ", envNMOptions);
 
         if (environment.containsKey(ENV_YARN_NODEMANAGER_OPTS)) {
             String existingOpts = environment.get(ENV_YARN_NODEMANAGER_OPTS);
-            environment.put(ENV_YARN_NODEMANAGER_OPTS, existingOpts + " " + ENV_NM_OPTS);
+            environment.put(ENV_YARN_NODEMANAGER_OPTS, existingOpts + " " + envNMOptions);
         } else {
-            environment.put(ENV_YARN_NODEMANAGER_OPTS, ENV_NM_OPTS);
+            environment.put(ENV_YARN_NODEMANAGER_OPTS, envNMOptions);
         }
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
@@ -181,31 +184,31 @@ public class MyriadExecutor implements Executor {
     }
 
     private String getNMOpts(NMTaskConfig taskConfig) {
-        String ENV_NM_OPTS = "";
+        String envNMOptions = "";
 
         // If cgroups are enabled then configure
         if (taskConfig.getCgroups()) {
-            ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS, VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS);
-            ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_RH_CLASS, VAL_YARN_NM_LCE_RH_CLASS);
+            envNMOptions += String.format(PROPERTY_FORMAT, KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS, VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS);
+            envNMOptions += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_RH_CLASS, VAL_YARN_NM_LCE_RH_CLASS);
 
             String containerId = getContainerId();
 
             makeWritable("/sys/fs/cgroup/cpu/mesos/" + containerId);
 
             // TODO: Configure hierarchy
-            ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "mesos/" + containerId);
-            ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_CGROUPS_MOUNT, "true");
+            envNMOptions += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "mesos/" + containerId);
+            envNMOptions += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_CGROUPS_MOUNT, "true");
             // TODO: Make it configurable
-            ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_CGROUPS_MOUNT_PATH, "/sys/fs/cgroup");
-            ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_GROUP, "root");
-            ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_HOME, taskConfig.getYarnEnvironment().get("YARN_HOME"));
+            envNMOptions += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_CGROUPS_MOUNT_PATH, "/sys/fs/cgroup");
+            envNMOptions += String.format(PROPERTY_FORMAT, KEY_YARN_NM_LCE_GROUP, "root");
+            envNMOptions += String.format(PROPERTY_FORMAT, KEY_YARN_HOME, taskConfig.getYarnEnvironment().get("YARN_HOME"));
         } else {
             // Otherwise configure to use Default
-            ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS, DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS);
+            envNMOptions += String.format(PROPERTY_FORMAT, KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS, DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS);
         }
-        ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_CPU_VCORES, taskConfig.getAdvertisableCpus() + "");
-        ENV_NM_OPTS += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_MEM_MB, taskConfig.getAdvertisableMem() + "");
-        return ENV_NM_OPTS;
+        envNMOptions += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_CPU_VCORES, taskConfig.getAdvertisableCpus() + "");
+        envNMOptions += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_MEM_MB, taskConfig.getAdvertisableMem() + "");
+        return envNMOptions;
     }
 
     public String getContainerId() {

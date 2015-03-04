@@ -23,6 +23,11 @@ import com.lmax.disruptor.dsl.Disruptor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Disruptor class is an event bus used in high speed financial systems. http://martinfowler.com/articles/lmax.html
+ * Here it is used to abstract incoming events.
+ *
+ */
 public class DisruptorManager {
     private ExecutorService disruptorExecutors;
 

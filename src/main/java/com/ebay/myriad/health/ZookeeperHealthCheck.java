@@ -20,6 +20,9 @@ import com.ebay.myriad.configuration.MyriadConfiguration;
 
 import javax.inject.Inject;
 
+/**
+ * Health Check on ZK
+ */
 public class ZookeeperHealthCheck extends HealthCheck {
     public static final String NAME = "zookeeper";
     private MyriadConfiguration cfg;
@@ -31,6 +34,7 @@ public class ZookeeperHealthCheck extends HealthCheck {
 
     @Override
     protected Result check() throws Exception {
+        // todo:  (kensipe) this needs to be implemented
         return Result.healthy();
     }
 }

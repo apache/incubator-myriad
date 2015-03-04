@@ -9,6 +9,9 @@ import com.google.inject.servlet.ServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
+/**
+ * The guice module for configuring the myriad dashboard
+ */
 public class MyriadServletModule extends ServletModule {
 
     @Override

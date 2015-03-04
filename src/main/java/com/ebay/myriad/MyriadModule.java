@@ -18,7 +18,12 @@ package com.ebay.myriad;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.policy.LeastAMNodesFirstPolicy;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
-import com.ebay.myriad.scheduler.*;
+import com.ebay.myriad.scheduler.MyriadDriver;
+import com.ebay.myriad.scheduler.MyriadDriverManager;
+import com.ebay.myriad.scheduler.MyriadScheduler;
+import com.ebay.myriad.scheduler.NMProfileManager;
+import com.ebay.myriad.scheduler.ReconcileService;
+import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.MyriadState;
@@ -35,9 +40,11 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Guice Module for Myriad
+ */
 public class MyriadModule extends AbstractModule {
-    private final static Logger LOGGER = LoggerFactory
-            .getLogger(MyriadModule.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyriadModule.class);
 
     private MyriadConfiguration cfg;
     private Configuration hadoopConf;
@@ -73,7 +80,8 @@ public class MyriadModule extends AbstractModule {
         bind(NodeScaleDownPolicy.class).to(LeastAMNodesFirstPolicy.class).in(Scopes.SINGLETON);
     }
 
-    @Provides @Singleton
+    @Provides
+    @Singleton
     SchedulerState providesSchedulerState(MyriadConfiguration cfg) {
         LOGGER.debug("Configuring SchedulerState provider");
         ZooKeeperState zkState = new ZooKeeperState(
