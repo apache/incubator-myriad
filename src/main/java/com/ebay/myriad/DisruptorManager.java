@@ -16,15 +16,31 @@
 package com.ebay.myriad;
 
 import com.ebay.myriad.scheduler.event.*;
-import com.ebay.myriad.scheduler.event.handlers.*;
+import com.ebay.myriad.scheduler.event.handlers.DisconnectedEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.ErrorEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.ExecutorLostEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.FrameworkMessageEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.OfferRescindedEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.ReRegisteredEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.RegisteredEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.ResourceOffersEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.SlaveLostEventHandler;
+import com.ebay.myriad.scheduler.event.handlers.StatusUpdateEventHandler;
 import com.google.inject.Injector;
 import com.lmax.disruptor.dsl.Disruptor;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * Disruptor class is an event bus used in high speed financial systems. http://martinfowler.com/articles/lmax.html
+ * Here it is used to abstract incoming events.
+ */
 public class DisruptorManager {
     private ExecutorService disruptorExecutors;
+
+    private static final int DEFAULT_SMALL_RINGBUFFER_SIZE = 64;
+    private static final int DEFAULT_LARGE_RINGBUFFER_SIZE = 1024;
 
     private Disruptor<RegisteredEvent> registeredEventDisruptor;
     private Disruptor<ReRegisteredEvent> reRegisteredEventDisruptor;
@@ -37,70 +53,70 @@ public class DisruptorManager {
     private Disruptor<ExecutorLostEvent> executorLostEventDisruptor;
     private Disruptor<ErrorEvent> errorEventDisruptor;
 
-    public DisruptorManager() {
-
-    }
-
     @SuppressWarnings("unchecked")
     public void init(Injector injector) {
         this.disruptorExecutors = Executors.newCachedThreadPool();
 
+        // todo:  (kensipe) need to make ringsize configurable (overriding the defaults)
+
+
         this.registeredEventDisruptor = new Disruptor<>(
-                new RegisteredEventFactory(), 64, disruptorExecutors);
+                new RegisteredEventFactory(), DEFAULT_SMALL_RINGBUFFER_SIZE, disruptorExecutors);
         this.registeredEventDisruptor.handleEventsWith(injector
                 .getInstance(RegisteredEventHandler.class));
         this.registeredEventDisruptor.start();
 
         this.reRegisteredEventDisruptor = new Disruptor<>(
-                new ReRegisteredEventFactory(), 64, disruptorExecutors);
+                new ReRegisteredEventFactory(), DEFAULT_SMALL_RINGBUFFER_SIZE, disruptorExecutors);
         this.reRegisteredEventDisruptor.handleEventsWith(injector
                 .getInstance(ReRegisteredEventHandler.class));
         this.reRegisteredEventDisruptor.start();
 
+
         this.resourceOffersEventDisruptor = new Disruptor<>(
-                new ResourceOffersEventFactory(), 1024, disruptorExecutors);
+                new ResourceOffersEventFactory(), DEFAULT_LARGE_RINGBUFFER_SIZE, disruptorExecutors);
         this.resourceOffersEventDisruptor.handleEventsWith(injector
                 .getInstance(ResourceOffersEventHandler.class));
         this.resourceOffersEventDisruptor.start();
 
         this.offerRescindedEventDisruptor = new Disruptor<>(
-                new OfferRescindedEventFactory(), 1024, disruptorExecutors);
+                new OfferRescindedEventFactory(), DEFAULT_LARGE_RINGBUFFER_SIZE, disruptorExecutors);
         this.offerRescindedEventDisruptor.handleEventsWith(injector
                 .getInstance(OfferRescindedEventHandler.class));
         this.offerRescindedEventDisruptor.start();
 
         this.statusUpdateEventDisruptor = new Disruptor<>(
-                new StatusUpdateEventFactory(), 1024, disruptorExecutors);
+                new StatusUpdateEventFactory(), DEFAULT_LARGE_RINGBUFFER_SIZE, disruptorExecutors);
         this.statusUpdateEventDisruptor.handleEventsWith(injector
                 .getInstance(StatusUpdateEventHandler.class));
         this.statusUpdateEventDisruptor.start();
 
         this.frameworkMessageEventDisruptor = new Disruptor<>(
-                new FrameworkMessageEventFactory(), 1024, disruptorExecutors);
+                new FrameworkMessageEventFactory(), DEFAULT_LARGE_RINGBUFFER_SIZE, disruptorExecutors);
         this.frameworkMessageEventDisruptor.handleEventsWith(injector
                 .getInstance(FrameworkMessageEventHandler.class));
         this.frameworkMessageEventDisruptor.start();
 
         this.disconnectedEventDisruptor = new Disruptor<>(
-                new DisconnectedEventFactory(), 1024, disruptorExecutors);
+                new DisconnectedEventFactory(), DEFAULT_LARGE_RINGBUFFER_SIZE, disruptorExecutors);
         this.disconnectedEventDisruptor.handleEventsWith(injector
                 .getInstance(DisconnectedEventHandler.class));
         this.disconnectedEventDisruptor.start();
 
         this.slaveLostEventDisruptor = new Disruptor<>(
-                new SlaveLostEventFactory(), 1024, disruptorExecutors);
+                new SlaveLostEventFactory(), DEFAULT_LARGE_RINGBUFFER_SIZE, disruptorExecutors);
         this.slaveLostEventDisruptor.handleEventsWith(injector
                 .getInstance(SlaveLostEventHandler.class));
         this.slaveLostEventDisruptor.start();
 
         this.executorLostEventDisruptor = new Disruptor<>(
-                new ExecutorLostEventFactory(), 1024, disruptorExecutors);
+                new ExecutorLostEventFactory(), DEFAULT_LARGE_RINGBUFFER_SIZE, disruptorExecutors);
         this.executorLostEventDisruptor.handleEventsWith(injector
                 .getInstance(ExecutorLostEventHandler.class));
         this.executorLostEventDisruptor.start();
 
         this.errorEventDisruptor = new Disruptor<>(new ErrorEventFactory(),
-                1024, disruptorExecutors);
+                DEFAULT_LARGE_RINGBUFFER_SIZE, disruptorExecutors);
         this.errorEventDisruptor.handleEventsWith(injector
                 .getInstance(ErrorEventHandler.class));
         this.errorEventDisruptor.start();

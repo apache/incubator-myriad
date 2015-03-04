@@ -144,9 +144,10 @@ public class Main {
     private void initTerminatorService(Injector injector) {
         LOGGER.info("Initializing Terminator");
         terminatorService = Executors.newScheduledThreadPool(1);
+        final int initialDelay = 100;
+        final int period = 2000;
         terminatorService.scheduleAtFixedRate(
-                injector.getInstance(TaskTerminator.class), 100, 2000,
-                TimeUnit.MILLISECONDS);
+                injector.getInstance(TaskTerminator.class), initialDelay, period, TimeUnit.MILLISECONDS);
     }
 
     private void initRebalancerService(MyriadConfiguration cfg,
@@ -154,8 +155,10 @@ public class Main {
         if (cfg.isRebalancer()) {
             LOGGER.info("Initializing Rebalancer");
             rebalancerService = Executors.newScheduledThreadPool(1);
+            final int initialDelay = 100;
+            final int period = 5000;
             rebalancerService.scheduleAtFixedRate(
-                    injector.getInstance(Rebalancer.class), 100, 5000, TimeUnit.MILLISECONDS);
+                    injector.getInstance(Rebalancer.class), initialDelay, period, TimeUnit.MILLISECONDS);
         } else {
             LOGGER.info("Rebalancer is not turned on");
         }

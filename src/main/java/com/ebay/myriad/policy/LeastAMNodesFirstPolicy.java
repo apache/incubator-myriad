@@ -31,7 +31,11 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
 
     //TODO(Santosh): Should figure out the right values for the hashmap properties.
     // currently it's tuned for 200 nodes and 50 RM RPC threads (Yarn's default).
-    private Map<String, SchedulerNode> schedulerNodes = new ConcurrentHashMap<>(200, 0.75f, 50);
+    private static final int INITIAL_NODE_SIZE = 200;
+    private static final int EXPECTED_CONCURRENT_ACCCESS_COUNT = 50;
+    private static final float LOAD_FACTOR_DEFAULT = 0.75f;
+
+    private Map<String, SchedulerNode> schedulerNodes = new ConcurrentHashMap<>(INITIAL_NODE_SIZE, LOAD_FACTOR_DEFAULT, EXPECTED_CONCURRENT_ACCCESS_COUNT);
 
     @Inject
     public LeastAMNodesFirstPolicy(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler) {

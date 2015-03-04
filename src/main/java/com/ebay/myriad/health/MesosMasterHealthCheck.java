@@ -44,17 +44,20 @@ public class MesosMasterHealthCheck extends HealthCheck {
         int zkIndex = mesosMaster.indexOf("zk://", 0);
         Result result = Result.unhealthy("Unable to connect to: " + mesosMaster);
         if (zkIndex >= 0) {
-            String zkHostPorts = mesosMaster.substring(5,
-                    mesosMaster.indexOf("/", 5));
+            final int fromIndex = 5;
+            String zkHostPorts = mesosMaster.substring(fromIndex, mesosMaster.indexOf("/", fromIndex));
 
             String[] hostPorts = zkHostPorts.split(",");
 
             for (String hostPort : hostPorts) {
+                final int maxRetries = 3;
+                final int baseSleepTimeMs = 1000;
                 CuratorFramework client = CuratorFrameworkFactory.newClient(
                         hostPort,
-                        new ExponentialBackoffRetry(1000, 3));
+                        new ExponentialBackoffRetry(baseSleepTimeMs, maxRetries));
                 client.start();
-                client.blockUntilConnected(5, TimeUnit.SECONDS);
+                final int blockTime = 5;
+                client.blockUntilConnected(blockTime, TimeUnit.SECONDS);
 
                 switch (client.getState()) {
                     case STARTED:
