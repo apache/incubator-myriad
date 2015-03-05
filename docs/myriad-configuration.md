@@ -26,6 +26,9 @@ frameworkName: MyriadAlpha
 # Myriad's mesos framework role.
 frameworkRole: someRoleName
 
+# Myriad's REST-ful services port mapping.
+restApiPort: 8192
+
 # Address of the ZK ensemble (separate by comma, if multiple zk servers are used)
 zkServers: localhost:2181
 

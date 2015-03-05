@@ -6,6 +6,7 @@ frameworkRole:
 nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: localhost:2181
 zkTimeout: 20000
+restApiPort: 8192
 profiles:
   small:
     cpu: 1
