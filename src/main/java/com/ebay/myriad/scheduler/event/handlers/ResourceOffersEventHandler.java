@@ -151,10 +151,12 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
             }
         }
 
-        if (cpus < 0)
+        if (cpus < 0) {
             LOGGER.error("No cpus resource present");
-        if (mem < 0)
+        }
+        if (mem < 0) {
             LOGGER.error("No mem resource present");
+        }
 
         Map<String, String> requestAttributes = new HashMap<>();
 

@@ -190,8 +190,9 @@ public class SchedulerState {
         Collection<NodeTask> tasks = this.tasks.values();
         for (NodeTask task : tasks) {
             Protos.TaskStatus taskStatus = task.getTaskStatus();
-            if (taskStatus != null)
+            if (taskStatus != null) {
                 taskStatuses.add(taskStatus);
+            }
         }
 
         return taskStatuses;

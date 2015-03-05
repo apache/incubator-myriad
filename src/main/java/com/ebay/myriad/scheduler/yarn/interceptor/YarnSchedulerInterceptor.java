@@ -1,11 +1,9 @@
 package com.ebay.myriad.scheduler.yarn.interceptor;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.event.Event;
-import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.YarnScheduler;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.*;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 
 import java.io.IOException;
 
@@ -25,6 +23,7 @@ public interface YarnSchedulerInterceptor {
 
     /**
      * Invoked *after* {@link YarnScheduler#handle(Event)}
+     *
      * @param event
      */
     public void onEventHandled(SchedulerEvent event);

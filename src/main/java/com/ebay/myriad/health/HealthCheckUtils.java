@@ -15,6 +15,9 @@
  */
 package com.ebay.myriad.health;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.Socket;
 
@@ -22,6 +25,7 @@ import java.net.Socket;
  * Health Check Utilities
  */
 public class HealthCheckUtils {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HealthCheckUtils.class);
 
     public static boolean checkHostPort(String connectionString) {
         String[] split = connectionString.split(":");
@@ -30,7 +34,7 @@ public class HealthCheckUtils {
         try (Socket s = new Socket(serverAddress, serverPort)) {
             return true;
         } catch (IOException ex) {
-            /* ignore */
+            LOGGER.error("parsing host port", ex);
         }
 
         return false;
