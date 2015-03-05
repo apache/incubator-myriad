@@ -26,6 +26,9 @@ import java.util.Map;
 public class GetConfigurationResponse {
     private MyriadConfiguration cfg;
 
+    public GetConfigurationResponse() {
+    }
+
     public GetConfigurationResponse(MyriadConfiguration cfg) {
         this.cfg = cfg;
     }
