@@ -28,6 +28,9 @@ public class FlexUpClusterRequest {
     @NotEmpty
     public String profile;
 
+    public FlexUpClusterRequest() {
+    }
+    
     public FlexUpClusterRequest(Integer instances, String profile) {
         this.instances = instances;
         this.profile = profile;

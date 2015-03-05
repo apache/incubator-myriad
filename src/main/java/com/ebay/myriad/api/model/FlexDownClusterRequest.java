@@ -26,6 +26,9 @@ public class FlexDownClusterRequest {
     @NotEmpty
     public Integer instances;
 
+    public FlexDownClusterRequest() {
+    }
+
     public FlexDownClusterRequest(Integer instances) {
         this.instances = instances;
     }
