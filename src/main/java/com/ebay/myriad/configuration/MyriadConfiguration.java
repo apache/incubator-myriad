@@ -74,6 +74,8 @@ public class MyriadConfiguration {
 
     public static final Integer DEFAULT_ZK_TIMEOUT = 20000;
 
+    public static final Integer DEFAULT_REST_API_PORT = 8192;
+
     @JsonProperty
     @NotEmpty
     private String mesosMaster;
@@ -113,6 +115,9 @@ public class MyriadConfiguration {
 
     @JsonProperty
     private Integer zkTimeout;
+
+    @JsonProperty
+    private Integer restApiPort;
 
     @JsonProperty
     @NotEmpty
@@ -171,6 +176,8 @@ public class MyriadConfiguration {
     public Integer getZkTimeout() {
         return this.zkTimeout != null ? this.zkTimeout : DEFAULT_ZK_TIMEOUT;
     }
+
+    public Integer getRestApiPort() { return this.restApiPort != null ? this.restApiPort : DEFAULT_REST_API_PORT; }
 
     public Map<String, String> getYarnEnvironment() {
         return yarnEnvironment;
