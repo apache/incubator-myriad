@@ -20,11 +20,19 @@ profiles:
 rebalancer: false
 nodemanager:
   jvmMaxMemoryMB: 1024
-  user: hduser
+  user: hduser #user the nodemanager runs as.
+  #group:hadoop #only relevant if remoteDistribution is true
   cpus: 0.2
   cgroups: false
 executor:
   jvmMaxMemoryMB: 256
-  path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar
+  path: file:///usr/local/libexec/mesos/myriad-executor-0.0.1.jar
+  #user: admin #User the executor runs as, currently defaults to root.  Must have passwordless sudo.
+  #The following should be uncommented if using a remotely distributed URI
+  #remoteDistribution: true #default is false
+  #nodeManagerUri: hdfs:///dist/hadoop-2.5.0.tar.gz
+  #command: hadoop-2.5.0/share/hadoop/yarn/myriad-executor-0.0.1.jar
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
+  #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary
+  #YARN_HOME: hadoop #this should be relative if remoteDistribution is set to true

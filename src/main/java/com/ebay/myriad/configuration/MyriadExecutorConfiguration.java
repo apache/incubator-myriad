@@ -5,7 +5,7 @@ import com.google.common.base.Optional;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
- *  Configuration for the Executor
+ * Configuration for the Executor
  */
 public class MyriadExecutorConfiguration {
     /**
@@ -18,6 +18,19 @@ public class MyriadExecutorConfiguration {
     @NotEmpty
     private String path;
 
+    @JsonProperty
+    private String nodeManagerUri;
+
+    @JsonProperty
+    private String command;
+
+    @JsonProperty
+    private Boolean remoteDistribution;
+
+    @JsonProperty
+    private String user;
+
+
     public Optional<Double> getJvmMaxMemoryMB() {
         return Optional.fromNullable(jvmMaxMemoryMB);
     }
@@ -25,4 +38,21 @@ public class MyriadExecutorConfiguration {
     public String getPath() {
         return path;
     }
+
+    public Optional<String> getNodeManagerUri() {
+        return Optional.fromNullable(nodeManagerUri);
+    }
+
+    public Optional<String> getCommand() {
+        return Optional.fromNullable(command);
+    }
+
+    public boolean isRemoteDistribution() {
+        return remoteDistribution != null ? remoteDistribution : false;
+    }
+
+    public Optional<String> getUser() {
+        return Optional.fromNullable(user);
+    }
+
 }

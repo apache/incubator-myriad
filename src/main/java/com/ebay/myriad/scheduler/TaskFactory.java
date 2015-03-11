@@ -1,6 +1,7 @@
 package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
 import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.executor.NMTaskConfig;
 import com.ebay.myriad.state.NodeTask;
@@ -9,15 +10,8 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.CommandInfo;
+import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.CommandInfo.URI;
-import org.apache.mesos.Protos.ExecutorID;
-import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Scalar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +33,7 @@ public interface TaskFactory {
         public static final String EXECUTOR_NAME = "myriad_task";
         public static final String EXECUTOR_PREFIX = "myriad_executor";
         public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
+        private static final String YARN_DEFAULT_GROUP = "hadoop";
         private static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
 
         private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
@@ -63,6 +58,31 @@ public interface TaskFactory {
             }
         }
 
+        private CommandInfo getCommandInfo() {
+            MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
+            String cmdPrefix = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar ";
+            CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
+            if (myriadExecutorConfiguration.getNodeManagerUri().isPresent() &&
+                    myriadExecutorConfiguration.getCommand().isPresent() &&
+                    myriadExecutorConfiguration.isRemoteDistribution()) {
+                String nmURI = myriadExecutorConfiguration.getNodeManagerUri().get();
+                URI executorURI = URI.newBuilder().setValue(nmURI).setExtract(true).build();
+                //@Todo: determine if "root" or "" is the proper default, to keep backward compatiblility
+                //keeping root for now
+                commandInfo.addUris(executorURI).setUser(myriadExecutorConfiguration.getUser().or("root"))
+                        .setValue(cmdPrefix + myriadExecutorConfiguration.getCommand().get());
+            } else {
+                String executorPath = myriadExecutorConfiguration.getPath();
+                URI executorURI = URI.newBuilder().setValue(executorPath)
+                        .setExecutable(true).build();
+                //@Todo: determine if "root" or "" is the proper default, to keep backward compatiblility
+                //keeping root for now
+                commandInfo.addUris(executorURI).setUser(myriadExecutorConfiguration.getUser().or("root"))
+                        .setValue(cmdPrefix + getFileName(executorPath));
+            }
+            return commandInfo.build();
+        }
+
         @Override
         public TaskInfo createTask(Offer offer, TaskID taskId, NodeTask nodeTask) {
             Objects.requireNonNull(offer, "Offer should be non-null");
@@ -74,9 +94,11 @@ public interface TaskFactory {
             nmTaskConfig.setAdvertisableMem(profile.getMemory());
             NodeManagerConfiguration nodeManagerConfiguration = this.cfg.getNodeManagerConfiguration();
             nmTaskConfig.setUser(nodeManagerConfiguration.getUser().orNull());
+            nmTaskConfig.setGroup(nodeManagerConfiguration.getGroup().or(YARN_DEFAULT_GROUP));
             nmTaskConfig.setJvmOpts(nodeManagerConfiguration.getJvmOpts().orNull());
             nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
             nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());
+            nmTaskConfig.setRemoteDistribution(cfg.getMyriadExecutorConfiguration().isRemoteDistribution());
 
             // if RM's hostname is passed in as a system property, pass it along
             // to Node Managers launched via Myriad
@@ -112,15 +134,8 @@ public interface TaskFactory {
                     .setValue(taskUtils.getExecutorCpus())
                     .build();
 
-            String executorPath = cfg.getMyriadExecutorConfiguration().getPath();
-            URI executorURI = URI.newBuilder().setValue(executorPath)
-                    .setExecutable(true)
-                    .build();
 
-            CommandInfo commandInfo = CommandInfo.newBuilder()
-                    .addUris(executorURI).setUser("root")
-                    .setValue("export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar " + getFileName(executorPath))
-                    .build();
+            CommandInfo commandInfo = getCommandInfo();
 
             ExecutorID executorId = Protos.ExecutorID.newBuilder()
                     .setValue(EXECUTOR_PREFIX + offer.getSlaveId().getValue())

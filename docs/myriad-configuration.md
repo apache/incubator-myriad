@@ -56,17 +56,23 @@ rebalancer: false
 nodemanager:
   jvmMaxMemoryMB: 1024  # Xmx for NM JVM process.
   user: hduser          # The user to run NM process as.
+  group: root           # The group of the NM process only used if remoteDistribution is true
   cpus: 0.2             # CPU needed by NM process.
   cgroups: false        # Whether NM should support CGroups. If set to 'true', myriad automatically 
                         # configures yarn-site.xml to attach YARN's cgroups under Mesos' cgroup hierarchy.
 executor:
   jvmMaxMemoryMB: 256   # Xmx for myriad's executor that launches Node Manager.
   path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar  # Path for the myriad's executor binary.
-                                                                            # Also supports, hdfs:// notation.
+                                                                          # Also supports, hdfs:// notation.
+  #These are optional
+  #user: hduser #user the executor process runs as, current needs to be a user with passwordless sudo access
+  #remoteDistribution: true  #If true attempt to pull hadoop remotely
+  #nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.5.0.tar.gz # the uri to d/l hadoop from
+  #command: hadoop-2.5.0/share/hadoop/yarn/myriad-executor-0.0.1.jar # the command to execute
 
 # Environment variables required to launch Node Manager process. Admin can also pass other environment variables to NodeManager.
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop # Or /opt/mapr/hadoop/hadoop-2.5.1/ if using MapR's Hadoop
+  #YARN_HOME: hadoop-2.5.0 # Or should be relative if remoteDistribution is true
   YARN_NODEMANAGER_OPTS: -Dnodemanager.resource.io-spindles=4.0 # Required only if using MapR's Hadoop
-
 ```

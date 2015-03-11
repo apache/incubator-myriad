@@ -7,19 +7,29 @@ import java.util.Map;
  */
 public class NMTaskConfig {
     private String user;
+    private String group;
     private String yarnHome;
     private Long advertisableCpus;
     private Long advertisableMem;
     private String jvmOpts;
     private Boolean cgroups;
     private Map<String, String> yarnEnvironment;
-
+    private Boolean remoteDistribution;
+    
     public String getUser() {
         return user;
     }
 
     public void setUser(String user) {
         this.user = user;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 
     public String getYarnHome() {
@@ -69,4 +79,13 @@ public class NMTaskConfig {
     public void setYarnEnvironment(Map<String, String> yarnEnvironment) {
         this.yarnEnvironment = yarnEnvironment;
     }
+
+    public Boolean getRemoteDistribution() {
+        return remoteDistribution;
+    }
+
+    public void setRemoteDistribution(Boolean remoteDistribution) {
+        this.remoteDistribution = remoteDistribution;
+    }
+
 }

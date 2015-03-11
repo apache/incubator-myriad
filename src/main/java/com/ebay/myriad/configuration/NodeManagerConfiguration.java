@@ -31,6 +31,10 @@ public class NodeManagerConfiguration {
     @JsonProperty
     private String user;
 
+    @JsonProperty
+    private String group;
+    
+
     /**
      * Amount of CPU share given to NodeManger JVM. This is critical specially
      * for NodeManager auxiliary services.
@@ -64,6 +68,10 @@ public class NodeManagerConfiguration {
 
     public Optional<String> getUser() {
         return Optional.fromNullable(user);
+    }
+
+    public Optional<String> getGroup() {
+        return Optional.fromNullable(group);
     }
 
     public Optional<Boolean> getCgroups() {
