@@ -28,3 +28,5 @@ executor:
   path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
+mesosAuthenticationPrincipal:
+mesosAuthenticationSecretFilename:
