@@ -115,14 +115,13 @@ public class MyriadExecutor implements Executor {
                 try {
                     NMTaskConfig taskConfig = GSON.fromJson(task.getData().toStringUtf8(), NMTaskConfig.class);
                     if (!permisionsSet && taskConfig.getRemoteDistribution() && !setPermissions(taskConfig)) {
-                        LOGGER.info("Trying to use remote URI but can't set permissions, " +
+                        LOGGER.error("Trying to use remote URI but can't set permissions, " +
                                 "executor.user must be root or have passwordless sudo setup. ");
                         statusBuilder.setState(TaskState.TASK_FAILED);
                     } else {
                         LOGGER.info("TaskConfig: ", taskConfig);
                         ProcessBuilder processBuilder = buildProcessBuilder(task, taskConfig);
                         MyriadExecutor.this.process = processBuilder.start();
-
                         int waitFor = MyriadExecutor.this.process.waitFor();
 
                         if (waitFor == 0) {
@@ -151,6 +150,8 @@ public class MyriadExecutor implements Executor {
         driver.sendStatusUpdate(status);
     }
 
+    //Not particularly pleased I have to do this ...
+    //This can be depreciated after resolving https://issues.apache.org/jira/browse/MESOS-1790
     private boolean changeOwnership(String directory, String user, String group) throws IOException, InterruptedException {
         ProcessBuilder changeOwnershipProceesBuilder = new ProcessBuilder("sudo", "/bin/chown",
                 "-R", user + ":" + group, directory);
@@ -161,6 +162,7 @@ public class MyriadExecutor implements Executor {
     }
 
     //Not particularly pleased I have to do this ...
+    //This can be depreciated after resolving https://issues.apache.org/jira/browse/MESOS-1790
     private boolean setSuidBit(String directory) throws IOException, InterruptedException {
         ProcessBuilder setPermsProcessBuilder = new ProcessBuilder("sudo", "/bin/chmod", "3050",
                 directory + "/bin/container-executor");
@@ -170,24 +172,48 @@ public class MyriadExecutor implements Executor {
         return setPermsProcess.waitFor() == 0;
     }
 
-    //@Todo: Discuss Java 7 as it makes changing POSIX file perms way easier, is it worth the dependency?
-    private boolean setPermissions(NMTaskConfig taskConfig) {
-        String directory = System.getProperty("user.dir") + "/" + taskConfig.getYarnEnvironment().get("YARN_HOME");
-        String user = taskConfig.getUser(); //really needs to be root so we set the sticky bit right.
-        String group = taskConfig.getGroup();
-        try {
-            if (changeOwnership(directory, user, group) &&
-                    changeOwnership(directory + "/bin/container-executor", "root", group) &&
-                    setSuidBit(directory)) {
-                permisionsSet = true;
+    //Check to ensure I'm not changing permissions outside of my current directory.
+    //This can be depreciated after resolving https://issues.apache.org/jira/browse/MESOS-1790
+    private boolean isSubDirectory(String subDir, String dir) {
+        File currentDirectory = new File(dir);
+        String[] files = currentDirectory.list();
+        for (String file : files) {
+            if (subDir.equals(file)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    //This can be depreciated after resolving https://issues.apache.org/jira/browse/MESOS-1790.
+    //synchronized incase to threads try to set permissions at the same time.
+    private synchronized boolean setPermissions(NMTaskConfig taskConfig) {
+        //Permisions got set while you were waiting quick out no need to repeat..
+        if (permisionsSet) {
+            return permisionsSet;
+        }
+        String parentDirectory = System.getProperty("user.dir");
+        String yarnHome = taskConfig.getYarnEnvironment().get("YARN_HOME");
+        //Trying to be careful, Make sure yarnHome is in the directory we're in.
+        //Don't want to be changing permissions otherwise, so hard stop.
+        if (!isSubDirectory(yarnHome, parentDirectory)) {
+            //It's best to make this unrecoverable and bail.
+            throw new RuntimeException("YARN_HOME is not a subdirectory of " + parentDirectory);
+        }
+        String directory = parentDirectory + "/" + yarnHome;
+        String user = taskConfig.getUser(); //really needs to be root or have passwordless sudo so we set the suid bit right.
+        String group = taskConfig.getGroup();
+        try {
+            permisionsSet = changeOwnership(directory, user, group) &&
+                    changeOwnership(directory + "/bin/container-executor", "root", group) &&
+                    setSuidBit(directory);
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return false;
+        return permisionsSet;
     }
 
     private ProcessBuilder buildProcessBuilder(TaskInfo task, NMTaskConfig taskConfig) {
@@ -212,6 +238,7 @@ public class MyriadExecutor implements Executor {
         } else {
             environment.put(ENV_YARN_NODEMANAGER_OPTS, envNMOptions);
         }
+
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         return processBuilder;

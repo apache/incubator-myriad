@@ -43,6 +43,7 @@ dependencies {
     compile "org.apache.hadoop:hadoop-common:${hadoopVer}"
     compile "org.apache.hadoop:hadoop-yarn-common:${hadoopVer}"
     compile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}"
+    compile "org.apache.hadoop:hadoop-yarn-server-nodemanager:${hadoopVer}"
     compile 'com.google.code.gson:gson:2.3'
     compile "com.lmax:disruptor:3.3.0"
     compile "io.dropwizard.metrics:metrics-core:${metricsVer}"

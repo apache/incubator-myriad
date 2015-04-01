@@ -22,12 +22,6 @@ public class MyriadExecutorConfiguration {
     private String nodeManagerUri;
 
     @JsonProperty
-    private String command;
-
-    @JsonProperty
-    private Boolean remoteDistribution;
-
-    @JsonProperty
     private String user;
 
 
@@ -41,14 +35,6 @@ public class MyriadExecutorConfiguration {
 
     public Optional<String> getNodeManagerUri() {
         return Optional.fromNullable(nodeManagerUri);
-    }
-
-    public Optional<String> getCommand() {
-        return Optional.fromNullable(command);
-    }
-
-    public boolean isRemoteDistribution() {
-        return remoteDistribution != null ? remoteDistribution : false;
     }
 
     public Optional<String> getUser() {

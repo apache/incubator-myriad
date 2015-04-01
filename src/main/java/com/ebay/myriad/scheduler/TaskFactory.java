@@ -58,19 +58,17 @@ public interface TaskFactory {
             }
         }
 
-        private CommandInfo getCommandInfo() {
+        private Protos.CommandInfo getCommandInfo() {
             MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
             String cmdPrefix = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar ";
             CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
-            if (myriadExecutorConfiguration.getNodeManagerUri().isPresent() &&
-                    myriadExecutorConfiguration.getCommand().isPresent() &&
-                    myriadExecutorConfiguration.isRemoteDistribution()) {
+            if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
                 String nmURI = myriadExecutorConfiguration.getNodeManagerUri().get();
                 URI executorURI = URI.newBuilder().setValue(nmURI).setExtract(true).build();
-                //@Todo: determine if "root" or "" is the proper default, to keep backward compatiblility
-                //keeping root for now
+                //@Todo (DarinJ): determine if "root" or "" is the proper default, to keep backward compatiblility
+                //keeping root for now.  After resolving MESOS-1790 this gets set to "".
                 commandInfo.addUris(executorURI).setUser(myriadExecutorConfiguration.getUser().or("root"))
-                        .setValue(cmdPrefix + myriadExecutorConfiguration.getCommand().get());
+                        .setValue(cmdPrefix + myriadExecutorConfiguration.getPath());
             } else {
                 String executorPath = myriadExecutorConfiguration.getPath();
                 URI executorURI = URI.newBuilder().setValue(executorPath)
@@ -98,7 +96,7 @@ public interface TaskFactory {
             nmTaskConfig.setJvmOpts(nodeManagerConfiguration.getJvmOpts().orNull());
             nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
             nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());
-            nmTaskConfig.setRemoteDistribution(cfg.getMyriadExecutorConfiguration().isRemoteDistribution());
+            nmTaskConfig.setRemoteDistribution(cfg.getMyriadExecutorConfiguration().getNodeManagerUri().isPresent());
 
             // if RM's hostname is passed in as a system property, pass it along
             // to Node Managers launched via Myriad
