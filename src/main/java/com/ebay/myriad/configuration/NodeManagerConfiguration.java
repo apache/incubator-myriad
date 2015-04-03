@@ -28,12 +28,6 @@ public class NodeManagerConfiguration {
     @JsonProperty
     private Double jvmMaxMemoryMB;
 
-    @JsonProperty
-    private String user;
-
-    @JsonProperty
-    private String group;
-    
 
     /**
      * Amount of CPU share given to NodeManger JVM. This is critical specially
@@ -64,14 +58,6 @@ public class NodeManagerConfiguration {
 
     public Optional<Double> getCpus() {
         return Optional.fromNullable(cpus);
-    }
-
-    public Optional<String> getUser() {
-        return Optional.fromNullable(user);
-    }
-
-    public Optional<String> getGroup() {
-        return Optional.fromNullable(group);
     }
 
     public Optional<Boolean> getCgroups() {

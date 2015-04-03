@@ -9,6 +9,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.CommandInfo.URI;
@@ -35,6 +36,11 @@ public interface TaskFactory {
         public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
         private static final String YARN_DEFAULT_GROUP = "hadoop";
         private static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
+        private static final String YARN_RESOURCEMANAGER_WEBAPP_ADDRESS = "yarn.resourcemanager.webapp.address";
+        private static final String YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS = "yarn.resourcemanager.webapp.https.address";
+        private static final String YARN_HTTP_POLICY = "yarn.http.policy";
+        private static final String YARN_HTTP_POLICY_HTTP_ONLY = "HTTP_ONLY";
+        private static final String YARN_HTTP_POLICY_HTTPS_ONLY = "HTTPS_ONLY";
 
         private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
         private MyriadConfiguration cfg;
@@ -58,25 +64,71 @@ public interface TaskFactory {
             }
         }
 
+        private String getConfigurationUrl() {
+            YarnConfiguration conf = new YarnConfiguration();
+            String httpPolicy = conf.get(YARN_HTTP_POLICY);
+            if (httpPolicy != null && httpPolicy.equals(YARN_HTTP_POLICY_HTTPS_ONLY)) {
+                String address = conf.get(YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS);
+                if (address == null || address.isEmpty()) {
+                    address = conf.get(YARN_RESOURCEMANAGER_HOSTNAME) + ":8090";
+                }
+                return "http://" + address + "/conf";
+            } else {
+                String address = conf.get(YARN_RESOURCEMANAGER_WEBAPP_ADDRESS);
+                if (address == null || address.isEmpty()) {
+                    address = conf.get(YARN_RESOURCEMANAGER_HOSTNAME) + ":8088";
+                }
+                return "http://" + address + "/conf";
+            }
+        }
         private Protos.CommandInfo getCommandInfo() {
             MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
-            String cmdPrefix = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar ";
             CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
             if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
+            /*
+            Overall this is messier than I'd like due to Mesos 1760. We can't let mesos untar the distribution,
+            since it will change the permissions.  Instead we simply download the tarball and execute tar -xvpf.
+            We also pull the config from the resource manager and put them in the conf dir.  This is also why we need
+            frameWorkSuperUser
+            */
+
+                LOGGER.info("Using remote distribution");
+
+                String executorCmdPrefix = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; ";
+                if (cfg.getFrameworkUser().isPresent()) {
+                    executorCmdPrefix += "sudo -E -u " + cfg.getFrameworkUser().get() + " -H ";
+                }
+                executorCmdPrefix += "java -Dcapsule.log=verbose -jar ";
+
                 String nmURI = myriadExecutorConfiguration.getNodeManagerUri().get();
-                URI executorURI = URI.newBuilder().setValue(nmURI).setExtract(true).build();
-                //@Todo (DarinJ): determine if "root" or "" is the proper default, to keep backward compatiblility
-                //keeping root for now.  After resolving MESOS-1790 this gets set to "".
-                commandInfo.addUris(executorURI).setUser(myriadExecutorConfiguration.getUser().or("root"))
-                        .setValue(cmdPrefix + myriadExecutorConfiguration.getPath());
+
+                //todo(DarinJ) support other compression, as this is a temp fix for Mesos 1760 may not get to it.
+                String tarCmd = "sudo tar -zxpf " + getFileName(nmURI);
+
+                String chownCmd = "";
+                if (cfg.getFrameworkUser().isPresent()) {
+                    chownCmd += "sudo chown " + cfg.getFrameworkUser().get() + " .";
+                }
+
+                String configCopyCmd = "cp conf " + cfg.getYarnEnvironment().get("YARN_HOME") + "/etc/hadoop/yarn-site.xml";
+
+                String cmd = tarCmd + "&&" + configCopyCmd + "&&" + chownCmd + "&&" + executorCmdPrefix + myriadExecutorConfiguration.getPath();
+
+                //get configs directly from resource manager
+                URI configURI = URI.newBuilder().setValue(getConfigurationUrl()).build();
+                //We're going to extract ourselves, so setExtract is false
+                URI executorURI = URI.newBuilder().setValue(nmURI).setExecutable(true).build();
+                commandInfo.addUris(configURI).addUris(executorURI).setUser(cfg.getFrameworkSuperUser().or(""))
+                        .setValue("echo \"" + cmd + "\";" + cmd);
             } else {
+                String cmdPrefix = " export CAPSULE_CACHE_DIR=`pwd` ;" +
+                        "echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar ";
                 String executorPath = myriadExecutorConfiguration.getPath();
+                String cmd = cmdPrefix + getFileName(executorPath);
                 URI executorURI = URI.newBuilder().setValue(executorPath)
                         .setExecutable(true).build();
-                //@Todo: determine if "root" or "" is the proper default, to keep backward compatiblility
-                //keeping root for now
-                commandInfo.addUris(executorURI).setUser(myriadExecutorConfiguration.getUser().or("root"))
-                        .setValue(cmdPrefix + getFileName(executorPath));
+                commandInfo.addUris(executorURI).setUser(cfg.getFrameworkUser().or(""))
+                        .setValue("echo \"cmd\";" + cmd);
             }
             return commandInfo.build();
         }
@@ -91,8 +143,6 @@ public interface TaskFactory {
             nmTaskConfig.setAdvertisableCpus(profile.getCpus());
             nmTaskConfig.setAdvertisableMem(profile.getMemory());
             NodeManagerConfiguration nodeManagerConfiguration = this.cfg.getNodeManagerConfiguration();
-            nmTaskConfig.setUser(nodeManagerConfiguration.getUser().orNull());
-            nmTaskConfig.setGroup(nodeManagerConfiguration.getGroup().or(YARN_DEFAULT_GROUP));
             nmTaskConfig.setJvmOpts(nodeManagerConfiguration.getJvmOpts().orNull());
             nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
             nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());

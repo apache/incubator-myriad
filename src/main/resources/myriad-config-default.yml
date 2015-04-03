@@ -3,6 +3,9 @@ checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadAlpha
 frameworkRole: 
+frameworkUser: hduser #user the framework runs as
+frameworkSuperUser: root #To be depriated, currently permissions need set by a superuser due to Mesos 1760.  Must be root
+                         #or have passwordless sudo, if not set will default to the user executing the scheduler.
 nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: localhost:2181
 zkTimeout: 20000
@@ -20,15 +23,11 @@ profiles:
 rebalancer: false
 nodemanager:
   jvmMaxMemoryMB: 1024
-  user: hduser #This is the user the nodemanager runs as, if nodeManagerUri is present ownership will of YARN_HOME will be set to this user.
-  #group:hadoop #If nodeManagerUri is present group ownership will of YARN_HOME will be set to this group and $YARN_HOME/bin/container-executor will be set g+rs
-  #Note both user and group must exist on all slaves.
   cpus: 0.2
   cgroups: false
 executor:
   jvmMaxMemoryMB: 256
   path: file:///usr/local/libexec/mesos/myriad-executor-0.0.1.jar
-  #user: admin #User the executor runs as, currently defaults to root.  Must have passwordless sudo on all slaves.
   #The following should be used for a remotely distributed URI
   #nodeManagerUri: hdfs:///namenode:port/dist/hadoop-2.5.0.tar.gz
   #path: hadoop-2.5.0/share/hadoop/yarn/myriad-executor-0.0.1.jar #relative path if nodeManagerUri is set

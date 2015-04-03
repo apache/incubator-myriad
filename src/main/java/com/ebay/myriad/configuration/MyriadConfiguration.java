@@ -16,6 +16,7 @@
 package com.ebay.myriad.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -93,6 +94,13 @@ public class MyriadConfiguration {
     private String frameworkRole;
 
     @JsonProperty
+    private String frameworkUser;
+
+    @JsonProperty
+    private String frameworkSuperUser;
+
+
+    @JsonProperty
     @NotEmpty
     private Map<String, Map<String, String>> profiles;
 
@@ -143,6 +151,14 @@ public class MyriadConfiguration {
 
     public String getFrameworkRole() {
         return frameworkRole;
+    }
+
+    public Optional<String> getFrameworkUser() {
+        return Optional.fromNullable(frameworkUser);
+    }
+
+    public Optional<String> getFrameworkSuperUser() {
+        return Optional.fromNullable(frameworkSuperUser);
     }
 
     public Map<String, Map<String, String>> getProfiles() {
