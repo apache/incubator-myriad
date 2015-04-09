@@ -8,16 +8,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.CommandInfo;
+import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.CommandInfo.URI;
-import org.apache.mesos.Protos.ExecutorID;
-import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Scalar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +19,20 @@ import java.nio.charset.Charset;
 import java.util.Objects;
 
 /**
- * Creates Tasks based on mesos offers
+ * Factory to create TaskInfo objects.
  */
 public interface TaskFactory {
     TaskInfo createTask(Offer offer, TaskID taskId, NodeTask nodeTask);
 
+    // TODO(Santosh): This is needed because the ExecutorInfo constructed
+    // to launch NM needs to be specified to launch placeholder tasks for
+    // yarn containers (for fine grained scaling).
+    // If mesos supports just specifying the 'ExecutorId' without the full
+    // ExecutorInfo, we wouldn't need this interface method.
+    ExecutorInfo getExecutorInfoForSlave(SlaveID slave);
+
     /**
-     * The Node Manager Task factory implementation
+     * Creates TaskInfo objects to launch NMs as mesos tasks.
      */
     class NMTaskFactoryImpl implements TaskFactory {
         public static final String EXECUTOR_NAME = "myriad_task";
@@ -41,7 +40,8 @@ public interface TaskFactory {
         public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
         private static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
 
-        private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
+        private static final Logger LOGGER = LoggerFactory
+            .getLogger(NMTaskFactoryImpl.class);
         private MyriadConfiguration cfg;
         private TaskUtils taskUtils;
 
@@ -58,7 +58,7 @@ public interface TaskFactory {
             } else {
                 String fileName = uri.substring(lastSlash + 1);
                 Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName),
-                        "URI should not have a slash at the end");
+                    "URI should not have a slash at the end");
                 return fileName;
             }
         }
@@ -73,8 +73,10 @@ public interface TaskFactory {
             nmTaskConfig.setAdvertisableCpus(profile.getCpus());
             nmTaskConfig.setAdvertisableMem(profile.getMemory());
             NodeManagerConfiguration nodeManagerConfiguration = this.cfg.getNodeManagerConfiguration();
-            nmTaskConfig.setUser(nodeManagerConfiguration.getUser().orNull());
-            nmTaskConfig.setJvmOpts(nodeManagerConfiguration.getJvmOpts().orNull());
+            nmTaskConfig.setUser(nodeManagerConfiguration
+                .getUser().orNull());
+            nmTaskConfig.setJvmOpts(nodeManagerConfiguration
+                .getJvmOpts().orNull());
             nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
             nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());
 
@@ -90,7 +92,7 @@ public interface TaskFactory {
                 nmOpts += " " + "-D" + YARN_RESOURCEMANAGER_HOSTNAME + "=" + rmHostName;
                 nmTaskConfig.getYarnEnvironment().put(YARN_NODEMANAGER_OPTS_KEY, nmOpts);
                 LOGGER.info(YARN_RESOURCEMANAGER_HOSTNAME + " is set to " + rmHostName +
-                        " via YARN_RESOURCEMANAGER_OPTS. Passing it into YARN_NODEMANAGER_OPTS.");
+                    " via YARN_RESOURCEMANAGER_OPTS. Passing it into YARN_NODEMANAGER_OPTS.");
             }
 //            else {
             // TODO(Santosh): Handle this case. Couple of options:
@@ -100,66 +102,62 @@ public interface TaskFactory {
             String taskConfigJSON = new Gson().toJson(nmTaskConfig);
 
             Scalar taskMemory = Value.Scalar.newBuilder()
-                    .setValue(taskUtils.getTaskMemory(profile))
-                    .build();
+                .setValue(taskUtils.getTaskMemory(profile)).build();
             Scalar taskCpus = Value.Scalar.newBuilder()
-                    .setValue(taskUtils.getTaskCpus(profile))
-                    .build();
-            Scalar executorMemory = Value.Scalar.newBuilder()
-                    .setValue(taskUtils.getExecutorMemory())
-                    .build();
-            Scalar executorCpus = Value.Scalar.newBuilder()
-                    .setValue(taskUtils.getExecutorCpus())
-                    .build();
-
-            String executorPath = cfg.getMyriadExecutorConfiguration().getPath();
-            URI executorURI = URI.newBuilder().setValue(executorPath)
-                    .setExecutable(true)
-                    .build();
-
-            CommandInfo commandInfo = CommandInfo.newBuilder()
-                    .addUris(executorURI).setUser("root")
-                    .setValue("export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar " + getFileName(executorPath))
-                    .build();
-
-            ExecutorID executorId = Protos.ExecutorID.newBuilder()
-                    .setValue(EXECUTOR_PREFIX + offer.getSlaveId().getValue())
-                    .build();
-            ExecutorInfo executorInfo = ExecutorInfo
-                    .newBuilder()
-                    .setCommand(commandInfo)
-                    .setName(EXECUTOR_NAME)
-                    .addResources(
-                            Resource.newBuilder().setName("cpus")
-                                    .setType(Value.Type.SCALAR)
-                                    .setScalar(executorCpus)
-                                    .build())
-                    .addResources(
-                            Resource.newBuilder().setName("mem")
-                                    .setType(Value.Type.SCALAR)
-                                    .setScalar(executorMemory)
-                                    .build())
-                    .setExecutorId(executorId).setCommand(commandInfo).build();
+                .setValue(taskUtils.getTaskCpus(profile)).build();
+            ExecutorInfo executorInfo = getExecutorInfoForSlave(offer.getSlaveId());
 
             TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
-                    .setName("task-" + taskId.getValue())
-                    .setTaskId(taskId)
-                    .setSlaveId(offer.getSlaveId());
+                .setName("task-" + taskId.getValue()).setTaskId(taskId)
+                .setSlaveId(offer.getSlaveId());
 
             // TODO (mohit): Configure ports for multi-tenancy
             ByteString data = ByteString.copyFrom(taskConfigJSON.getBytes(Charset.defaultCharset()));
             return taskBuilder
-                    .addResources(
-                            Resource.newBuilder().setName("cpus")
-                                    .setType(Value.Type.SCALAR)
-                                    .setScalar(taskCpus)
-                                    .build())
-                    .addResources(
-                            Resource.newBuilder().setName("mem")
-                                    .setType(Value.Type.SCALAR)
-                                    .setScalar(taskMemory)
-                                    .build())
-                    .setExecutor(executorInfo).setData(data).build();
+                .addResources(
+                    Resource.newBuilder().setName("cpus")
+                        .setType(Value.Type.SCALAR)
+                        .setScalar(taskCpus).build())
+                .addResources(
+                    Resource.newBuilder().setName("mem")
+                        .setType(Value.Type.SCALAR)
+                        .setScalar(taskMemory).build())
+                .setExecutor(executorInfo).setData(data).build();
+        }
+
+        @Override
+        public ExecutorInfo getExecutorInfoForSlave(SlaveID slave) {
+            Scalar executorMemory = Scalar.newBuilder()
+                .setValue(taskUtils.getExecutorMemory()).build();
+            Scalar executorCpus = Scalar.newBuilder()
+                .setValue(taskUtils.getExecutorCpus()).build();
+
+            String executorPath = cfg.getMyriadExecutorConfiguration()
+                .getPath();
+            URI executorURI = URI.newBuilder().setValue(executorPath)
+                .setExecutable(true).build();
+
+            CommandInfo commandInfo = CommandInfo.newBuilder()
+                .addUris(executorURI).setUser("root")
+                .setValue("export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar " + getFileName(executorPath))
+                .build();
+
+            ExecutorID executorId = ExecutorID.newBuilder()
+                .setValue(EXECUTOR_PREFIX + slave.getValue())
+                .build();
+            return ExecutorInfo
+                .newBuilder()
+                .setCommand(commandInfo)
+                .setName(EXECUTOR_NAME)
+                .addResources(
+                    Resource.newBuilder().setName("cpus")
+                        .setType(Value.Type.SCALAR)
+                        .setScalar(executorCpus).build())
+                .addResources(
+                    Resource.newBuilder().setName("mem")
+                        .setType(Value.Type.SCALAR)
+                        .setScalar(executorMemory).build())
+                .setExecutorId(executorId).build();
         }
     }
 }
