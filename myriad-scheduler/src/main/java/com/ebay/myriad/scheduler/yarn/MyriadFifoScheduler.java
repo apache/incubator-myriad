@@ -41,7 +41,7 @@ public class MyriadFifoScheduler extends FifoScheduler {
     @Override
     public void handle(SchedulerEvent event) {
         super.handle(event);
-        this.yarnSchedulerInterceptor.onEventHandled(event);
+        this.yarnSchedulerInterceptor.afterSchedulerEventHandled(event);
     }
 
 }

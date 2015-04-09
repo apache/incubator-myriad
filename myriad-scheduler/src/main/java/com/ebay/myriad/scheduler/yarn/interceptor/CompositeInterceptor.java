@@ -3,6 +3,8 @@ package com.ebay.myriad.scheduler.yarn.interceptor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
+import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.slf4j.Logger;
@@ -64,9 +66,23 @@ public class CompositeInterceptor implements YarnSchedulerInterceptor, Intercept
     }
 
     @Override
-    public void onEventHandled(SchedulerEvent event) {
+    public void beforeRMNodeEventHandled(RMNodeEvent event, RMContext context) {
         for (YarnSchedulerInterceptor interceptor : interceptors.values()) {
-            interceptor.onEventHandled(event);
+            interceptor.beforeRMNodeEventHandled(event, context);
+        }
+    }
+
+    @Override
+    public void beforeSchedulerEventHandled(SchedulerEvent event) {
+        for (YarnSchedulerInterceptor interceptor : interceptors.values()) {
+            interceptor.beforeSchedulerEventHandled(event);
+        }
+    }
+
+    @Override
+    public void afterSchedulerEventHandled(SchedulerEvent event) {
+        for (YarnSchedulerInterceptor interceptor : interceptors.values()) {
+            interceptor.afterSchedulerEventHandled(event);
         }
     }
 }

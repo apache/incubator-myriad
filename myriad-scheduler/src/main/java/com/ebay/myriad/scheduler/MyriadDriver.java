@@ -114,4 +114,8 @@ public class MyriadDriver {
         LOGGER.info("Driver aborted with status: {}", status);
         return status;
     }
+
+    public MesosSchedulerDriver getDriver() {
+        return driver;
+    }
 }
