@@ -29,7 +29,7 @@ profiles:
 * Flexup a few NMs using [/api/cluster/flexup](API.md), but with **"zero"** profile:
 ```
 {
-  "instances":3, "profile": **"zero"**
+  "instances":3, "profile": "zero"
 }
 ```
 * The Node Managers advertise **zero** resources to Resource Manager (RM's UI should show this).
