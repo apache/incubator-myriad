@@ -16,7 +16,6 @@
 package com.ebay.myriad.api;
 
 import com.codahale.metrics.annotation.Timed;
-import com.ebay.myriad.api.model.GetConfigurationResponse;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 
 import javax.inject.Inject;
@@ -40,7 +39,7 @@ public class ConfigurationResource {
 
     @Timed
     @GET
-    public GetConfigurationResponse getConfig() throws InterruptedException {
-        return new GetConfigurationResponse(this.cfg);
+    public MyriadConfiguration getConfig() throws InterruptedException {
+        return this.cfg;
     }
 }

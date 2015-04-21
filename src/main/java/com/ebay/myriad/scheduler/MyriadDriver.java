@@ -50,7 +50,7 @@ public class MyriadDriver {
                         final SchedulerState schedulerState) {
         Builder frameworkInfoBuilder = FrameworkInfo.newBuilder().setUser("")
                 .setName(cfg.getFrameworkName())
-                .setCheckpoint(cfg.getCheckpoint())
+                .setCheckpoint(cfg.isCheckpoint())
                 .setFailoverTimeout(cfg.getFrameworkFailoverTimeout());
 
         if (StringUtils.isNotEmpty(cfg.getFrameworkRole())) {

@@ -129,11 +129,15 @@ public class MyriadConfiguration {
     @JsonProperty
     private String mesosAuthenticationSecretFilename;
 
+
+    public MyriadConfiguration(){}
+
+
     public String getMesosMaster() {
         return mesosMaster;
     }
 
-    public Boolean getCheckpoint() {
+    public Boolean isCheckpoint() {
         return this.checkpoint != null ? checkpoint : DEFAULT_CHECKPOINT;
     }
 
@@ -153,10 +157,6 @@ public class MyriadConfiguration {
 
     public Map<String, Map<String, String>> getProfiles() {
         return profiles;
-    }
-
-    public Boolean isCheckpoint() {
-        return checkpoint != null ? checkpoint : DEFAULT_CHECKPOINT;
     }
 
     public Boolean isRebalancer() {
