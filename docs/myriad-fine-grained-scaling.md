@@ -11,7 +11,7 @@ The objective of "Fine Grained Scaling" is to bring elasticity of resources betw
 * The Myriad Mesos Framework (running inside RM) subsequently receives resource offers from Mesos.
 * An offer (from a slave node that's already running a NM) is projected to YARN scheduler as "available capacity" on the Node Manager.
 * The YARN scheduler now goes ahead and allocates containers (tasks) for the Node Managers.
-* For each allocated container, Myriad framework spins up a "placeholder" mesos task. (Usually, a bunch of "placeholder" tasks are launched for a single mesos offer.)
+* For each allocated container, Myriad framework spins up a "placeholder" mesos task. (In reality, a bunch of "placeholder" tasks are launched in a single shot as YARN scheduler allocates a bunch of containers as a result of increase in NM's capacity due to a single mesos offer.)
 * NMs become aware of container allocations via YARN's HB mechanism. But Myriad ensures that NMs are made aware of container allocations only after the corresponding "placeholder" mesos tasks are launched.
 * When NMs report to RM that some of the containers have "finished", Myriad sends out "finished" status updates to Mesos for the corresponding "placeholder" tasks.
 * Mesos takes back the resources from Myriad that were previously blocked using "placeholder" tasks.
