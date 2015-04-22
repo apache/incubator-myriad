@@ -62,7 +62,7 @@ public class NMTaskConfig {
         this.yarnEnvironment = yarnEnvironment;
     }
 
-    public Boolean getRemoteDistribution() {
+    public Boolean isRemoteDistribution() {
         return remoteDistribution;
     }
 

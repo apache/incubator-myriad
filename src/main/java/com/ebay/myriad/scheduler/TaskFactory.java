@@ -11,8 +11,15 @@ import com.google.gson.Gson;
 import com.google.protobuf.ByteString;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
+import org.apache.mesos.Protos.ExecutorID;
+import org.apache.mesos.Protos.ExecutorInfo;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskID;
+import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Scalar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +41,10 @@ public interface TaskFactory {
         public static final String EXECUTOR_NAME = "myriad_task";
         public static final String EXECUTOR_PREFIX = "myriad_executor";
         public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
-        private static final String YARN_DEFAULT_GROUP = "hadoop";
         private static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
         private static final String YARN_RESOURCEMANAGER_WEBAPP_ADDRESS = "yarn.resourcemanager.webapp.address";
         private static final String YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS = "yarn.resourcemanager.webapp.https.address";
         private static final String YARN_HTTP_POLICY = "yarn.http.policy";
-        private static final String YARN_HTTP_POLICY_HTTP_ONLY = "HTTP_ONLY";
         private static final String YARN_HTTP_POLICY_HTTPS_ONLY = "HTTPS_ONLY";
 
         private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
@@ -72,7 +77,7 @@ public interface TaskFactory {
                 if (address == null || address.isEmpty()) {
                     address = conf.get(YARN_RESOURCEMANAGER_HOSTNAME) + ":8090";
                 }
-                return "http://" + address + "/conf";
+                return "https://" + address + "/conf";
             } else {
                 String address = conf.get(YARN_RESOURCEMANAGER_WEBAPP_ADDRESS);
                 if (address == null || address.isEmpty()) {
@@ -81,45 +86,79 @@ public interface TaskFactory {
                 return "http://" + address + "/conf";
             }
         }
+
         private Protos.CommandInfo getCommandInfo() {
             MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
             CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
             if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
-            /*
-            Overall this is messier than I'd like due to Mesos 1760. We can't let mesos untar the distribution,
-            since it will change the permissions.  Instead we simply download the tarball and execute tar -xvpf.
-            We also pull the config from the resource manager and put them in the conf dir.  This is also why we need
-            frameWorkSuperUser
-            */
+                /*
+                 Overall this is messier than I'd like due to Mesos 1790. We can't let mesos untar the distribution,
+                 since it will change the permissions.  Instead we simply download the tarball and execute tar -xvpf.
+                 We also pull the config from the resource manager and put them in the conf dir.  This is also why we need
+                 frameworkSuperUser
+                */
+
+                //Too much work checking all posibilities and many are likely to fail somewhere later anyway
+                //Keep in mind this is a temp fix anyway
+                if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
+                    throw new RuntimeException("Trying to use remote distribution, but frameworkUser" +
+                            "and/or frameworkSuperUser not set!");
+                }
 
                 LOGGER.info("Using remote distribution");
 
-                String executorCmdPrefix = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; ";
-                if (cfg.getFrameworkUser().isPresent()) {
-                    executorCmdPrefix += "sudo -E -u " + cfg.getFrameworkUser().get() + " -H ";
-                }
-                executorCmdPrefix += "java -Dcapsule.log=verbose -jar ";
+                String executorCmdPrefix = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; " +
+                        "sudo -E -u " + cfg.getFrameworkUser().get() + " -H " +
+                        "java -Dcapsule.log=verbose -jar ";
 
-                String nmURI = myriadExecutorConfiguration.getNodeManagerUri().get();
+                String executorPathString = myriadExecutorConfiguration.getPath();
+                String nmURIString = myriadExecutorConfiguration.getNodeManagerUri().get();
 
-                //todo(DarinJ) support other compression, as this is a temp fix for Mesos 1760 may not get to it.
-                String tarCmd = "sudo tar -zxpf " + getFileName(nmURI);
+                //TODO(DarinJ) support other compression, as this is a temp fix for Mesos 1760 may not get to it.
+                //Extract tarball keeping permissions
+                String tarCmd = "sudo tar -zxpf " + getFileName(nmURIString);
 
-                String chownCmd = "";
-                if (cfg.getFrameworkUser().isPresent()) {
-                    chownCmd += "sudo chown " + cfg.getFrameworkUser().get() + " .";
-                }
+                /*
+                We need to current directory to be owned by framework users for capsuleExecutor to create directories
+                Can't do this if framework user not set, may still be ok esp. if frameworkUser==frameSuperUser, logging a
+                warning.
+                */
+                String chownCmd = "sudo chown " + cfg.getFrameworkUser().get() + " .";
 
-                String configCopyCmd = "cp conf " + cfg.getYarnEnvironment().get("YARN_HOME") + "/etc/hadoop/yarn-site.xml";
+                //Throw the hadoop config where it can be picked by the NodeManager
+                String configCopyCmd = "cp conf " + cfg.getYarnEnvironment().get("YARN_HOME") +
+                        "/etc/hadoop/yarn-site.xml";
 
-                String cmd = tarCmd + "&&" + configCopyCmd + "&&" + chownCmd + "&&" + executorCmdPrefix + myriadExecutorConfiguration.getPath();
+                //Concatenate all the subcommands
+                String cmd = tarCmd + "&&" + configCopyCmd + "&&" + chownCmd + "&&" + executorCmdPrefix +
+                        getFileName(executorPathString);
 
                 //get configs directly from resource manager
-                URI configURI = URI.newBuilder().setValue(getConfigurationUrl()).build();
+                String configUrlString = getConfigurationUrl();
+                LOGGER.info("Getting config from:" + configUrlString);
+                URI configUri = URI.newBuilder().setValue(configUrlString)
+                        .build();
+
+                //get the executor URI
+                LOGGER.info("Getting executor from:" + executorPathString);
+                URI executorUri = URI.newBuilder().setValue(executorPathString).setExecutable(true)
+                        .build();
+
+                //get the nodemanagerURI
                 //We're going to extract ourselves, so setExtract is false
-                URI executorURI = URI.newBuilder().setValue(nmURI).setExecutable(true).build();
-                commandInfo.addUris(configURI).addUris(executorURI).setUser(cfg.getFrameworkSuperUser().or(""))
-                        .setValue("echo \"" + cmd + "\";" + cmd);
+                LOGGER.info("Getting binary distribution from:" + nmURIString);
+                URI nmUri = URI.newBuilder().setValue(nmURIString).setExtract(false)
+                        .build();
+                LOGGER.info("Slave will execute command:" + cmd);
+                commandInfo.addUris(configUri).addUris(nmUri).addUris(executorUri).setValue("echo \"" + cmd + "\";" + cmd);
+
+                commandInfo.setUser(cfg.getFrameworkSuperUser().get());
+
+                /*
+                Otherwise defaults to current user, expected setUser("") to do this, however gave error
+                about chowning directory when frameworkUser was "", Looking at fetcher.cpp, you see user is an
+                option and doesn't check "".
+                */
             } else {
                 String cmdPrefix = " export CAPSULE_CACHE_DIR=`pwd` ;" +
                         "echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar ";
@@ -127,8 +166,17 @@ public interface TaskFactory {
                 String cmd = cmdPrefix + getFileName(executorPath);
                 URI executorURI = URI.newBuilder().setValue(executorPath)
                         .setExecutable(true).build();
-                commandInfo.addUris(executorURI).setUser(cfg.getFrameworkUser().or(""))
-                        .setValue("echo \"cmd\";" + cmd);
+                commandInfo.addUris(executorURI)
+                        .setValue("echo \"" + cmd + "\";" + cmd);
+
+                if (cfg.getFrameworkUser().isPresent()) {
+                    commandInfo.setUser(cfg.getFrameworkUser().get());
+                }
+                /*
+                Otherwise defaults to current user, expected setUser("") to do this, however gave error
+                about chowning directory when frameworkUser was "", Looking at fetcher.cpp, you see user is an
+                option and doesn't check "".
+                */
             }
             return commandInfo.build();
         }

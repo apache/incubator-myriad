@@ -28,7 +28,6 @@ public class NodeManagerConfiguration {
     @JsonProperty
     private Double jvmMaxMemoryMB;
 
-
     /**
      * Amount of CPU share given to NodeManger JVM. This is critical specially
      * for NodeManager auxiliary services.

@@ -3,9 +3,10 @@ checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadAlpha
 frameworkRole: 
-frameworkUser: hduser #user the framework runs as
-frameworkSuperUser: root #To be depriated, currently permissions need set by a superuser due to Mesos 1760.  Must be root
-                         #or have passwordless sudo, if not set will default to the user executing the scheduler.
+frameworkUser: hduser     #user the framework runs as, required for remote distribution, otherwise defaults to the user
+                          #running the resource manager.
+frameworkSuperUser: root  #To be depricated, currently permissions need set by a superuser due to Mesos 1760.  Must be
+                          #root or have passwordless sudo. Only used for remote distribution.
 nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: localhost:2181
 zkTimeout: 20000
@@ -33,5 +34,5 @@ executor:
   #path: hadoop-2.5.0/share/hadoop/yarn/myriad-executor-0.0.1.jar #relative path if nodeManagerUri is set
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
-  #YARN_HOME: hadoop #this should be relative if nodeManagerUri is set
+  #YARN_HOME: hadoop-2.5.0 #this should be relative if nodeManagerUri is set
   #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary

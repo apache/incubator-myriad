@@ -21,10 +21,6 @@ public class MyriadExecutorConfiguration {
     @JsonProperty
     private String nodeManagerUri;
 
-    @JsonProperty
-    private String user;
-
-
     public Optional<Double> getJvmMaxMemoryMB() {
         return Optional.fromNullable(jvmMaxMemoryMB);
     }

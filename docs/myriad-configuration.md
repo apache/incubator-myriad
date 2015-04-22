@@ -26,10 +26,10 @@ frameworkName: MyriadAlpha
 # Myriad's mesos framework role.
 frameworkRole: someRoleName
 
-# Myriad's mesos framework user.
+# Myriad's mesos framework user (Defaults to user running the resource manager if absent, necessary for remote distribution).
 frameworkUser: someUserName
 
-# Myriad's mesos framework super user (Necessary only for remote distribution).
+# Myriad's mesos framework super user (Necessary only for remote distribution, otherwise ignored).
 frameworkSuperUser: someUserNameWithSudo
 
 # Myriad's REST-ful services port mapping.
@@ -61,7 +61,6 @@ rebalancer: false
 # Properties for the Node Manager process that's launched by myriad as a result of 'flex up' REST call.
 nodemanager:
   jvmMaxMemoryMB: 1024  # Xmx for NM JVM process.
-  #Note both user and group must exist on all slaves.
   cpus: 0.2             # CPU needed by NM process.
   cgroups: false        # Whether NM should support CGroups. If set to 'true', myriad automatically 
                         # configures yarn-site.xml to attach YARN's cgroups under Mesos' cgroup hierarchy.
@@ -70,7 +69,7 @@ executor:
   path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar  # Path for the myriad's executor binary.
                                                                             # Also supports, hdfs:// notation.
   #These are for remote distribution
-  #path: hadoop-2.5.0/share/hadoop/yarn/lib/myriad-executor-0.0.1.jar #this should be relative if nodeManagerUri is set
+  #path: hdfs://namenode:port/dist/hadoop-2.5.0/share/hadoop/yarn/lib/myriad-executor-0.0.1.jar 
   #nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.5.0.tar.gz # the uri to d/l hadoop from
 
 # Environment variables required to launch Node Manager process. Admin can also pass other environment variables to NodeManager.

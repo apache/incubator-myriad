@@ -99,7 +99,6 @@ public class MyriadConfiguration {
     @JsonProperty
     private String frameworkSuperUser;
 
-
     @JsonProperty
     @NotEmpty
     private Map<String, Map<String, String>> profiles;

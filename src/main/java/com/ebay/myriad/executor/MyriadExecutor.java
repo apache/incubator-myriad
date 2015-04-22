@@ -112,16 +112,17 @@ public class MyriadExecutor implements Executor {
                         .setTaskId(task.getTaskId());
                 try {
                     NMTaskConfig taskConfig = GSON.fromJson(task.getData().toStringUtf8(), NMTaskConfig.class);
-                        LOGGER.info("TaskConfig: ", taskConfig);
-                        ProcessBuilder processBuilder = buildProcessBuilder(task, taskConfig);
-                        MyriadExecutor.this.process = processBuilder.start();
-                        int waitFor = MyriadExecutor.this.process.waitFor();
+                    LOGGER.info("TaskConfig: ", taskConfig);
+                    ProcessBuilder processBuilder = buildProcessBuilder(task, taskConfig);
+                    MyriadExecutor.this.process = processBuilder.start();
 
-                        if (waitFor == 0) {
-                            statusBuilder.setState(TaskState.TASK_FINISHED);
-                        } else {
-                            statusBuilder.setState(TaskState.TASK_FAILED);
-                        }
+                    int waitFor = MyriadExecutor.this.process.waitFor();
+
+                    if (waitFor == 0) {
+                        statusBuilder.setState(TaskState.TASK_FINISHED);
+                    } else {
+                        statusBuilder.setState(TaskState.TASK_FAILED);
+                    }
                 } catch (InterruptedException | IOException e) {
                     LOGGER.error("launchTask", e);
                     statusBuilder.setState(TaskState.TASK_FAILED);
