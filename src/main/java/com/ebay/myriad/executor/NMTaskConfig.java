@@ -12,7 +12,6 @@ public class NMTaskConfig {
     private String jvmOpts;
     private Boolean cgroups;
     private Map<String, String> yarnEnvironment;
-    private Boolean remoteDistribution;
 
     public String getYarnHome() {
         return yarnHome;
@@ -60,14 +59,6 @@ public class NMTaskConfig {
 
     public void setYarnEnvironment(Map<String, String> yarnEnvironment) {
         this.yarnEnvironment = yarnEnvironment;
-    }
-
-    public Boolean isRemoteDistribution() {
-        return remoteDistribution;
-    }
-
-    public void setRemoteDistribution(Boolean remoteDistribution) {
-        this.remoteDistribution = remoteDistribution;
     }
 
 }

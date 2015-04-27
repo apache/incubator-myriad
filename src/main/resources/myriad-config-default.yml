@@ -3,10 +3,10 @@ checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadAlpha
 frameworkRole: 
-frameworkUser: hduser     #user the framework runs as, required for remote distribution, otherwise defaults to the user
-                          #running the resource manager.
-frameworkSuperUser: root  #To be depricated, currently permissions need set by a superuser due to Mesos 1760.  Must be
-                          #root or have passwordless sudo. Only used for remote distribution.
+frameworkUser: hduser     # User the Node Manager runs as, required if nodeManagerURI set, otherwise defaults to the user
+                          # running the resource manager.
+frameworkSuperUser: root  # To be depricated, currently permissions need set by a superuser due to Mesos-1790.  Must be
+                          # root or have passwordless sudo. Required if nodeManagerURI set, ignored otherwise.
 nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: localhost:2181
 zkTimeout: 20000
@@ -29,9 +29,9 @@ nodemanager:
 executor:
   jvmMaxMemoryMB: 256
   path: file:///usr/local/libexec/mesos/myriad-executor-0.0.1.jar
-  #The following should be used for a remotely distributed URI
-  #nodeManagerUri: hdfs:///namenode:port/dist/hadoop-2.5.0.tar.gz
-  #path: hadoop-2.5.0/share/hadoop/yarn/myriad-executor-0.0.1.jar #relative path if nodeManagerUri is set
+  #The following should be used for a remotely distributed URI, hdfs assumed but other URI types valid.
+  #nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.5.0.tar.gz
+  #path: hdfs://namenode:post/dist/myriad-executor-0.0.1.jar
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
   #YARN_HOME: hadoop-2.5.0 #this should be relative if nodeManagerUri is set

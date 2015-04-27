@@ -10,7 +10,7 @@ We will assume you are using hadoop-2.5.0 downloaded from hadoop.apache.org.  Sp
 may require additional steps.  We will also assume hadoop is installed in `/opt/hadoop-2.5.0`, adjust this path to fit 
 your installation.
 
-First configure the Resource Manager as normal..
+First configure the Resource Manager as normal.
 
 At this point you build myriad with the commands:
 ```Shell
@@ -26,15 +26,17 @@ You will also need to place `myriad-executor-0.0.1.jar` in hdfs
 ```Shell
 hadoop fs -put build/libs/myriad-executor-0.0.1.jar /dist
 ```
-In the /opt/hadoop/etc/hadoop edit myriad-config-default.  For standard configuration see myriad-configuration(myriad-configuration.md).  To enable remote binaray distribution you must set the following options:
+Edit `/opt/hadoop/etc/hadoop/myriad-config-default`.  For standard configuration see 
+[myriad-configuration](myriad-configuration.md).  To enable remote binary distribution you must set the following options:
 ```YAML
-frameworkSuperUser: admin #must have passwordless sudo on all nodes!
-frameworkUser: hduser # Likely the same user running the resource manager. Muse exist on all nodes and be in the hadoop group
+frameworkSuperUser: admin # Must be root or have passwordless sudo on all nodes!
+frameworkUser: hduser # Should be the same user running the resource manager.
+                      # Must exist on all nodes and be in the 'hadoop' group
 executor:  
   nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.5.0.tar.gz  
-  path: hdfs://namenode:port/dist/myriad-executor-0.0.1.jar
+  path: hdfs://namenode:port/dist/hadoop-2.5.0/share/hadoop/yarn/lib/myriad-executor-0.0.1.jar
 yarnEnvironment:  
-  YARN_HOME: hadoop-2.5.0 #this should be relative if nodeManagerUri is set  
+  YARN_HOME: hadoop-2.5.0 # This should be relative if nodeManagerUri is set  
 ```
 
 Configure `/opt/hadoop-2.5.0/etc/hadoop/yarn-site.xml` as instructed in: [myriad-configuration](myriad-configuration.md)

@@ -92,14 +92,13 @@ public interface TaskFactory {
             CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
             if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
                 /*
-                 Overall this is messier than I'd like due to Mesos 1790. We can't let mesos untar the distribution,
-                 since it will change the permissions.  Instead we simply download the tarball and execute tar -xvpf.
-                 We also pull the config from the resource manager and put them in the conf dir.  This is also why we need
-                 frameworkSuperUser
+                 TODO(darinj): Overall this is messier than I'd like. We can't let mesos untar the distribution, since
+                 it will change the permissions.  Instead we simply download the tarball and execute tar -xvpf. We also
+                 pull the config from the resource manager and put them in the conf dir.  This is also why we need
+                 frameworkSuperUser. This will be refactored after Mesos-1790 is resolved.
                 */
 
-                //Too much work checking all posibilities and many are likely to fail somewhere later anyway
-                //Keep in mind this is a temp fix anyway
+                //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
                 if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
                     throw new RuntimeException("Trying to use remote distribution, but frameworkUser" +
                             "and/or frameworkSuperUser not set!");
@@ -107,31 +106,37 @@ public interface TaskFactory {
 
                 LOGGER.info("Using remote distribution");
 
-                String executorCmdPrefix = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; " +
-                        "sudo -E -u " + cfg.getFrameworkUser().get() + " -H " +
-                        "java -Dcapsule.log=verbose -jar ";
-
-                String executorPathString = myriadExecutorConfiguration.getPath();
                 String nmURIString = myriadExecutorConfiguration.getNodeManagerUri().get();
 
                 //TODO(DarinJ) support other compression, as this is a temp fix for Mesos 1760 may not get to it.
-                //Extract tarball keeping permissions
+                //Extract tarball keeping permissions, necessary to keep HADOOP_HOME/bin/container-executor suidbit set.
                 String tarCmd = "sudo tar -zxpf " + getFileName(nmURIString);
 
-                /*
-                We need to current directory to be owned by framework users for capsuleExecutor to create directories
-                Can't do this if framework user not set, may still be ok esp. if frameworkUser==frameSuperUser, logging a
-                warning.
-                */
+                //We need the current directory to be writable by frameworkUser for capsuleExecutor to create directories.
+                //Best to simply give owenership to the user running the executor but we don't want to use -R as this
+                //will silently remove the suid bit on container executor.
                 String chownCmd = "sudo chown " + cfg.getFrameworkUser().get() + " .";
 
-                //Throw the hadoop config where it can be picked by the NodeManager
+                //Place the hadoop config where in the HADOOP_CONF_DIR where it will be read by the NodeManager
+                //The url for the resource manager config is: http(s)://hostname:port/conf so fetcher.cpp downloads the
+                //config file to conf, It's an xml file with the parameters of yarn-site.xml, core-site.xml and hdfs.xml.
                 String configCopyCmd = "cp conf " + cfg.getYarnEnvironment().get("YARN_HOME") +
                         "/etc/hadoop/yarn-site.xml";
 
+                //Command to run the executor
+                String executorPathString = myriadExecutorConfiguration.getPath();
+                String executorCmd = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; " +
+                        "sudo -E -u " + cfg.getFrameworkUser().get() + " -H " +
+                        "java -Dcapsule.log=verbose -jar " + getFileName(executorPathString);
+
                 //Concatenate all the subcommands
-                String cmd = tarCmd + "&&" + configCopyCmd + "&&" + chownCmd + "&&" + executorCmdPrefix +
-                        getFileName(executorPathString);
+                String cmd = tarCmd + "&&" + chownCmd + "&&" + configCopyCmd + "&&" + executorCmd;
+
+                //get the nodemanagerURI
+                //We're going to extract ourselves, so setExtract is false
+                LOGGER.info("Getting Hadoop distribution from:" + nmURIString);
+                URI nmUri = URI.newBuilder().setValue(nmURIString).setExtract(false)
+                        .build();
 
                 //get configs directly from resource manager
                 String configUrlString = getConfigurationUrl();
@@ -144,23 +149,13 @@ public interface TaskFactory {
                 URI executorUri = URI.newBuilder().setValue(executorPathString).setExecutable(true)
                         .build();
 
-                //get the nodemanagerURI
-                //We're going to extract ourselves, so setExtract is false
-                LOGGER.info("Getting binary distribution from:" + nmURIString);
-                URI nmUri = URI.newBuilder().setValue(nmURIString).setExtract(false)
-                        .build();
                 LOGGER.info("Slave will execute command:" + cmd);
-                commandInfo.addUris(configUri).addUris(nmUri).addUris(executorUri).setValue("echo \"" + cmd + "\";" + cmd);
+                commandInfo.addUris(nmUri).addUris(configUri).addUris(executorUri).setValue("echo \"" + cmd + "\";" + cmd);
 
                 commandInfo.setUser(cfg.getFrameworkSuperUser().get());
 
-                /*
-                Otherwise defaults to current user, expected setUser("") to do this, however gave error
-                about chowning directory when frameworkUser was "", Looking at fetcher.cpp, you see user is an
-                option and doesn't check "".
-                */
             } else {
-                String cmdPrefix = " export CAPSULE_CACHE_DIR=`pwd` ;" +
+                String cmdPrefix = "export CAPSULE_CACHE_DIR=`pwd` ;" +
                         "echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar ";
                 String executorPath = myriadExecutorConfiguration.getPath();
                 String cmd = cmdPrefix + getFileName(executorPath);
@@ -172,11 +167,6 @@ public interface TaskFactory {
                 if (cfg.getFrameworkUser().isPresent()) {
                     commandInfo.setUser(cfg.getFrameworkUser().get());
                 }
-                /*
-                Otherwise defaults to current user, expected setUser("") to do this, however gave error
-                about chowning directory when frameworkUser was "", Looking at fetcher.cpp, you see user is an
-                option and doesn't check "".
-                */
             }
             return commandInfo.build();
         }
@@ -194,7 +184,6 @@ public interface TaskFactory {
             nmTaskConfig.setJvmOpts(nodeManagerConfiguration.getJvmOpts().orNull());
             nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
             nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());
-            nmTaskConfig.setRemoteDistribution(cfg.getMyriadExecutorConfiguration().getNodeManagerUri().isPresent());
 
             // if RM's hostname is passed in as a system property, pass it along
             // to Node Managers launched via Myriad
