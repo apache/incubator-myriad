@@ -32,7 +32,7 @@ frameworkSuperUser: admin #must have passwordless sudo on all nodes!
 frameworkUser: hduser # Likely the same user running the resource manager. Muse exist on all nodes and be in the hadoop group
 executor:  
   nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.5.0.tar.gz  
-  path: hdfs://namenode:port/dist/hadoop-2.5.0/share/hadoop/yarn/lib/myriad-executor-0.0.1.jar
+  path: hdfs://namenode:port/dist/myriad-executor-0.0.1.jar
 yarnEnvironment:  
   YARN_HOME: hadoop-2.5.0 #this should be relative if nodeManagerUri is set  
 ```
