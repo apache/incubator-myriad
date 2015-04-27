@@ -26,10 +26,10 @@ frameworkName: MyriadAlpha
 # Myriad's mesos framework role.
 frameworkRole: someRoleName
 
-# Myriad's mesos framework user (Defaults to user running the resource manager if absent, necessary for remote distribution).
+# User the Node Manager will run as (Defaults to user running the resource manager if absent,  necessary for remote distribution).
 frameworkUser: someUserName
 
-# Myriad's mesos framework super user (Necessary only for remote distribution, otherwise ignored).
+# User that gets the nodeManagerUri and sets up the directories for Node Manager, must have passwordless sudo (Necessary only for remote distribution, otherwise ignored).
 frameworkSuperUser: someUserNameWithSudo
 
 # Myriad's REST-ful services port mapping.
@@ -68,14 +68,21 @@ executor:
   jvmMaxMemoryMB: 256   # Xmx for myriad's executor that launches Node Manager.
   path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar  # Path for the myriad's executor binary.
                                                                             # Also supports, hdfs:// notation.
-  #These are for remote distribution
-  #path: hdfs://namenode:port/dist/hadoop-2.5.0/share/hadoop/yarn/lib/myriad-executor-0.0.1.jar 
-  #nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.5.0.tar.gz # the uri to d/l hadoop from
+  # These are for remote distribution. Hdfs is assumed, but http, file, and ftp are also possible.
+  # path: hdfs://namenode:port/dist/hadoop-2.5.0/share/hadoop/yarn/lib/myriad-executor-0.0.1.jar # Path for the myriad's executor binary. 
+  # nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.5.0.tar.gz # the uri to d/l hadoop from   # Path to the Hadoop tarball
 
 # Environment variables required to launch Node Manager process. Admin can also pass other environment variables to NodeManager.
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop # Or /opt/mapr/hadoop/hadoop-2.5.1/ if using MapR's Hadoop
-  #YARN_HOME: hadoop-2.5.0 # Or should be relative if remoteDistribution is true
+  # YARN_HOME: hadoop-2.5.0 # Should be relative nodeManagerUri is set
   YARN_NODEMANAGER_OPTS: -Dnodemanager.resource.io-spindles=4.0 # Required only if using MapR's Hadoop
-  #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary
+  # JAVA_HOME: /usr/lib/jvm/java-default # System dependent, but sometimes necessary
+
+# Authentication principal for Myriad's mesos framework
+mesosAuthenticationPrincipal: some_principal
+
+# Authentication secret filename for Myriad's mesos framework
+mesosAuthenticationSecretFilename: /path/to/secret/filename
+
 ```

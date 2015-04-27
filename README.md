@@ -21,13 +21,15 @@ The name _Myriad_ means, _countless or extremely great number_. In context of th
 Myriad is a work in progress, please keep checking this section for updates.
 
 - [x] Custom Executor for managing NodeManager
-- [ ] Support multi-tenancy for node-managers
 - [x] Support unique constraint to let only one node-manager run on a slave
-- [ ] Configuration store for storing rules and policies for clusters managed by Myriad
+- [x] Framework checkpointing
 - [x] NodeManager Profiles
 - [ ] High Availability mode for framework
-- [x] Framework checkpointing
 - [ ] Framework re-conciliation
+- [ ] Fine-grained scaling
+- [ ] Support multi-tenancy for node-managers
+- [ ] Configuration store for storing rules and policies for clusters managed by Myriad
 
 ## Videos and Slides
 * MesosCon 2014 - Running YARN alongside Mesos [(video)](https://www.youtube.com/watch?v=d7vZWm_xS9c) [(slides)](https://speakerdeck.com/mohit/running-yarn-alongside-mesos-mesoscon-2014)
+* Mesos User Group, March 2015 - Myriad: Integrating Hadoop into the Datacenter [(video)](http://www.youtube.com/watch?v=UMu9n4f62GI)

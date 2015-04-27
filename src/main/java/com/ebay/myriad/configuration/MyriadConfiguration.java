@@ -130,11 +130,21 @@ public class MyriadConfiguration {
     @NotEmpty
     private Map<String, String> yarnEnvironment;
 
+    @JsonProperty
+    private String mesosAuthenticationPrincipal;
+
+    @JsonProperty
+    private String mesosAuthenticationSecretFilename;
+
+
+    public MyriadConfiguration(){}
+
+
     public String getMesosMaster() {
         return mesosMaster;
     }
 
-    public Boolean getCheckpoint() {
+    public Boolean isCheckpoint() {
         return this.checkpoint != null ? checkpoint : DEFAULT_CHECKPOINT;
     }
 
@@ -162,10 +172,6 @@ public class MyriadConfiguration {
 
     public Map<String, Map<String, String>> getProfiles() {
         return profiles;
-    }
-
-    public Boolean isCheckpoint() {
-        return checkpoint != null ? checkpoint : DEFAULT_CHECKPOINT;
     }
 
     public Boolean isRebalancer() {
@@ -197,4 +203,9 @@ public class MyriadConfiguration {
     public Map<String, String> getYarnEnvironment() {
         return yarnEnvironment;
     }
+
+    public String getMesosAuthenticationSecretFilename() { return mesosAuthenticationSecretFilename; }
+
+    public String getMesosAuthenticationPrincipal(){ return mesosAuthenticationPrincipal; }
+
 }

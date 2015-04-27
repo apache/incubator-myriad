@@ -36,3 +36,5 @@ yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
   #YARN_HOME: hadoop-2.5.0 #this should be relative if nodeManagerUri is set
   #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary
+mesosAuthenticationPrincipal:
+mesosAuthenticationSecretFilename:
