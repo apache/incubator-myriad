@@ -68,6 +68,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "forwarded_port", guest: 8042, host: 8042
   config.vm.network "forwarded_port", guest: 19888, host: 19888
   config.vm.network "forwarded_port", guest: 8192, host: 8192
+  config.vm.network "forwarded_port", guest: 2181, host: 2181
 
   config.vm.provision "shell", inline: $provision_script
 
