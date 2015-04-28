@@ -8,7 +8,7 @@ MAINTAINER Brandon Gulla <brandon@brandongulla.com>
 ENV HADOOP_VER="2.5.2"
 
 # Install Hadoop & Dependencies
-RUN yum update && yum install -y java-1.7.0-openjdk wget
+RUN yum -y update && yum install -y java-1.7.0-openjdk wget
 RUN wget http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
 RUN yum install -y tar
 

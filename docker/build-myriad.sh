@@ -28,4 +28,4 @@ fi
 # Copy over the Java Libraries
 cp -rf ../build/libs/* libs/
 
-echo "Init complete! Modify config/myriad-default-config.yml to your liking before building the docker image"
+echo "Init complete! " #Modify config/myriad-default-config.yml to your liking before building the docker image"
