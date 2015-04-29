@@ -15,12 +15,14 @@ export HADOOP_INSTALL=${HADOOP_INSTALL:='/usr/local/hadoop'}
 
 # Add hduser user
 groupadd $HADOOP_GROUP
-useradd $HADOOP_USER -g $HADOOP_GROUN
+useradd $HADOOP_USER -g $HADOOP_GROUP
+mkdir /home/${HADOOP_USER}
+chown -R $HADOOP_USER:$HADOOP_GROUP /home/${HADOOP_USER}
 
 # Extract Hadoop
 tar vxzf hadoop-${HADOOP_VER}.tar.gz -C /tmp
 mv /tmp/hadoop-${HADOOP_VER} ${HADOOP_INSTALL}
-chown -R ${HADOOP_USER}:${HADOOP_GROUP} hadoop
+chown -R ${HADOOP_USER}:${HADOOP_GROUP} ${HADOOP_INSTALL}
 
 # Init bashrc with hadoop env variables
 sh -c 'echo export JAVA_HOME=/usr >> /home/${HADOOP_USER}/.bashrc'
