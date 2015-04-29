@@ -8,6 +8,12 @@
 
 `docker run --name='myriad-resourcemanager' -t \ -v /path/to/yarn-site.xml:/myriad-conf/yarn-site.xml \ -v /path/to/myriad-config-default.yml:/myriad-conf/myriad-config-default.yml \ -e HADOOP_NAMENODE="10.100.3.237:9000" \ bgulla/myriad-resourcemanager`
 
+### Available Environment Variables
+You can also pass in custom values via docker run for the following env vars: 
+* HADOOP_INSTALL 
+* HADOOP_USER
+* HADOOP_GROUP
+
 #Configuration Guide#
 
 In order for the ResourceManager to operate correctly, you will need to provide 2 configuration files:
