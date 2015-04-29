@@ -25,4 +25,7 @@ if [ -z $HADOOP_NAMENODE ]; then
     exit 1
 fi
 
-su - hduser /usr/local/hadoop/bin/yarn resourcemanager
+# Ensure that the hadoop user is specified
+HADOOP_USER=${HADOOP_USER:='hduser'}
+
+su - $HADOOP_USER /usr/local/hadoop/bin/yarn resourcemanager
