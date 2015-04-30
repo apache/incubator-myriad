@@ -20,6 +20,7 @@ import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -32,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +61,9 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
 
     @Inject
     private YarnNodeCapacityManager yarnNodeCapacityManager;
+
+    @Inject
+    private OfferLifecycleManager offerLifecycleMgr;
 
     @Override
     public void onEvent(ResourceOffersEvent event, long sequence,
@@ -112,7 +117,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
                     }
                 }
             } else {
-                yarnNodeCapacityManager.addResourceOffers(offers);
+                offerLifecycleMgr.addOffers(offers);
             }
         } finally {
             driverOperationLock.unlock();

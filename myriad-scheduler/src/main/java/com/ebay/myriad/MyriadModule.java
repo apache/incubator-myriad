@@ -21,10 +21,14 @@ import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.scheduler.MyriadDriver;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
 import com.ebay.myriad.scheduler.MyriadScheduler;
+import com.ebay.myriad.scheduler.NMHeartBeatHandler;
 import com.ebay.myriad.scheduler.NMProfileManager;
+import com.ebay.myriad.scheduler.NodeStore;
+import com.ebay.myriad.scheduler.OfferLifecycleManager;
 import com.ebay.myriad.scheduler.ReconcileService;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
+import com.ebay.myriad.scheduler.YarnNodeCapacityManager;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.MyriadState;
 import com.ebay.myriad.state.SchedulerState;
@@ -33,6 +37,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.mesos.state.ZooKeeperState;
@@ -77,6 +82,10 @@ public class MyriadModule extends AbstractModule {
         bind(TaskFactory.class).to(NMTaskFactoryImpl.class);
         bind(ReconcileService.class).in(Scopes.SINGLETON);
         bind(HttpConnectorProvider.class).in(Scopes.SINGLETON);
+        bind(YarnNodeCapacityManager.class).in(Scopes.SINGLETON);
+        bind(NodeStore.class).in(Scopes.SINGLETON);
+        bind(OfferLifecycleManager.class).in(Scopes.SINGLETON);
+        bind(NMHeartBeatHandler.class).asEagerSingleton();
 
         //TODO(Santosh): Should be configurable as well
         bind(NodeScaleDownPolicy.class).to(LeastAMNodesFirstPolicy.class).in(Scopes.SINGLETON);
