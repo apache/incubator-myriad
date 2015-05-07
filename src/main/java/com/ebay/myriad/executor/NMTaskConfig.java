@@ -6,21 +6,12 @@ import java.util.Map;
  * Node Manger Task Configuraiton
  */
 public class NMTaskConfig {
-    private String user;
     private String yarnHome;
     private Long advertisableCpus;
     private Long advertisableMem;
     private String jvmOpts;
     private Boolean cgroups;
     private Map<String, String> yarnEnvironment;
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
 
     public String getYarnHome() {
         return yarnHome;
@@ -69,4 +60,5 @@ public class NMTaskConfig {
     public void setYarnEnvironment(Map<String, String> yarnEnvironment) {
         this.yarnEnvironment = yarnEnvironment;
     }
+
 }
