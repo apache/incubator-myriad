@@ -12,7 +12,6 @@ import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
-import org.apache.mesos.Protos.TaskStatus.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +61,16 @@ public class MyriadExecutor implements Executor {
     public static final String KEY_NM_RESOURCE_CPU_VCORES = "nodemanager.resource.cpu-vcores";
 
     public static final String KEY_NM_RESOURCE_MEM_MB = "nodemanager.resource.memory-mb";
+
+    public static final String KEY_NM_ADDRESS = "myriad.yarn.nodemanager.address";
+
+    public static final String KEY_NM_LOCALIZER_ADDRESS = "myriad.yarn.nodemanager.localizer.address";
+
+    public static final String KEY_NM_WEBAPP_ADDRESS = "myriad.yarn.nodemanager.webapp.address";
+
+    public static final String KEY_NM_SHUFFLE_PORT = "myriad.mapreduce.shuffle.port";
+
+
 
     /**
      * Allot 10% more memory to account for JVM overhead.
@@ -115,7 +124,7 @@ public class MyriadExecutor implements Executor {
     public void launchTask(final ExecutorDriver driver, final TaskInfo task) {
         new Thread(new Runnable() {
             public void run() {
-                Builder statusBuilder = TaskStatus.newBuilder()
+                TaskStatus.Builder statusBuilder = TaskStatus.newBuilder()
                         .setTaskId(task.getTaskId());
                 try {
                     NMTaskConfig taskConfig = GSON.fromJson(task.getData().toStringUtf8(), NMTaskConfig.class);
@@ -209,6 +218,11 @@ public class MyriadExecutor implements Executor {
         }
         envNMOptions += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_CPU_VCORES, taskConfig.getAdvertisableCpus() + "");
         envNMOptions += String.format(PROPERTY_FORMAT, KEY_NM_RESOURCE_MEM_MB, taskConfig.getAdvertisableMem() + "");
+        envNMOptions += String.format(PROPERTY_FORMAT, KEY_NM_ADDRESS, "0.0.0.0:" + taskConfig.getRpcPort().toString() + "");
+        envNMOptions += String.format(PROPERTY_FORMAT, KEY_NM_LOCALIZER_ADDRESS, "0.0.0.0:" + taskConfig.getLocalizerPort().toString() + "");
+        envNMOptions += String.format(PROPERTY_FORMAT, KEY_NM_WEBAPP_ADDRESS, "0.0.0.0:" + taskConfig.gettWebAppHttpPort().toString() + "");
+        envNMOptions += String.format(PROPERTY_FORMAT, KEY_NM_SHUFFLE_PORT, taskConfig.getShufflePort().toString() + "");
+
         return envNMOptions;
     }
 

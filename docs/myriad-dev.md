@@ -100,12 +100,40 @@ export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so
     <name>yarn.nodemanager.resource.memory-mb</name>
     <value>${nodemanager.resource.memory-mb}</value>
 </property>
+<!--These options enable dynamic port assignment by mesos -->
+<property>
+    <name>yarn.nodemanager.address</name>
+    <value>${myriad.yarn.nodemanager.address}</value>
+</property>
+<property>
+    <name>yarn.nodemanager.webapp.address</name>
+    <value>${myriad.yarn.nodemanager.webapp.address}</value>
+</property>
+<property>
+    <name>yarn.nodemanager.webapp.https.address</name>
+    <value>${myriad.yarn.nodemanager.webapp.address}</value>
+</property>
+<property>
+    <name>yarn.nodemanager.localizer.address</name>
+    <value>${myriad.yarn.nodemanager.localizer.address}</value>
+</property>
 
 <!-- Configure Myriad Scheduler here -->
 <property>
     <name>yarn.resourcemanager.scheduler.class</name>
     <value>com.ebay.myriad.scheduler.yarn.MyriadFairScheduler</value>
     <description>One can configure other scehdulers as well from following list: com.ebay.myriad.scheduler.yarn.MyriadCapacityScheduler, com.ebay.myriad.scheduler.yarn.MyriadFifoScheduler</description>
+</property>
+
+```
+
+* Add following to ```$YARN_HOME/etc/hadoop/mapred-site.xml```:
+
+```xml
+<!--This option enables dynamic port assignment by mesos -->
+<property>
+    <name>mapreduce.shuffle.port</name>
+    <value>${myriad.mapreduce.shuffle.port}</value>
 </property>
 ```
 

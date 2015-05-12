@@ -15,6 +15,7 @@
  */
 package com.ebay.myriad.scheduler.event.handlers;
 
+import com.ebay.myriad.scheduler.NMPorts;
 import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.SchedulerUtils;
 import com.ebay.myriad.scheduler.TaskFactory;
@@ -125,7 +126,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     private boolean matches(Offer offer, NMProfile profile) {
         double cpus = -1;
         double mem = -1;
-
+        int ports = 0;
         for (Resource resource : offer.getResourcesList()) {
             if (resource.getName().equals("cpus")) {
                 if (resource.getType().equals(Value.Type.SCALAR)) {
@@ -144,7 +145,17 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
             } else if (resource.getName().equals("disk")) {
                 LOGGER.warn("Ignoring disk resources from offer");
             } else if (resource.getName().equals("ports")) {
-                LOGGER.info("Ignoring ports resources from offer");
+                if (resource.getType().equals(Value.Type.RANGES)) {
+                    Value.Ranges ranges =  resource.getRanges();
+                    for (Value.Range range : ranges.getRangeList()) {
+                        if (range.getBegin() < range.getEnd()) {
+                            ports += range.getEnd() - range.getBegin() + 1;
+                        }
+                    }
+                } else {
+                    LOGGER.error("ports resource was not Ranges: {}", resource
+                            .getType().toString());
+                }
             } else {
                 LOGGER.warn("Ignoring unknown resource type: {}",
                         resource.getName());
@@ -157,18 +168,21 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
         if (mem < 0) {
             LOGGER.error("No mem resource present");
         }
+        if (ports < 0) {
+            LOGGER.error("No port resources present");
+        }
 
         Map<String, String> requestAttributes = new HashMap<>();
 
         if (taskUtils.getAggregateCpus(profile) <= cpus
                 && taskUtils.getAggregateMemory(profile) <= mem
-                && SchedulerUtils.isMatchSlaveAttributes(offer,
-                requestAttributes)) {
+                && SchedulerUtils.isMatchSlaveAttributes(offer, requestAttributes)
+                && NMPorts.expectedNumPorts() <= ports) {
             return true;
         } else {
-            LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}", taskUtils.getAggregateCpus(profile), taskUtils.getAggregateMemory(profile));
+            LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}",
+                    taskUtils.getAggregateCpus(profile), taskUtils.getAggregateMemory(profile), ports);
             return false;
         }
     }
-
 }
