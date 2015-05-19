@@ -23,7 +23,6 @@ public class OfferLifecycleManager {
   /**
    * !!! Not thread safe !!!
    */
-  // TODO (Kannan) Support multiple offers per slave
   private final Map<String, ConsumedOffer> consumedOfferMap;
 
   private final NodeStore nodeStore;
