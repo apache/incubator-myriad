@@ -115,12 +115,12 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
                 return;
               }
 
-              // TODO (Kannan) Should we add this entry or discard?
               NodeAddedSchedulerEvent nodeAddedEvent = (NodeAddedSchedulerEvent) event;
               NodeId nodeId = nodeAddedEvent.getAddedRMNode().getNodeID();
               String host = nodeId.getHost();
               if (nodeStore.isPresent(host)) {
-                LOGGER.warn("Duplicate node being added. Host: {}", host);
+                LOGGER.warn("Ignoring duplicate node registration. Host: {}", host);
+                return;
               }
 
               SchedulerNode node = yarnScheduler.getSchedulerNode(nodeId);
@@ -130,7 +130,6 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
             break;
 
             case NODE_UPDATE: {
-                // TODO (Kannan) Move this block to a function.
                 if (!(event instanceof NodeUpdateSchedulerEvent)) {
                     LOGGER.error("{} not an instance of {}", event.getClass().getName(),
                         NodeUpdateSchedulerEvent.class.getName());

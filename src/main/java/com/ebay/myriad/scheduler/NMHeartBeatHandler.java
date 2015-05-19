@@ -119,7 +119,6 @@ public class NMHeartBeatHandler extends BaseInterceptor {
             slaveId,
             containerId, Protos.TaskState.TASK_FINISHED);
       } else { // state == NEW | RUNNING
-        // TODO (Kannan) Can we not let the executor send this update by itself?
         requestExecutorToSendTaskStatusUpdate(
             slaveId,
             containerId, Protos.TaskState.TASK_RUNNING);

@@ -14,12 +14,12 @@ public class NodeStore {
     nodeMap = new ConcurrentHashMap<>(200, 0.75f, 50);
   }
 
-  private String getKey(SchedulerNode node) {
-    return node.getNodeID().getHost();
+  private String getKey(SchedulerNode schedNode) {
+    return schedNode.getNodeID().getHost();
   }
 
-  public void add(SchedulerNode node) {
-    nodeMap.putIfAbsent(getKey(node), new Node(node));
+  public void add(SchedulerNode schedNode) {
+    nodeMap.put(getKey(schedNode), new Node(schedNode));
   }
 
   public void remove(String hostname) {
