@@ -3,7 +3,7 @@
 # VERSION 0.0.1
 
 FROM centos
-MAINTAINER Brandon Gulla <brandon@brandongulla.com>
+MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
 
 ENV HADOOP_VER="2.5.2"
 
