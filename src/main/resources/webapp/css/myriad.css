@@ -1,0 +1,25 @@
+body {
+    padding-top: 65px;
+}
+
+.navbar .navbar-brand {
+    color: #bbbb22;
+}
+.navbar .navbar-brand .a:active {
+    color: #eeee22;
+}
+.navbar .navbar-brand .a:visited {
+    color: #eeee22;
+}
+.navbar .navbar-brand:hover {
+    color: #eeee22;
+}
+.modal-container {
+  position: relative;
+}
+.modal-container .modal, .modal-container .modal-backdrop {
+  position: absolute;
+}
+.modal .text-primary {
+  color: #ffffff
+}

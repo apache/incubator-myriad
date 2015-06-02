@@ -37,8 +37,7 @@ import javax.ws.rs.core.Response;
 /**
  * RESTful API to resource manager
  */
-@Path("/api/cluster")
-@Produces(MediaType.APPLICATION_JSON)
+@Path("/cluster")
 public class ClustersResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClustersResource.class);
 
@@ -68,8 +67,15 @@ public class ClustersResource {
                 "request object cannot be null or empty");
 
         // TODO(mohit): Validation
+        LOGGER.info("Received Flexup Cluster Request");
+
+
         Integer instances = request.getInstances();
         String profile = request.getProfile();
+
+        LOGGER.info("Instances: ", instances);
+        LOGGER.info("Profile: ", profile);
+
         this.myriadOperations.flexUpCluster(instances, profile);
         return Response.ok().build();
     }

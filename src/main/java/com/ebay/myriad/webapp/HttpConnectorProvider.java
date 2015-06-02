@@ -22,6 +22,7 @@ public class HttpConnectorProvider implements Provider<Connector> {
     @Override
     public Connector get() {
         SelectChannelConnector ret = new SelectChannelConnector();
+        ret.setName("Myriad");
         ret.setHost("0.0.0.0");
         ret.setPort(myriadConf.getRestApiPort());
 

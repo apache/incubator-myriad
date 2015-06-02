@@ -27,7 +27,7 @@ import javax.ws.rs.core.MediaType;
 /**
  * Defines the REST API to the Myriad configuration.
  */
-@Path("/api/config")
+@Path("/config")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConfigurationResource {
     private MyriadConfiguration cfg;
