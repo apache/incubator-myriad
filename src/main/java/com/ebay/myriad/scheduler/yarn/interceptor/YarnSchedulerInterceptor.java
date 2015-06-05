@@ -39,8 +39,6 @@ public interface YarnSchedulerInterceptor {
     public void beforeSchedulerEventHandled(SchedulerEvent event);
 
     /**
-
-    /**
      * Invoked *after* {@link YarnScheduler#handle(org.apache.hadoop.yarn.event.Event)}
      *
      * @param event
