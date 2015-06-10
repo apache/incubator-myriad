@@ -55,9 +55,22 @@ cd /vagrant
 ./gradlew build
 ```
 
-At this point, myriad's scheduler jar and all the runtime dependencies will be available here: `/vagrant/myriad-scheduler/build/libs/*`. Please copy these jars to `$YARN_HOME/share/hadoop/yarn/lib/`.
+**Dealing with a build failure**
+If you get a build failure which is not the build itself, but a failure to write to disk.  This can happen when you built outside the vagrant instance first.  Exit the user `hduser` by typing `exit` and build again as the `vagrant` user.   
+
+At this point, myriad's scheduler jar and all the runtime dependencies will be available here: `/vagrant/myriad-scheduler/build/libs/*`. Please copy these jars to `$YARN_HOME/share/hadoop/yarn/lib/`.  The default `$YARN_HOME` is `/usr/local/hadoop/`.
+
+```
+cp /vagrant/myriad-scheduler/build/libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
+```
 
 The self-contained myriad executor jar will be available here: `/vagrant/myriad-executor/build/libs/myriad-executor-runnable-x.y.z.jar`. Please copy this jar to `/usr/local/libexec/mesos/`.
+
+```
+sudo mkdir -p /usr/local/libexec/mesos/
+sudo cp /vagrant/myriad-executor/build/libs/myriad-executor-runnable-0.0.1.jar /usr/local/libexec/mesos/
+sudo chown hduser:hadoop -R /usr/local/libexec/mesos/
+```
 
 To configure YARN to use Myriad, please update ```$YARN_HOME/etc/hadoop/yarn-site.xml``` with following:
 
@@ -115,4 +128,23 @@ To launch Myriad, you can run following:
 ```
 sudo su hduser
 yarn-daemon.sh start resourcemanager
+```
+
+To check that things are running, from a browser on the host check out the following urls:
+
+* [Myriad UI](http://10.141.141.20:8192/)
+* [Mesos UI - Frameworks](http://10.141.141.20:5050/#/frameworks)
+
+To shut down, from the vagrant ssh console:
+
+```
+yarn-daemon.sh stop resourcemanager
+
+./shutdown.sh
+
+exit
+
+exit
+
+vagrant halt
 ```
