@@ -49,7 +49,7 @@ import java.util.Map;
  * cgroups: false
  * executor:
  * jvmMaxMemoryMB: 256
- * path: file://localhost/usr/local/libexec/mesos/myriad-executor-0.0.1.jar
+ * path: file://localhost/usr/local/libexec/mesos/myriad-executor-runnable-0.0.1.jar
  * yarnEnvironment:
  * YARN_HOME: /usr/local/hadoop
  */

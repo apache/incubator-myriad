@@ -118,7 +118,7 @@ Sample Response:
         "jvmMaxMemoryMB": {
             "present": true
         },
-        "path": "file:///root/myriad-executor-0.0.1.jar"
+        "path": "file:///root/myriad-executor-runnable-0.0.1.jar"
     }
 }
 ```
