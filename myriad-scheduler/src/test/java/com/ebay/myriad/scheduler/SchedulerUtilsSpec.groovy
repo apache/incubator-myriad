@@ -20,7 +20,7 @@ class SchedulerUtilsSpec extends Specification {
 
         where:
         tasks                                              | returnValue
-        new ArrayList<>()                                  | true
+        []                                                 | true
         null                                               | true
         createNodeTaskList("hostname")                     | false
         createNodeTaskList("missinghost")                  | true
@@ -30,7 +30,7 @@ class SchedulerUtilsSpec extends Specification {
     }
 
     ArrayList<NodeTask> createNodeTaskList(String... hostnames) {
-        ArrayList<NodeTask> list = []
+        def list = []
         hostnames.each { hostname ->
             list << createNodeTask(hostname)
         }
