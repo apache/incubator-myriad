@@ -1,0 +1,46 @@
+
+dependencies {
+    compile project(':myriad-commons')
+
+    compile "org.apache.hadoop:hadoop-common:${hadoopVer}"
+    compile "org.apache.hadoop:hadoop-yarn-common:${hadoopVer}"
+    compile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}"
+    compile "com.lmax:disruptor:3.3.0"
+    compile "io.dropwizard.metrics:metrics-core:${metricsVer}"
+    compile "io.dropwizard.metrics:metrics-annotation:${metricsVer}"
+    compile "io.dropwizard.metrics:metrics-healthchecks:${metricsVer}"
+    compile "org.hibernate:hibernate-validator:5.1.2.Final"
+	compile "com.fasterxml.jackson.core:jackson-annotations:2.5.1"
+	compile "com.fasterxml.jackson.core:jackson-databind:2.5.1"
+	compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.5.1"
+	compile "org.apache.curator:curator-framework:2.7.1"
+
+}
+
+// copies dependencies to build/libs dir
+task copyRunTimeDeps(type: Sync) {
+    from configurations.runtime
+    into "$buildDir/libs"
+}
+
+jar {
+    dependsOn copyRunTimeDeps
+}
+
+processResources {
+    exclude ('*/node_modules/**')
+}
+
+sourceSets {
+    main {
+        resources {
+            include '*.*'
+            include 'webapp/public/**'
+            exclude 'webapp/node_modules/**'
+            exclude 'webapp/css'
+            exclude 'webapp/img'
+            exclude 'webapp/js'
+            exclude 'webapp/*.*'
+        }
+    }
+}

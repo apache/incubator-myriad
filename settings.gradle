@@ -17,3 +17,7 @@ include 'services:webservice'
 */
 
 rootProject.name = 'myriad'
+
+include "myriad-commons"
+include "myriad-scheduler"
+include "myriad-executor"

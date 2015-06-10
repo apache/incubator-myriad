@@ -18,7 +18,7 @@ package com.ebay.myriad.scheduler;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
 import com.ebay.myriad.configuration.NodeManagerConfiguration;
-import com.ebay.myriad.executor.MyriadExecutor;
+import com.ebay.myriad.executor.MyriadExecutorDefaults;
 import com.google.common.base.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,7 +139,7 @@ public class TaskUtils {
     }
 
     public double getAggregateCpus(NMProfile profile) {
-        return getNodeManagerCpus() + MyriadExecutor.DEFAULT_CPUS + profile.getCpus();
+        return getNodeManagerCpus() + MyriadExecutorDefaults.DEFAULT_CPUS + profile.getCpus();
     }
 
     public double getNodeManagerMemory() {
@@ -159,7 +159,7 @@ public class TaskUtils {
 
     public double getExecutorCpus() {
 
-        return MyriadExecutor.DEFAULT_CPUS;
+        return MyriadExecutorDefaults.DEFAULT_CPUS;
     }
 
     public double getExecutorMemory() {
@@ -167,8 +167,8 @@ public class TaskUtils {
                 .getMyriadExecutorConfiguration();
         return (executorCfg.getJvmMaxMemoryMB().isPresent() ? executorCfg
                 .getJvmMaxMemoryMB().get()
-                : MyriadExecutor.DEFAULT_JVM_MAX_MEMORY_MB)
-                * (1 + MyriadExecutor.JVM_OVERHEAD);
+                : MyriadExecutorDefaults.DEFAULT_JVM_MAX_MEMORY_MB)
+                * (1 + MyriadExecutorDefaults.JVM_OVERHEAD);
     }
 
     public double getTaskCpus(NMProfile profile) {
