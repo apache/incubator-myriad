@@ -151,7 +151,7 @@ public class MyriadExecutor implements Executor {
     }
 
     private ProcessBuilder buildProcessBuilder(TaskInfo task, NMTaskConfig taskConfig) {
-        ProcessBuilder processBuilder = new ProcessBuilder("sudo", "-E", "-u", taskConfig.getUser(), "-H", "bash", "-c", "$YARN_HOME/bin/yarn nodemanager");
+        ProcessBuilder processBuilder = new ProcessBuilder("bash", "-c", "$YARN_HOME/bin/yarn nodemanager");
 
         Map<String, String> environment = processBuilder.environment();
 
@@ -171,6 +171,7 @@ public class MyriadExecutor implements Executor {
         } else {
             environment.put(ENV_YARN_NODEMANAGER_OPTS, envNMOptions);
         }
+
         processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
         processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         return processBuilder;

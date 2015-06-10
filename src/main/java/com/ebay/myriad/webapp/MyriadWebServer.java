@@ -28,7 +28,7 @@ public class MyriadWebServer {
 
         ServletHandler servletHandler = new ServletHandler();
 
-        String filterName = "GuiceFilter";
+        String filterName = "MyriadGuiceFilter";
         FilterHolder holder = new FilterHolder(filter);
         holder.setName(filterName);
 
@@ -43,7 +43,13 @@ public class MyriadWebServer {
         context.setServletHandler(servletHandler);
         context.addServlet(DefaultServlet.class, "/");
 
+        String staticDir = this.getClass().getClassLoader().getResource("webapp/public").toExternalForm();
+        context.setResourceBase(staticDir);
+
         this.jetty.addHandler(context);
         this.jetty.start();
     }
+
+
+
 }

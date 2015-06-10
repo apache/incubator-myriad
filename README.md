@@ -16,6 +16,7 @@ The name _Myriad_ means, _countless or extremely great number_. In context of th
 * [Myriad REST API](docs/API.md)
 * [Auto-scaling YARN cluster](docs/control-plane-algorithm.md)
 * [Mesos, YARN and cgroups](docs/cgroups.md)
+* [Myriad Dashboard Development](docs/myriad-dashboard.md)
 
 ## Roadmap
 Myriad is a work in progress, please keep checking this section for updates.
