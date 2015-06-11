@@ -1,133 +1,73 @@
-apply plugin: 'java'
-apply plugin: 'application'
-apply plugin: 'idea'
-apply from: 'gradle/spock.gradle'
-apply from: 'gradle/quality.gradle'
-
-sourceCompatibility = '1.7'
-targetCompatibility = '1.7'
-
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-
-mainClassName = "com.ebay.myriad.Main"
-
-group       = "com.ebay.myriad"
-version     = "0.0.1"
-
-ext {
-    mesosVer = "0.21.1"
-    hadoopVer = "2.5.0"
-    metricsVer = "3.1.0"
+allprojects {
+    apply plugin: 'idea'
 }
 
-configurations.create('myriadExecutorConf')
-
-configurations {
-	provided
-	capsule
-    myriadExecutorConf
-    myriadExecutorConf.transitive = false
-    // exclude hadoop/yarn deps for 'runtime'
-    runtime.exclude group: 'org.apache.hadoop', module: '*'
-}
-
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
-
-dependencies {
-    capsule "co.paralleluniverse:capsule:0.7.1"
-    myriadExecutorConf 'org.slf4j:slf4j-log4j12:1.7.10'
-    compile "org.apache.mesos:mesos:${mesosVer}"
-    compile "org.apache.hadoop:hadoop-common:${hadoopVer}"
-    compile "org.apache.hadoop:hadoop-yarn-common:${hadoopVer}"
-    compile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}"
-    compile 'com.google.code.gson:gson:2.3.1'
-    compile "com.lmax:disruptor:3.3.0"
-    compile "io.dropwizard.metrics:metrics-core:${metricsVer}"
-    compile "io.dropwizard.metrics:metrics-annotation:${metricsVer}"
-    compile "io.dropwizard.metrics:metrics-healthchecks:${metricsVer}"
-    compile "org.hibernate:hibernate-validator:5.1.2.Final"
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.5.1"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.5.1"
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.5.1"
-    compile "org.apache.curator:curator-framework:2.7.1"
-    testCompile 'junit:junit:4.12'
-    testCompile 'commons-collections:commons-collections:3.2.1'
-    testCompile "org.mockito:mockito-core:1.+"
-}
-
-
-run {
-    systemProperty "myriad.config", "build/resources/main/myriad-config-default.yml"
-}
-
-task capsule(type: Jar, dependsOn: jar) {
-    archiveName = "myriad-capsule-${version}.jar"
-
-    from jar
-    from { configurations.runtime }
-	from { sourceSets.main.resources }
-
-    from(configurations.capsule.collect { zipTree(it) }) { include 'Capsule.class' }
-
-    manifest {
-        attributes(
-            'Main-Class'  		: 'Capsule',
-            'Application-Class' : mainClassName,
-            'Min-Java-Version' 	: '1.7.0',
-            'JVM-Args' 			: run.jvmArgs.join(' '),
-            'System-Properties' : (run.systemProperties + ["myriad.config": '$CAPSULE_DIR/myriad-config-default.yml']).collect { k,v -> "$k=$v" }.join(' ')
-        )
+idea {
+    project {
+        languageLevel = '1.7'
+		ipr {
+			withXml { provider ->
+			        provider.node.component
+			                .find { it.@name == 'VcsDirectoryMappings' }
+			                .mapping.@vcs = 'Git'
+			    }
+		}
     }
 }
 
-// copies dependencies to build/libs dir
-task copyRunTimeDeps(type: Sync) {
-    from configurations.runtime
-    into "$buildDir/libs"
-}
+subprojects {
 
-processResources {
-    exclude ('*/node_modules/**')
-}
+    apply plugin: 'java'
+    apply plugin: 'application'
+    apply from: "$rootDir/gradle/spock.gradle"
+    apply from: "$rootDir/gradle/quality.gradle"
 
-sourceSets {
-    main {
-        resources {
-            include '*.*'
-            include 'webapp/public/**'
-            exclude 'webapp/node_modules/**'
-            exclude 'webapp/css'
-            exclude 'webapp/img'
-            exclude 'webapp/js'
-            exclude 'webapp/*.*'
-        }
+    sourceCompatibility = '1.7'
+    targetCompatibility = '1.7'
+
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+    mainClassName = "com.ebay.myriad.Main"
+
+    group = "com.ebay.myriad"
+    version = "0.0.1"
+
+    ext {
+        mesosVer = "0.21.1"
+        hadoopVer = "2.5.0"
+        metricsVer = "3.1.0"
     }
-}
 
-jar {
-    dependsOn copyRunTimeDeps
-}
+    configurations.create('myriadExecutorConf')
 
-task capsuleExecutor(type: Jar, dependsOn: jar) {
-    archiveName = "myriad-executor-${version}.jar"
+    configurations {
+        provided
+        capsule
+        myriadExecutorConf
+        myriadExecutorConf.transitive = false
+        // exclude hadoop/yarn deps for 'runtime'
+        runtime.exclude group: 'org.apache.hadoop', module: '*'
+    }
 
-    from jar
-    from { configurations.runtime }
-    from { configurations.myriadExecutorConf }
-	from { sourceSets.main.resources }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
 
-    from(configurations.capsule.collect { zipTree(it) }) { include 'Capsule.class' }
+    dependencies {
+        capsule "co.paralleluniverse:capsule:0.7.1"
+    	myriadExecutorConf 'org.slf4j:slf4j-log4j12:1.7.10'
 
-    manifest {
-        attributes(
-            'Main-Class'  		: 'Capsule',
-            'Application-Class' : 'com.ebay.myriad.executor.MyriadExecutor',
-            'Min-Java-Version' 	: '1.7.0',
-            'JVM-Args' 			: run.jvmArgs.join(' '),
-            'System-Properties' : (run.systemProperties).collect { k,v -> "$k=$v" }.join(' ')
-        )
+        compile "org.apache.mesos:mesos:${mesosVer}"
+        compile 'com.google.code.gson:gson:2.3.1'        // marshalling between the scheduler and executor
+
+
+        testCompile 'junit:junit:4.12'
+        testCompile 'commons-collections:commons-collections:3.2.1'
+    }
+
+
+    run {
+        systemProperty "myriad.config", "build/resources/main/myriad-config-default.yml"
     }
 }
