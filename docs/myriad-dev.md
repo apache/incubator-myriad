@@ -1,5 +1,18 @@
 # Myriad development
 
+## Setting up Editor Support
+
+You are welcome to use any editor you like, however many of the myriad developers use IntelliJ IDEA.   The build process described below uses [gradle](https://gradle.org/).   The build script is configured with the [idea plugin](https://docs.gradle.org/current/userguide/idea_plugin.html) to create an intellij project structure.   This is accomplished with the following command:
+
+```
+./gradlew idea
+
+# to open on a mac
+open myriad.ipr
+```
+
+**NOTE:** if you are interested in using eclipse, there is a plugin for that.  Either send in a pull request, or send a message on the dev mail list that you would make use of it.
+
 ## Build instructions
 System requirements:
 * JDK 1.7+
