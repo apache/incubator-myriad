@@ -22,4 +22,10 @@
         <Bug code="SnVI"/>
     </Match>
 
+    <!-- RM manager shutdown uses exit(0) which will be flagged if this is not here -->
+    <Match>
+        <Bug pattern="DM_EXIT"/>
+    </Match>
+
+
 </FindBugsFilter>

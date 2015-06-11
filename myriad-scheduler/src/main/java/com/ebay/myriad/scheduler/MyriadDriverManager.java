@@ -20,6 +20,8 @@ package com.ebay.myriad.scheduler;
 
 import com.google.common.base.Preconditions;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.ExecutorID;
+import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
 import org.slf4j.Logger;
@@ -58,7 +60,36 @@ public class MyriadDriverManager {
         return this.driverStatus;
     }
 
-    public Status stopDriver() {
+
+    /**
+     * Stop driver, executor, and tasks if false, otherwise just the driver.
+     * 
+     * @return driver status
+     */
+    public Status stopDriver(boolean failover) {
+        this.driverLock.lock();
+        try {
+            if (isRunning()) {
+                if (failover) {
+                    LOGGER.info("Stopping driver ...");
+                } else {
+                    LOGGER.info("Stopping driver and terminating tasks...");
+                }
+                this.driverStatus = this.driver.stop(failover);
+                LOGGER.info("Stopped driver with status: {}", this.driverStatus);
+            }
+        } finally {
+            this.driverLock.unlock();
+        }
+        return driverStatus;
+    }
+
+   /**
+     * Aborting driver without stopping tasks.
+     * 
+     * @return driver status
+     */
+    public Status abortDriver() {
         this.driverLock.lock();
         try {
             if (isRunning()) {
@@ -78,8 +109,7 @@ public class MyriadDriverManager {
         try {
             if (isRunning()) {
                 this.driverStatus = driver.kill(taskId);
-                LOGGER.info("Task {} killed with status: {}", taskId,
-                        this.driverStatus);
+                LOGGER.info("Task {} killed with status: {}", taskId, this.driverStatus);
             } else {
                 LOGGER.warn("Cannot kill task, driver is not running");
             }
@@ -88,6 +118,21 @@ public class MyriadDriverManager {
         }
 
         return driverStatus;
+    }
+
+   public Status sendFrameworkMessage(ExecutorID executorId, SlaveID slaveId, byte [] data) {
+        this.driverLock.lock();
+        try {
+            if (isRunning()) {
+                this.driverStatus = driver.sendFrameworkMessage(executorId, slaveId, data);
+            } else {
+                LOGGER.warn("Cannot send Framework message, driver is not running");
+            }
+        } finally {
+            this.driverLock.unlock();
+        }
+
+        return driverStatus;      
     }
 
     public Status getDriverStatus() {
