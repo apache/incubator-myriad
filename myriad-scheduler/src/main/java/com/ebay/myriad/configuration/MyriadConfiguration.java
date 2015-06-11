@@ -54,158 +54,165 @@ import java.util.Map;
  * YARN_HOME: /usr/local/hadoop
  */
 public class MyriadConfiguration {
-    /**
-     * By default framework checkpointing is turned off.
-     */
-    public static final Boolean DEFAULT_CHECKPOINT = false;
+  /**
+   * By default framework checkpointing is turned off.
+   */
+  public static final Boolean DEFAULT_CHECKPOINT = false;
 
-    /**
-     * By default rebalancer is turned off.
-     */
-    public static final Boolean DEFAULT_REBALANCER = true;
+  /**
+   * By default rebalancer is turned off.
+   */
+  public static final Boolean DEFAULT_REBALANCER = true;
 
-    /**
-     * By default framework failover timeout is 1 day.
-     */
-    public static final Double DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS = 86400000.0;
+  /**
+   * By default framework failover timeout is 1 day.
+   */
+  public static final Double DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS = 86400000.0;
 
-    public static final String DEFAULT_FRAMEWORK_NAME = "myriad-scheduler";
+  public static final String DEFAULT_FRAMEWORK_NAME = "myriad-scheduler";
 
-    public static final String DEFAULT_NATIVE_LIBRARY = "/usr/local/lib/libmesos.so";
+  public static final String DEFAULT_NATIVE_LIBRARY = "/usr/local/lib/libmesos.so";
 
-    public static final Integer DEFAULT_ZK_TIMEOUT = 20000;
+  public static final Integer DEFAULT_ZK_TIMEOUT = 20000;
 
-    public static final Integer DEFAULT_REST_API_PORT = 8192;
+  public static final Integer DEFAULT_REST_API_PORT = 8192;
 
-    @JsonProperty
-    @NotEmpty
-    private String mesosMaster;
+  @JsonProperty
+  @NotEmpty
+  private String mesosMaster;
 
-    @JsonProperty
-    private Boolean checkpoint;
+  @JsonProperty
+  private Boolean checkpoint;
 
-    @JsonProperty
-    private Double frameworkFailoverTimeout;
+  @JsonProperty
+  private Double frameworkFailoverTimeout;
 
-    @JsonProperty
-    private String frameworkName;
+  @JsonProperty
+  private String frameworkName;
 
-    @JsonProperty
-    private String frameworkRole;
+  @JsonProperty
+  private String frameworkRole;
 
-    @JsonProperty
-    private String frameworkUser;
+  @JsonProperty
+  private String frameworkUser;
 
-    @JsonProperty
-    private String frameworkSuperUser;
+  @JsonProperty
+  private String frameworkSuperUser;
 
-    @JsonProperty
-    @NotEmpty
-    private Map<String, Map<String, String>> profiles;
+  @JsonProperty
+  @NotEmpty
+  private Map<String, Map<String, String>> profiles;
 
-    @JsonProperty
-    private Boolean rebalancer;
+  @JsonProperty
+  private Boolean rebalancer;
 
-    @JsonProperty
-    private NodeManagerConfiguration nodemanager;
+  @JsonProperty
+  private NodeManagerConfiguration nodemanager;
 
-    @JsonProperty
-    @NotEmpty
-    private MyriadExecutorConfiguration executor;
+  @JsonProperty
+  @NotEmpty
+  private MyriadExecutorConfiguration executor;
 
-    @JsonProperty
-    private String nativeLibrary;
+  @JsonProperty
+  private String nativeLibrary;
 
-    @JsonProperty
-    @NotEmpty
-    private String zkServers;
+  @JsonProperty
+  @NotEmpty
+  private String zkServers;
 
-    @JsonProperty
-    private Integer zkTimeout;
+  @JsonProperty
+  private Integer zkTimeout;
 
-    @JsonProperty
-    private Integer restApiPort;
+  @JsonProperty
+  private Integer restApiPort;
 
-    @JsonProperty
-    @NotEmpty
-    private Map<String, String> yarnEnvironment;
+  @JsonProperty
+  @NotEmpty
+  private Map<String, String> yarnEnvironment;
 
-    @JsonProperty
-    private String mesosAuthenticationPrincipal;
+  @JsonProperty
+  private String mesosAuthenticationPrincipal;
 
-    @JsonProperty
-    private String mesosAuthenticationSecretFilename;
-
-
-    public MyriadConfiguration(){}
+  @JsonProperty
+  private String mesosAuthenticationSecretFilename;
 
 
-    public String getMesosMaster() {
-        return mesosMaster;
-    }
+  public MyriadConfiguration() {
+  }
 
-    public Boolean isCheckpoint() {
-        return this.checkpoint != null ? checkpoint : DEFAULT_CHECKPOINT;
-    }
 
-    public Double getFrameworkFailoverTimeout() {
-        return this.frameworkFailoverTimeout != null ? this.frameworkFailoverTimeout
-                : DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS;
-    }
+  public String getMesosMaster() {
+    return mesosMaster;
+  }
 
-    public String getFrameworkName() {
-        return Strings.isNullOrEmpty(this.frameworkName) ? DEFAULT_FRAMEWORK_NAME
-                : this.frameworkName;
-    }
+  public Boolean isCheckpoint() {
+    return this.checkpoint != null ? checkpoint : DEFAULT_CHECKPOINT;
+  }
 
-    public String getFrameworkRole() {
-        return frameworkRole;
-    }
+  public Double getFrameworkFailoverTimeout() {
+    return this.frameworkFailoverTimeout != null ? this.frameworkFailoverTimeout
+        : DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS;
+  }
 
-    public Optional<String> getFrameworkUser() {
-        return Optional.fromNullable(frameworkUser);
-    }
+  public String getFrameworkName() {
+    return Strings.isNullOrEmpty(this.frameworkName) ? DEFAULT_FRAMEWORK_NAME
+        : this.frameworkName;
+  }
 
-    public Optional<String> getFrameworkSuperUser() {
-        return Optional.fromNullable(frameworkSuperUser);
-    }
+  public String getFrameworkRole() {
+    return frameworkRole;
+  }
 
-    public Map<String, Map<String, String>> getProfiles() {
-        return profiles;
-    }
+  public Optional<String> getFrameworkUser() {
+    return Optional.fromNullable(frameworkUser);
+  }
 
-    public Boolean isRebalancer() {
-        return rebalancer != null ? rebalancer : DEFAULT_REBALANCER;
-    }
+  public Optional<String> getFrameworkSuperUser() {
+    return Optional.fromNullable(frameworkSuperUser);
+  }
 
-    public NodeManagerConfiguration getNodeManagerConfiguration() {
-        return this.nodemanager;
-    }
+  public Map<String, Map<String, String>> getProfiles() {
+    return profiles;
+  }
 
-    public MyriadExecutorConfiguration getMyriadExecutorConfiguration() {
-        return this.executor;
-    }
+  public Boolean isRebalancer() {
+    return rebalancer != null ? rebalancer : DEFAULT_REBALANCER;
+  }
 
-    public String getNativeLibrary() {
-        return Strings.isNullOrEmpty(this.nativeLibrary) ? DEFAULT_NATIVE_LIBRARY : this.nativeLibrary;
-    }
+  public NodeManagerConfiguration getNodeManagerConfiguration() {
+    return this.nodemanager;
+  }
 
-    public String getZkServers() {
-        return this.zkServers;
-    }
+  public MyriadExecutorConfiguration getMyriadExecutorConfiguration() {
+    return this.executor;
+  }
 
-    public Integer getZkTimeout() {
-        return this.zkTimeout != null ? this.zkTimeout : DEFAULT_ZK_TIMEOUT;
-    }
+  public String getNativeLibrary() {
+    return Strings.isNullOrEmpty(this.nativeLibrary) ? DEFAULT_NATIVE_LIBRARY : this.nativeLibrary;
+  }
 
-    public Integer getRestApiPort() { return this.restApiPort != null ? this.restApiPort : DEFAULT_REST_API_PORT; }
+  public String getZkServers() {
+    return this.zkServers;
+  }
 
-    public Map<String, String> getYarnEnvironment() {
-        return yarnEnvironment;
-    }
+  public Integer getZkTimeout() {
+    return this.zkTimeout != null ? this.zkTimeout : DEFAULT_ZK_TIMEOUT;
+  }
 
-    public String getMesosAuthenticationSecretFilename() { return mesosAuthenticationSecretFilename; }
+  public Integer getRestApiPort() {
+    return this.restApiPort != null ? this.restApiPort : DEFAULT_REST_API_PORT;
+  }
 
-    public String getMesosAuthenticationPrincipal(){ return mesosAuthenticationPrincipal; }
+  public Map<String, String> getYarnEnvironment() {
+    return yarnEnvironment;
+  }
+
+  public String getMesosAuthenticationSecretFilename() {
+    return mesosAuthenticationSecretFilename;
+  }
+
+  public String getMesosAuthenticationPrincipal() {
+    return mesosAuthenticationPrincipal;
+  }
 
 }

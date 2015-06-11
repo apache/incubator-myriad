@@ -57,7 +57,7 @@ public class SchedulerStateResource {
 
     private Collection<String> toStringCollection(Collection<Protos.TaskID> collection) {
         if (CollectionUtils.isEmpty(collection)) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
         Collection<String> returnCollection = new ArrayList<>();
         for (Protos.TaskID task : collection) {
