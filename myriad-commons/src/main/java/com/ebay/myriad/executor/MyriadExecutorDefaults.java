@@ -3,7 +3,7 @@ package com.ebay.myriad.executor;
 /**
  * Myriad's Executor Defaults
  */
-public interface MyriadExecutorDefaults {
+public class MyriadExecutorDefaults {
     public static final String ENV_YARN_NODEMANAGER_OPTS = "YARN_NODEMANAGER_OPTS";
 
     /**
