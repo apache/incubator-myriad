@@ -18,7 +18,9 @@
  */
 package org.apache.myriad.webapp;
 
+import org.apache.myriad.api.ClustersResource;
 import org.apache.myriad.api.ConfigurationResource;
+import org.apache.myriad.api.ControllerResource;
 import org.apache.myriad.api.SchedulerStateResource;
 import com.google.inject.Scopes;
 import com.google.inject.servlet.ServletModule;
@@ -32,9 +34,10 @@ public class MyriadServletModule extends ServletModule {
 
   @Override
   protected void configureServlets() {
-    bind(org.apache.myriad.api.ClustersResource.class);
+    bind(ClustersResource.class);
     bind(ConfigurationResource.class);
     bind(SchedulerStateResource.class);
+    bind(ControllerResource.class);
 
     bind(GuiceContainer.class);
     bind(JacksonJaxbJsonProvider.class).in(Scopes.SINGLETON);
