@@ -25,7 +25,7 @@ cp myriad-scheduler/build/libs/*.jar /opt/hadoop-2.5.0/share/hadoop/yarn/lib/
 cp myriad-scheduler/src/main/resources/myriad-config-default.yml /opt/hadoop-2.5.0/share/hadoop/yarn/lib/
 ```
 
-You will also need to place `myriad-executor-runnable-0.0.1.jar` in hdfs
+You will also need to place `myriad-executor-runnable-x.x.x.jar` in hdfs
 
 ```
 hadoop fs -put myriad-executor/build/libs/myriad-executor-runnable-0.0.1.jar /dist
