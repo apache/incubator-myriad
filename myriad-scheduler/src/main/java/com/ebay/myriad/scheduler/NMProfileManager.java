@@ -41,6 +41,10 @@ public class NMProfileManager {
         profiles.put(profile.getName(), profile);
     }
 
+    public boolean exists(String name) {
+        return this.profiles.containsKey(name);
+    }
+
     public String toString() {
         Gson gson = new Gson();
         return gson.toJson(this);
