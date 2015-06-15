@@ -14,7 +14,7 @@ dependencies {
 	compile "com.fasterxml.jackson.core:jackson-databind:2.5.1"
 	compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.5.1"
 	compile "org.apache.curator:curator-framework:2.7.1"
-
+  testCompile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}:tests"
 }
 
 // copies dependencies to build/libs dir

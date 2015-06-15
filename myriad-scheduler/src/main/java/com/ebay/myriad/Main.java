@@ -58,6 +58,8 @@ public class Main {
     private ScheduledExecutorService rebalancerService;
     private HealthCheckRegistry healthCheckRegistry;
 
+    private static Injector injector;
+
     public static void initialize(Configuration hadoopConf,
                                   AbstractYarnScheduler yarnScheduler,
                                   InterceptorRegistry registry) throws Exception {
@@ -65,18 +67,25 @@ public class Main {
         MyriadConfiguration cfg = mapper.readValue(
                 Thread.currentThread().getContextClassLoader().getResource("myriad-config-default.yml"),
                 MyriadConfiguration.class);
+
+        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, yarnScheduler, registry);
+        MesosModule mesosModule = new MesosModule();
+        injector = Guice.createInjector(
+                myriadModule, mesosModule,
+                new WebAppGuiceModule());
+
         new Main().run(cfg, hadoopConf, yarnScheduler, registry);
+    }
+
+    // TODO (Kannan Rajah) Hack to get injector in unit test.
+    public static Injector getInjector() {
+      return injector;
     }
 
     public void run(MyriadConfiguration cfg,
                     Configuration hadoopConf,
                     AbstractYarnScheduler yarnScheduler,
                     InterceptorRegistry registry) throws Exception {
-        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, yarnScheduler, registry);
-        Injector injector = Guice.createInjector(
-                myriadModule,
-                new WebAppGuiceModule());
-
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Bindings: " + injector.getAllBindings());
         }

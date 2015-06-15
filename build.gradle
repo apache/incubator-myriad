@@ -46,7 +46,8 @@ subprojects {
         myriadExecutorConf
         myriadExecutorConf.transitive = false
         // exclude hadoop/yarn deps for 'runtime'
-        runtime.exclude group: 'org.apache.hadoop', module: '*'
+        // TODO (Kannan Rajah) Exclude only while packaging
+        //runtime.exclude group: 'org.apache.hadoop', module: '*'
     }
 
     repositories {
