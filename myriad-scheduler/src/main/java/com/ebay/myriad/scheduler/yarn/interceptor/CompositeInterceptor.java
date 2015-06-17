@@ -42,13 +42,8 @@ public class CompositeInterceptor implements YarnSchedulerInterceptor, Intercept
 
     @Override
     public void register(YarnSchedulerInterceptor interceptor) {
-        if (interceptors.containsKey(interceptor.getClass())) {
-            throw new RuntimeException("More than one instance of " +
-                interceptor.getClass().getName() + " is being registered with " + this.getClass());
-        } else {
-            interceptors.put(interceptor.getClass(), interceptor);
-            LOGGER.info("Registered {} into the registry.", interceptor.getClass().getName());
-        }
+      interceptors.put(interceptor.getClass(), interceptor);
+      LOGGER.info("Registered {} into the registry.", interceptor.getClass().getName());
     }
 
     /**

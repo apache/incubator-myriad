@@ -18,7 +18,6 @@ package com.ebay.myriad;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.policy.LeastAMNodesFirstPolicy;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
-import com.ebay.myriad.scheduler.MyriadDriver;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
 import com.ebay.myriad.scheduler.MyriadScheduler;
 import com.ebay.myriad.scheduler.NMHeartBeatHandler;
@@ -40,11 +39,10 @@ import com.google.inject.Singleton;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
-import org.apache.mesos.state.ZooKeeperState;
+import org.apache.mesos.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
 
 /**
  * Guice Module for Myriad
@@ -74,7 +72,6 @@ public class MyriadModule extends AbstractModule {
         bind(Configuration.class).toInstance(hadoopConf);
         bind(AbstractYarnScheduler.class).toInstance(yarnScheduler);
         bind(InterceptorRegistry.class).toInstance(interceptorRegistry);
-        bind(MyriadDriver.class).in(Scopes.SINGLETON);
         bind(MyriadDriverManager.class).in(Scopes.SINGLETON);
         bind(MyriadScheduler.class).in(Scopes.SINGLETON);
         bind(NMProfileManager.class).in(Scopes.SINGLETON);
@@ -93,14 +90,11 @@ public class MyriadModule extends AbstractModule {
 
     @Provides
     @Singleton
-    SchedulerState providesSchedulerState(MyriadConfiguration cfg) {
+    SchedulerState providesSchedulerState(MyriadConfiguration cfg,
+        State stateStore) {
+
         LOGGER.debug("Configuring SchedulerState provider");
-        ZooKeeperState zkState = new ZooKeeperState(
-                cfg.getZkServers(),
-                cfg.getZkTimeout(),
-                TimeUnit.MILLISECONDS,
-                "/myriad/" + cfg.getFrameworkName());
-        MyriadState state = new MyriadState(zkState);
+        MyriadState state = new MyriadState(stateStore);
         return new SchedulerState(state);
     }
 }
