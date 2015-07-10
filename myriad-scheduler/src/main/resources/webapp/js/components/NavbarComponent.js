@@ -15,8 +15,12 @@ var NavbarComponent = React.createClass({
 
   render: function () {
     return(
-    <Navbar fixedTop>
-      <a className="navbar-brand" href="#">Myriad</a>
+    <Navbar fixedTop inverse>
+      <Nav>
+      <a className="navbar-brand" href="#">
+          <img src="/img/navbar_logo.png"></img>
+      </a>
+      </Nav>
       <Nav>
         <NavItemLink to="flex">Flex</NavItemLink>
         <NavItemLink to="tasks">Tasks</NavItemLink>
