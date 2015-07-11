@@ -1,27 +1,27 @@
 package com.ebay.myriad.scheduler;
 
+import com.ebay.myriad.executor.ContainerTaskStatusRequest;
+import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
+import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import com.google.gson.Gson;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
-
 import javax.inject.Inject;
-
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerState;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
+import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeStatusEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
+import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.ebay.myriad.executor.ContainerTaskStatusRequest;
-import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
-import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
-import com.google.gson.Gson;
 
 /**
  * Handles node manager heartbeat.
@@ -60,13 +60,10 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   public void beforeRMNodeEventHandled(RMNodeEvent event, RMContext context) {
     switch (event.getType()) {
       case STARTED: {
-        // TODO (Santosh) We can't zero out resources here in all cases. For e.g.
-        // this event might be fired when an existing node is rejoining the
-        // cluster (NM restart) as well. Sometimes this event can have a list of
-        // container statuses, which, capacity/fifo schedulers seem to handle
-        // (perhaps due to work preserving NM restart).
+        // TODO (Santosh) Don't zero out NM's capacity as it's causing trouble with app submissions.
         RMNode rmNode = context.getRMNodes().get(event.getNodeId());
-        yarnNodeCapacityMgr.removeCapacity(rmNode);
+        rmNode.getTotalCapability().setMemory(0);
+        rmNode.getTotalCapability().setVirtualCores(0);
       }
       break;
 
@@ -80,10 +77,8 @@ public class NMHeartBeatHandler extends BaseInterceptor {
       }
       break;
 
-      default: {
-        LOGGER.debug("Unhandled event: {}", event.getClass().getName());
-      }
-      break;
+      default:
+        break;
     }
   }
 
@@ -96,39 +91,82 @@ public class NMHeartBeatHandler extends BaseInterceptor {
 
     RMNodeStatusEvent statusEvent = (RMNodeStatusEvent) event;
     RMNode rmNode = context.getRMNodes().get(event.getNodeId());
-    SchedulerNode schedulerNode = yarnScheduler.getSchedulerNode(rmNode.getNodeID());
     String hostName = rmNode.getNodeID().getHost();
 
-    int rmSchNodeNumContainers = schedulerNode.getNumContainers();
+    validateContainerCount(statusEvent, rmNode);
+    nodeStore.getNode(hostName).snapshotRunningContainers();
+    sendStatusUpdatesToMesosForCompletedContainers(statusEvent);
+
+    // New capacity of the node =
+    // original capacity the NM registered with (profile) +
+    // resources under use on the node (due to previous offers) +
+    // new resources offered by mesos for the node
+    yarnNodeCapacityMgr.setNodeCapacity(rmNode,
+        Resources.add(rmNode.getTotalCapability(),
+            Resources.add(getResourcesUnderUse(statusEvent),
+                getNewResourcesOfferedByMesos(hostName))));
+  }
+
+  private void validateContainerCount(RMNodeStatusEvent statusEvent, RMNode rmNode) {
+    int rmSchNodeNumContainers = yarnScheduler.getSchedulerNode(rmNode.getNodeID()).getNumContainers();
     List<ContainerStatus> nmContainers = statusEvent.getContainers();
 
     if (nmContainers.size() != rmSchNodeNumContainers) {
       LOGGER.warn("Node: {}, Num Containers known by RM scheduler: {}, "
           + "Num containers NM is reporting: {}",
-          hostName, rmSchNodeNumContainers, nmContainers.size());
+          rmNode.getNodeID().getHost(), rmSchNodeNumContainers, nmContainers.size());
     }
+  }
 
+  private Resource getNewResourcesOfferedByMesos(String hostname) {
+    OfferFeed feed = offerLifecycleMgr.getOfferFeed(hostname);
+    if (feed == null) {
+      LOGGER.debug("No offer feed for: {}", hostname);
+      return Resource.newInstance(0, 0);
+    }
+    Resource offeredResources = Resource.newInstance(0, 0);
+    List<Offer> offers = new ArrayList<>();
+    Protos.Offer offer;
+    while ((offer = feed.poll()) != null) {
+      offers.add(offer);
+      offerLifecycleMgr.markAsConsumed(offer);
+    }
+    Resources.addTo(offeredResources, OfferUtils.getYarnResourcesFromMesosOffers(offers));
+    return offeredResources;
+  }
+
+  private Resource getResourcesUnderUse(RMNodeStatusEvent statusEvent) {
+    Resource usedResources = Resource.newInstance(0, 0);
+    for (ContainerStatus status : statusEvent.getContainers()) {
+      if (status.getState() == ContainerState.NEW || status.getState() == ContainerState.RUNNING) {
+        Resources.addTo(usedResources, yarnScheduler.getRMContainer(status.getContainerId()).getAllocatedResource());
+      }
+    }
+    return usedResources;
+  }
+
+  private void sendStatusUpdatesToMesosForCompletedContainers(RMNodeStatusEvent statusEvent) {
     // Send task update to Mesos
-    for (ContainerStatus status : nmContainers) {
+    Protos.SlaveID slaveId = nodeStore.getNode(statusEvent.getNodeId().getHost()).getSlaveId();
+    for (ContainerStatus status : statusEvent.getContainers()) {
       ContainerId containerId = status.getContainerId();
-      Protos.SlaveID slaveId = nodeStore.getNode(hostName).getSlaveId();
       if (status.getState() == ContainerState.COMPLETE) {
-        LOGGER.debug("Task complete: {}", containerId);
-        yarnNodeCapacityMgr.removeCapacity(rmNode, containerId);
-        requestExecutorToSendTaskStatusUpdate(
-            slaveId,
-            containerId, Protos.TaskState.TASK_FINISHED);
+        requestExecutorToSendTaskStatusUpdate(slaveId, containerId, Protos.TaskState.TASK_FINISHED);
       } else { // state == NEW | RUNNING
-        requestExecutorToSendTaskStatusUpdate(
-            slaveId,
-            containerId, Protos.TaskState.TASK_RUNNING);
+        requestExecutorToSendTaskStatusUpdate(slaveId, containerId, Protos.TaskState.TASK_RUNNING);
       }
     }
   }
 
+
   /**
    * sends a request to executor on the given slave to send back a status update
    * for the mesos task launched for this container.
+   *
+   * TODO(Santosh):
+   *  Framework messages are unreliable. Try a NM auxiliary service that can help
+   *  send out the status messages from NM itself. NM and MyriadExecutor would need
+   *  to be merged into a single process.
    *
    * @param slaveId
    * @param containerId
@@ -137,13 +175,15 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   private void requestExecutorToSendTaskStatusUpdate(Protos.SlaveID slaveId,
       ContainerId containerId,
       Protos.TaskState taskState) {
+    final String mesosTaskId = ContainerTaskStatusRequest.YARN_CONTAINER_TASK_ID_PREFIX + containerId.toString();
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Sending out framework message requesting the executor to send {} status for task: {}",
+          taskState.name(), mesosTaskId);
+    }
     ContainerTaskStatusRequest containerTaskStatusRequest = new ContainerTaskStatusRequest();
-    containerTaskStatusRequest.setMesosTaskId(
-        ContainerTaskStatusRequest.YARN_CONTAINER_TASK_ID_PREFIX + containerId.toString());
+    containerTaskStatusRequest.setMesosTaskId(mesosTaskId);
     containerTaskStatusRequest.setState(taskState.name());
-    myriadDriver.getDriver().sendFrameworkMessage(
-        getExecutorId(slaveId),
-        slaveId,
+    myriadDriver.getDriver().sendFrameworkMessage(getExecutorId(slaveId), slaveId,
         new Gson().toJson(containerTaskStatusRequest).getBytes(Charset.defaultCharset()));
   }
 

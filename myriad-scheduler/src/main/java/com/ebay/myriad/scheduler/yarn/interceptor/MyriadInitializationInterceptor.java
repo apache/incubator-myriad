@@ -2,6 +2,7 @@ package com.ebay.myriad.scheduler.yarn.interceptor;
 
 import com.ebay.myriad.Main;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,9 +27,9 @@ public class MyriadInitializationInterceptor extends BaseInterceptor {
      * the myriad web application, initializing guice modules etc.
      */
     @Override
-    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler) throws IOException {
+    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException {
         try {
-            Main.initialize(conf, yarnScheduler, registry);
+            Main.initialize(conf, yarnScheduler, rmContext, registry);
         } catch (Exception e) {
             // Abort bringing up RM
             throw new RuntimeException("Failed to initialize myriad", e);

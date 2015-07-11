@@ -53,11 +53,12 @@ public class CompositeInterceptor implements YarnSchedulerInterceptor, Intercept
      *
      * @param conf
      * @param yarnScheduler
+     * @param rmContext
      * @throws IOException
      */
     @Override
-    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler) throws IOException {
-        myriadInitInterceptor.init(conf, yarnScheduler);
+    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException {
+        myriadInitInterceptor.init(conf, yarnScheduler, rmContext);
     }
 
     @Override

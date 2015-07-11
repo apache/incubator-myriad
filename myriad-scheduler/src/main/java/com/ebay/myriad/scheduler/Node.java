@@ -57,7 +57,7 @@ public class Node {
     this.execInfo = execInfo;
   }
 
-  public void snapshotContainers() {
+  public void snapshotRunningContainers() {
     this.containerSnapshot = new HashSet<>(node.getRunningContainers());
   }
 

@@ -20,9 +20,10 @@ public interface YarnSchedulerInterceptor {
      *
      * @param conf
      * @param yarnScheduler
+     * @param rmContext
      * @throws IOException
      */
-    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler) throws IOException;
+    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException;
 
     /**
      * Invoked *before* {@link RMNodeImpl#handle(RMNodeEvent)}.

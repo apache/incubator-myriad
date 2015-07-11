@@ -99,8 +99,8 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
                 case NODE_REMOVED:
                     onNodeRemoved((NodeRemovedSchedulerEvent) event);
                     break;
+
                 default:
-                    LOGGER.warn("event type not supported");
                     break;
             }
         } catch (ClassCastException e) {
