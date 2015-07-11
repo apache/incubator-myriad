@@ -23,6 +23,7 @@ import com.ebay.myriad.health.MesosDriverHealthCheck;
 import com.ebay.myriad.health.MesosMasterHealthCheck;
 import com.ebay.myriad.health.ZookeeperHealthCheck;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
+import com.ebay.myriad.scheduler.MyriadOperations;
 import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.scheduler.Rebalancer;
@@ -94,11 +95,13 @@ public class Main {
         initWebApp(injector);
         initHealthChecks(injector);
         initProfiles(injector);
+        validateNMInstances(injector);
         initDisruptors(injector);
 
         initRebalancerService(cfg, injector);
         initTerminatorService(injector);
         startMesosDriver(injector);
+        startNMInstances(injector);
     }
 
     private void startMesosDriver(Injector injector) {
@@ -152,6 +155,38 @@ public class Main {
                 }
             }
         }
+    }
+
+    private void validateNMInstances(Injector injector) {
+        LOGGER.info("Validating nmInstances..");
+        Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
+        NMProfileManager profileManager = injector.getInstance(NMProfileManager.class);
+        long maxCpu = Long.MIN_VALUE;
+        long maxMem = Long.MIN_VALUE;
+        for (String profile : nmInstances.keySet()) {
+          NMProfile nmProfile = profileManager.get(profile);
+          if (nmProfile == null) {
+            throw new RuntimeException("Invalid profile name '" + profile + "' specified in 'nmInstances'");
+          }
+          if (nmInstances.get(profile) > 0) {
+            if (nmProfile.getCpus() > maxCpu) { // find the profile with largest number of cpus
+              maxCpu = nmProfile.getCpus();
+              maxMem = nmProfile.getMemory(); // use the memory from the same profile
+            }
+          }
+        }
+        if (maxCpu <= 0 || maxMem <= 0) {
+          throw new RuntimeException("Please configure 'nmInstances' with at least one instance/profile " 
+              + "with non-zero cpu/mem resources.");
+        }
+    }
+
+    private void startNMInstances(Injector injector) {
+      Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
+      MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
+      for (String profile : nmInstances.keySet()) {
+        myriadOperations.flexUpCluster(nmInstances.get(profile), profile);
+      }
     }
 
     private void initTerminatorService(Injector injector) {
