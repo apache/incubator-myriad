@@ -3,6 +3,7 @@ package com.ebay.myriad.scheduler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import com.ebay.myriad.scheduler.fgs.NodeStore;
 import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;

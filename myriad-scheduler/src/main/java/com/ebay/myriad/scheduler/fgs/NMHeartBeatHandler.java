@@ -1,8 +1,12 @@
-package com.ebay.myriad.scheduler;
+package com.ebay.myriad.scheduler.fgs;
 
 import com.ebay.myriad.executor.ContainerTaskStatusRequest;
+import com.ebay.myriad.scheduler.MyriadDriver;
+import com.ebay.myriad.scheduler.SchedulerUtils;
+import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import com.ebay.myriad.state.SchedulerState;
 import com.google.gson.Gson;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -11,6 +15,7 @@ import javax.inject.Inject;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerState;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
+import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
@@ -35,6 +40,7 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   private final YarnNodeCapacityManager yarnNodeCapacityMgr;
   private final OfferLifecycleManager offerLifecycleMgr;
   private final NodeStore nodeStore;
+  private final SchedulerState state;
 
   @Inject
   public NMHeartBeatHandler(
@@ -43,7 +49,8 @@ public class NMHeartBeatHandler extends BaseInterceptor {
       MyriadDriver myriadDriver,
       YarnNodeCapacityManager yarnNodeCapacityMgr,
       OfferLifecycleManager offerLifecycleMgr,
-      NodeStore nodeStore) {
+      NodeStore nodeStore,
+      SchedulerState state) {
 
     if (registry != null) {
       registry.register(this);
@@ -54,16 +61,34 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     this.yarnNodeCapacityMgr = yarnNodeCapacityMgr;
     this.offerLifecycleMgr = offerLifecycleMgr;
     this.nodeStore = nodeStore;
+    this.state = state;
+  }
+
+  @Override
+  public CallBackFilter getCallBackFilter() {
+    return new CallBackFilter() {
+      @Override
+      public boolean allowCallBacksForNode(NodeId nodeManager) {
+        return SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
+      }
+    };
   }
 
   @Override
   public void beforeRMNodeEventHandled(RMNodeEvent event, RMContext context) {
     switch (event.getType()) {
       case STARTED: {
-        // TODO (Santosh) Don't zero out NM's capacity as it's causing trouble with app submissions.
         RMNode rmNode = context.getRMNodes().get(event.getNodeId());
-        rmNode.getTotalCapability().setMemory(0);
-        rmNode.getTotalCapability().setVirtualCores(0);
+        Resource totalCapability = rmNode.getTotalCapability();
+        if (totalCapability.getMemory() != 0 ||
+            totalCapability.getVirtualCores() != 0) {
+          LOGGER.warn("FineGrainedScaling feature got invoked for a " +
+                  "NM with non-zero capacity. Host: {}, Mem: {}, CPU: {}. Setting the NM's capacity to (0G,0CPU)",
+              rmNode.getHostName(),
+              totalCapability.getMemory(), totalCapability.getVirtualCores());
+          totalCapability.setMemory(0);
+          totalCapability.setVirtualCores(0);
+        }
       }
       break;
 
@@ -93,29 +118,15 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     RMNode rmNode = context.getRMNodes().get(event.getNodeId());
     String hostName = rmNode.getNodeID().getHost();
 
-    validateContainerCount(statusEvent, rmNode);
     nodeStore.getNode(hostName).snapshotRunningContainers();
     sendStatusUpdatesToMesosForCompletedContainers(statusEvent);
 
     // New capacity of the node =
-    // original capacity the NM registered with (profile) +
     // resources under use on the node (due to previous offers) +
     // new resources offered by mesos for the node
     yarnNodeCapacityMgr.setNodeCapacity(rmNode,
-        Resources.add(rmNode.getTotalCapability(),
             Resources.add(getResourcesUnderUse(statusEvent),
-                getNewResourcesOfferedByMesos(hostName))));
-  }
-
-  private void validateContainerCount(RMNodeStatusEvent statusEvent, RMNode rmNode) {
-    int rmSchNodeNumContainers = yarnScheduler.getSchedulerNode(rmNode.getNodeID()).getNumContainers();
-    List<ContainerStatus> nmContainers = statusEvent.getContainers();
-
-    if (nmContainers.size() != rmSchNodeNumContainers) {
-      LOGGER.warn("Node: {}, Num Containers known by RM scheduler: {}, "
-          + "Num containers NM is reporting: {}",
-          rmNode.getNodeID().getHost(), rmSchNodeNumContainers, nmContainers.size());
-    }
+                getNewResourcesOfferedByMesos(hostName)));
   }
 
   private Resource getNewResourcesOfferedByMesos(String hostname) {
@@ -124,15 +135,20 @@ public class NMHeartBeatHandler extends BaseInterceptor {
       LOGGER.debug("No offer feed for: {}", hostname);
       return Resource.newInstance(0, 0);
     }
-    Resource offeredResources = Resource.newInstance(0, 0);
     List<Offer> offers = new ArrayList<>();
     Protos.Offer offer;
     while ((offer = feed.poll()) != null) {
       offers.add(offer);
       offerLifecycleMgr.markAsConsumed(offer);
     }
-    Resources.addTo(offeredResources, OfferUtils.getYarnResourcesFromMesosOffers(offers));
-    return offeredResources;
+    Resource fromMesosOffers = OfferUtils.getYarnResourcesFromMesosOffers(offers);
+
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("NM on host {} got {} CPUs and {} memory from mesos",
+          hostname, fromMesosOffers.getVirtualCores(), fromMesosOffers.getMemory());
+    }
+
+    return fromMesosOffers;
   }
 
   private Resource getResourcesUnderUse(RMNodeStatusEvent statusEvent) {

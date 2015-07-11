@@ -12,6 +12,9 @@ zkServers: localhost:2181
 zkTimeout: 20000
 restApiPort: 8192
 profiles:
+  zero:
+    cpu: 0
+    mem: 0
   small:
     cpu: 1
     mem: 1100

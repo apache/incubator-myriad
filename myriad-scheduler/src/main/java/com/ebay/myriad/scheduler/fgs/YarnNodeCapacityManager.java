@@ -1,8 +1,12 @@
-package com.ebay.myriad.scheduler;
+package com.ebay.myriad.scheduler.fgs;
 
 import com.ebay.myriad.executor.ContainerTaskStatusRequest;
+import com.ebay.myriad.scheduler.MyriadDriver;
+import com.ebay.myriad.scheduler.SchedulerUtils;
+import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import com.ebay.myriad.state.SchedulerState;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
@@ -48,6 +52,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     private final OfferLifecycleManager offerLifecycleMgr;
     private final NodeStore nodeStore;
     private final TaskFactory taskFactory;
+    private final SchedulerState state;
 
     @Inject
     public YarnNodeCapacityManager(InterceptorRegistry registry,
@@ -56,7 +61,8 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
                                    MyriadDriver myriadDriver,
                                    TaskFactory taskFactory,
                                    OfferLifecycleManager offerLifecycleMgr,
-                                   NodeStore nodeStore) {
+                                   NodeStore nodeStore,
+                                   SchedulerState state) {
         if (registry != null) {
             registry.register(this);
         }
@@ -66,9 +72,20 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         this.taskFactory = taskFactory;
         this.offerLifecycleMgr = offerLifecycleMgr;
         this.nodeStore = nodeStore;
+        this.state = state;
     }
 
     @Override
+    public CallBackFilter getCallBackFilter() {
+        return new CallBackFilter() {
+            @Override
+            public boolean allowCallBacksForNode(NodeId nodeManager) {
+                return SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
+            }
+        };
+    }
+
+  @Override
     public void afterSchedulerEventHandled(SchedulerEvent event) {
         switch (event.getType()) {
             case NODE_ADDED: {

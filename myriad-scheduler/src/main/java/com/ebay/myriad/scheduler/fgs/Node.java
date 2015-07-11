@@ -1,4 +1,4 @@
-package com.ebay.myriad.scheduler;
+package com.ebay.myriad.scheduler.fgs;
 
 import java.util.HashSet;
 import java.util.Set;
