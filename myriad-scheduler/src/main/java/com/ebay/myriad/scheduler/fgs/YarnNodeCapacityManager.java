@@ -216,7 +216,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         Protos.ExecutorInfo executorInfo = node.getExecInfo();
         if (executorInfo == null) {
             executorInfo = Protos.ExecutorInfo.newBuilder(
-                taskFactory.getExecutorInfoForSlave(offer.getSlaveId()))
+                taskFactory.getExecutorInfoForSlave(offer.getSlaveId(), null))
                 .setFrameworkId(offer.getFrameworkId()).build();
             node.setExecInfo(executorInfo);
         }

@@ -2,13 +2,8 @@ package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
-import com.ebay.myriad.configuration.NodeManagerConfiguration;
-import com.ebay.myriad.executor.NMTaskConfig;
 import com.ebay.myriad.state.NodeTask;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.gson.Gson;
-import com.google.protobuf.ByteString;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
@@ -25,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Objects;
@@ -41,7 +35,7 @@ public interface TaskFactory {
   // yarn containers (for fine grained scaling).
   // If mesos supports just specifying the 'ExecutorId' without the full
   // ExecutorInfo, we wouldn't need this interface method.
-  ExecutorInfo getExecutorInfoForSlave(SlaveID slave);
+  ExecutorInfo getExecutorInfoForSlave(SlaveID slave, CommandInfo commandInfo);
 
   /**
    * Creates TaskInfo objects to launch NMs as mesos tasks.
@@ -71,11 +65,11 @@ public interface TaskFactory {
       HashSet<Long> ports = new HashSet<>();
       for (Resource resource : offer.getResourcesList()){
         if (resource.getName().equals("ports")){
-                    /*
-                    ranges.getRangeList() returns a list of ranges, each range specifies a begin and end only.
-                    so must loop though each range until we get all ports needed.  We exit each loop as soon as all
-                    ports are found so bounded by NMPorts.expectedNumPorts.
-                    */
+          /*
+          ranges.getRangeList() returns a list of ranges, each range specifies a begin and end only.
+          so must loop though each range until we get all ports needed.  We exit each loop as soon as all
+          ports are found so bounded by NMPorts.expectedNumPorts.
+          */
           Iterator<Value.Range> itr = resource.getRanges().getRangeList().iterator();
           while (itr.hasNext() && ports.size() < NMPorts.expectedNumPorts()) {
             Value.Range range = itr.next();
@@ -93,18 +87,6 @@ public interface TaskFactory {
       Preconditions.checkState(ports.size() == NMPorts.expectedNumPorts(), "Not enough ports in offer");
       Long [] portArray = ports.toArray(new Long [ports.size()]);
       return new NMPorts(portArray);
-    }
-
-    private static String getFileName(String uri) {
-      int lastSlash = uri.lastIndexOf('/');
-      if (lastSlash == -1) {
-        return uri;
-      } else {
-        String fileName = uri.substring(lastSlash + 1);
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName),
-            "URI should not have a slash at the end");
-        return fileName;
-      }
     }
 
     private String getConfigurationUrl() {
@@ -125,82 +107,40 @@ public interface TaskFactory {
       }
     }
 
-    private CommandInfo getCommandInfo() {
+    private CommandInfo getCommandInfo(NMProfile profile, NMPorts ports) {
       MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
       CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
-      if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
-                /*
-                 TODO(darinj): Overall this is messier than I'd like. We can't let mesos untar the distribution, since
-                 it will change the permissions.  Instead we simply download the tarball and execute tar -xvpf. We also
-                 pull the config from the resource manager and put them in the conf dir.  This is also why we need
-                 frameworkSuperUser. This will be refactored after Mesos-1790 is resolved.
-                */
+      ExecutorCommandLineGenerator clGenerator;
+      String cmd;
 
+      if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
         //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
         if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
           throw new RuntimeException("Trying to use remote distribution, but frameworkUser" +
-              "and/or frameworkSuperUser not set!");
+            "and/or frameworkSuperUser not set!");
         }
-
-        LOGGER.info("Using remote distribution");
-
-        String nmURIString = myriadExecutorConfiguration.getNodeManagerUri().get();
-
-        //TODO(DarinJ) support other compression, as this is a temp fix for Mesos 1760 may not get to it.
-        //Extract tarball keeping permissions, necessary to keep HADOOP_HOME/bin/container-executor suidbit set.
-        String tarCmd = "sudo tar -zxpf " + getFileName(nmURIString);
-
-        //We need the current directory to be writable by frameworkUser for capsuleExecutor to create directories.
-        //Best to simply give owenership to the user running the executor but we don't want to use -R as this
-        //will silently remove the suid bit on container executor.
-        String chownCmd = "sudo chown " + cfg.getFrameworkUser().get() + " .";
-
-        //Place the hadoop config where in the HADOOP_CONF_DIR where it will be read by the NodeManager
-        //The url for the resource manager config is: http(s)://hostname:port/conf so fetcher.cpp downloads the
-        //config file to conf, It's an xml file with the parameters of yarn-site.xml, core-site.xml and hdfs.xml.
-        String configCopyCmd = "cp conf " + cfg.getYarnEnvironment().get("YARN_HOME") +
-            "/etc/hadoop/yarn-site.xml";
-
-        //Command to run the executor
-        String executorPathString = myriadExecutorConfiguration.getPath();
-        String executorCmd = "export CAPSULE_CACHE_DIR=`pwd`;echo $CAPSULE_CACHE_DIR; " +
-            "sudo -E -u " + cfg.getFrameworkUser().get() + " -H " +
-            "java -Dcapsule.log=verbose -jar " + getFileName(executorPathString);
-
-        //Concatenate all the subcommands
-        String cmd = tarCmd + "&&" + chownCmd + "&&" + configCopyCmd + "&&" + executorCmd;
+        String nodeManagerUri = myriadExecutorConfiguration.getNodeManagerUri().get();
+        clGenerator = new DownloadNMExecutorCLGenImpl(cfg, profile, ports, nodeManagerUri);
+        cmd = clGenerator.generateCommandLine();
 
         //get the nodemanagerURI
         //We're going to extract ourselves, so setExtract is false
-        LOGGER.info("Getting Hadoop distribution from:" + nmURIString);
-        URI nmUri = URI.newBuilder().setValue(nmURIString).setExtract(false)
-            .build();
+        LOGGER.info("Getting Hadoop distribution from:" + nodeManagerUri);
+        URI nmUri = URI.newBuilder().setValue(nodeManagerUri).setExtract(false).build();
 
         //get configs directly from resource manager
         String configUrlString = getConfigurationUrl();
         LOGGER.info("Getting config from:" + configUrlString);
         URI configUri = URI.newBuilder().setValue(configUrlString)
-            .build();
-
-        //get the executor URI
-        LOGGER.info("Getting executor from:" + executorPathString);
-        URI executorUri = URI.newBuilder().setValue(executorPathString).setExecutable(true)
-            .build();
-
+          .build();
         LOGGER.info("Slave will execute command:" + cmd);
-        commandInfo.addUris(nmUri).addUris(configUri).addUris(executorUri).setValue("echo \"" + cmd + "\";" + cmd);
-
+        commandInfo.addUris(nmUri).addUris(configUri).setValue("echo \"" + cmd + "\";" + cmd);
         commandInfo.setUser(cfg.getFrameworkSuperUser().get());
 
       } else {
-        String cmdPrefix = "export CAPSULE_CACHE_DIR=`pwd` ;" +
-            "echo $CAPSULE_CACHE_DIR; java -Dcapsule.log=verbose -jar ";
-        String executorPath = myriadExecutorConfiguration.getPath();
-        String cmd = cmdPrefix + getFileName(executorPath);
-        URI executorURI = URI.newBuilder().setValue(executorPath)
-            .setExecutable(true).build();
-        commandInfo.addUris(executorURI)
-            .setValue("echo \"" + cmd + "\";" + cmd);
+        clGenerator = new NMExecutorCLGenImpl(cfg, profile, ports);
+        cmd = clGenerator.generateCommandLine();
+        commandInfo.setValue("echo \"" + cmd + "\";" + cmd);
 
         if (cfg.getFrameworkUser().isPresent()) {
           commandInfo.setUser(cfg.getFrameworkUser().get());
@@ -218,53 +158,21 @@ public interface TaskFactory {
       LOGGER.debug(ports.toString());
 
       NMProfile profile = nodeTask.getProfile();
-      NMTaskConfig nmTaskConfig = new NMTaskConfig();
-      nmTaskConfig.setAdvertisableCpus(profile.getCpus());
-      nmTaskConfig.setAdvertisableMem(profile.getMemory());
-      NodeManagerConfiguration nodeManagerConfiguration = this.cfg.getNodeManagerConfiguration();
-      nmTaskConfig.setJvmOpts(nodeManagerConfiguration.getJvmOpts().orNull());
-      nmTaskConfig.setCgroups(nodeManagerConfiguration.getCgroups().or(Boolean.FALSE));
-      nmTaskConfig.setRpcPort(ports.getRpcPort());
-      nmTaskConfig.setLocalizerPort(ports.getLocalizerPort());
-      nmTaskConfig.setWebAppHttpPort(ports.getWebAppHttpPort());
-      nmTaskConfig.setShufflePort(ports.getShufflePort());
-      nmTaskConfig.setYarnEnvironment(cfg.getYarnEnvironment());
-
-      // if RM's hostname is passed in as a system property, pass it along
-      // to Node Managers launched via Myriad
-      String rmHostName = System.getProperty(YARN_RESOURCEMANAGER_HOSTNAME);
-      if (rmHostName != null && !rmHostName.isEmpty()) {
-
-        String nmOpts = nmTaskConfig.getYarnEnvironment().get(YARN_NODEMANAGER_OPTS_KEY);
-        if (nmOpts == null) {
-          nmOpts = "";
-        }
-        nmOpts += " " + "-D" + YARN_RESOURCEMANAGER_HOSTNAME + "=" + rmHostName;
-        nmTaskConfig.getYarnEnvironment().put(YARN_NODEMANAGER_OPTS_KEY, nmOpts);
-        LOGGER.info(YARN_RESOURCEMANAGER_HOSTNAME + " is set to " + rmHostName +
-            " via YARN_RESOURCEMANAGER_OPTS. Passing it into YARN_NODEMANAGER_OPTS.");
-      }
-//            else {
-      // TODO(Santosh): Handle this case. Couple of options:
-      // 1. Lookup a hostname here and use it as "RM's hostname"
-      // 2. Abort here.. RM cannot start unless a hostname is passed in as it requires it to pass to NMs.
-
-      String taskConfigJSON = new Gson().toJson(nmTaskConfig);
-
       Scalar taskMemory = Scalar.newBuilder()
           .setValue(taskUtils.getTaskMemory(profile))
           .build();
       Scalar taskCpus = Scalar.newBuilder()
           .setValue(taskUtils.getTaskCpus(profile))
           .build();
-      ExecutorInfo executorInfo = getExecutorInfoForSlave(offer.getSlaveId());
+
+      CommandInfo commandInfo = getCommandInfo(profile, ports);
+      ExecutorInfo executorInfo = getExecutorInfoForSlave(offer.getSlaveId(), commandInfo);
 
       TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
           .setName("task-" + taskId.getValue())
           .setTaskId(taskId)
           .setSlaveId(offer.getSlaveId());
 
-      ByteString data = ByteString.copyFrom(taskConfigJSON.getBytes(Charset.defaultCharset()));
       return taskBuilder
           .addResources(
               Resource.newBuilder().setName("cpus")
@@ -296,17 +204,16 @@ public interface TaskFactory {
                           .setBegin(ports.getShufflePort())
                           .setEnd(ports.getShufflePort())
                           .build())))
-          .setExecutor(executorInfo).setData(data).build();
+          .setExecutor(executorInfo).build();
     }
 
     @Override
-    public ExecutorInfo getExecutorInfoForSlave(SlaveID slave) {
+    public ExecutorInfo getExecutorInfoForSlave(SlaveID slave,
+      CommandInfo commandInfo) {
       Scalar executorMemory = Scalar.newBuilder()
           .setValue(taskUtils.getExecutorMemory()).build();
       Scalar executorCpus = Scalar.newBuilder()
           .setValue(taskUtils.getExecutorCpus()).build();
-
-      CommandInfo commandInfo = getCommandInfo();
 
       ExecutorID executorId = ExecutorID.newBuilder()
           .setValue(EXECUTOR_PREFIX + slave.getValue())
