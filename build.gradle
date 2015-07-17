@@ -18,7 +18,6 @@ idea {
 subprojects {
 
     apply plugin: 'java'
-    apply plugin: 'application'
     apply from: "$rootDir/gradle/spock.gradle"
     apply from: "$rootDir/gradle/quality.gradle"
 
@@ -26,8 +25,6 @@ subprojects {
     targetCompatibility = '1.7'
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-
-    mainClassName = "com.ebay.myriad.Main"
 
     group = "com.ebay.myriad"
     version = "0.0.1"
@@ -64,10 +61,5 @@ subprojects {
 
         testCompile 'junit:junit:4.12'
         testCompile 'commons-collections:commons-collections:3.2.1'
-    }
-
-
-    run {
-        systemProperty "myriad.config", "build/resources/main/myriad-config-default.yml"
     }
 }
