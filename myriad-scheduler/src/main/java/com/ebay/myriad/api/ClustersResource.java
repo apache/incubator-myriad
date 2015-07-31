@@ -20,16 +20,26 @@ package com.ebay.myriad.api;
 
 import com.codahale.metrics.annotation.Timed;
 import com.ebay.myriad.api.model.FlexDownClusterRequest;
+import com.ebay.myriad.api.model.FlexDownServiceRequest;
 import com.ebay.myriad.api.model.FlexUpClusterRequest;
 import com.ebay.myriad.scheduler.MyriadOperations;
-import com.ebay.myriad.scheduler.NMProfile;
-import com.ebay.myriad.scheduler.NMProfileManager;
+import com.ebay.myriad.scheduler.ServiceResourceProfile;
 import com.ebay.myriad.scheduler.constraints.ConstraintFactory;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
+
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
+
+import com.ebay.myriad.api.model.FlexUpServiceRequest;
+import com.ebay.myriad.configuration.MyriadBadConfigurationException;
+import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.scheduler.ServiceProfileManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -39,8 +49,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * RESTful API to resource manager
@@ -51,17 +59,20 @@ public class ClustersResource {
     private static final String LIKE_CONSTRAINT_FORMAT =
         "'<mesos_slave_attribute|hostname> LIKE <value_regex>'";
 
-    private final SchedulerState schedulerState;
-    private final NMProfileManager profileManager;
-    private final MyriadOperations myriadOperations;
+    private MyriadConfiguration cfg;
+    private SchedulerState schedulerState;
+    private ServiceProfileManager profileManager;
+    private MyriadOperations myriadOperations;
 
-  @Inject
-    public ClustersResource(SchedulerState state,
-                            NMProfileManager profileManager,
+    @Inject
+    public ClustersResource(MyriadConfiguration cfg,
+                            SchedulerState state,
+                            ServiceProfileManager profileManager,
                             MyriadOperations myriadOperations) {
-        this.schedulerState = state;
-        this.profileManager = profileManager;
-        this.myriadOperations = myriadOperations;
+      this.cfg = cfg;
+      this.schedulerState = state;
+      this.profileManager = profileManager;
+      this.myriadOperations = myriadOperations;
     }
 
     @Timed
@@ -91,6 +102,46 @@ public class ClustersResource {
         }
 
         return returnResponse;
+    }
+
+    @Timed
+    @PUT
+    @Path("/flexupservice")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response flexUpservice(FlexUpServiceRequest request) {
+      Preconditions.checkNotNull(request,
+              "request object cannot be null or empty");
+
+      LOGGER.info("Received Flexup a Service Request");
+
+      Integer instances = request.getInstances();
+      String serviceName = request.getServiceName();
+
+      LOGGER.info("Instances: {}", instances);
+      LOGGER.info("Service: {}", serviceName);
+      
+      // Validate profile request
+      Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
+      
+      if (cfg.getServiceConfiguration(serviceName) == null) {
+        response.status(Response.Status.BAD_REQUEST)
+                .entity("Service does not exist: " + serviceName);
+        LOGGER.error("Provided service does not exist " + serviceName);
+        return response.build();
+      }
+      
+      if (!validateInstances(instances, response)) {
+        return response.build();
+      }
+
+      try {
+        this.myriadOperations.flexUpAService(instances, serviceName);
+      } catch (MyriadBadConfigurationException e) {
+        return response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+      }
+
+      return response.build();
     }
 
     @Timed
@@ -208,10 +259,44 @@ public class ClustersResource {
 
 
     private Integer getNumFlexedupNMs(String profile) {
-      NMProfile nmProfile = profileManager.get(profile);
-      return this.schedulerState.getActiveTaskIDsForProfile(nmProfile).size()
-                + this.schedulerState.getStagingTaskIDsForProfile(nmProfile).size()
-                + this.schedulerState.getPendingTaskIDsForProfile(nmProfile).size();
+      ServiceResourceProfile serviceProfile = profileManager.get(profile);
+      return this.schedulerState.getActiveTaskIDsForProfile(serviceProfile).size()
+                + this.schedulerState.getStagingTaskIDsForProfile(serviceProfile).size()
+                + this.schedulerState.getPendingTaskIDsForProfile(serviceProfile).size();
     }
 
+    @Timed
+    @PUT
+    @Path("/flexdownservice")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response flexDownservice(FlexDownServiceRequest request) {
+      Preconditions.checkNotNull(request,
+              "request object cannot be null or empty");
+      
+      Integer instances = request.getInstances();
+      String serviceName = request.getServiceName();
+      
+      LOGGER.info("Received flexdown request for service {}", serviceName);
+      LOGGER.info("Instances: " + instances);
+
+      Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
+
+      if (!validateInstances(instances, response)) {
+          return response.build();
+      }
+
+      // warn that number of requested instances isn't available
+      // but instances will still be flexed down
+      Integer flexibleInstances = this.myriadOperations.getFlexibleInstances(serviceName);
+      if (flexibleInstances < instances)  {
+          response.entity("Number of requested instances is greater than available.");
+          // just doing a simple check here. pass the requested number of instances
+          // to myriadOperations and let it sort out how many actually get flexxed down.
+          LOGGER.warn("Requested number of instances greater than available: {} < {}", flexibleInstances, instances);
+      }
+
+      this.myriadOperations.flexDownAService(instances, serviceName);
+      return response.build();
+    }
 }

@@ -18,13 +18,19 @@
  */
 package com.ebay.myriad.scheduler;
 
+import com.ebay.myriad.configuration.MyriadBadConfigurationException;
+import com.ebay.myriad.configuration.ServiceConfiguration;
+import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.scheduler.constraints.Constraint;
 import com.ebay.myriad.scheduler.constraints.LikeConstraint;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Myriad scheduler operations
@@ -39,58 +46,157 @@ import java.util.List;
 public class MyriadOperations {
     private static final Logger LOGGER = LoggerFactory.getLogger(MyriadOperations.class);
     private final SchedulerState schedulerState;
+
+    private MyriadConfiguration cfg;
     private NodeScaleDownPolicy nodeScaleDownPolicy;
 
     @Inject
-    public MyriadOperations(SchedulerState schedulerState,
+    public MyriadOperations(MyriadConfiguration cfg,
+                            SchedulerState schedulerState,
                             NodeScaleDownPolicy nodeScaleDownPolicy) {
+      this.cfg = cfg;
       this.schedulerState = schedulerState;
       this.nodeScaleDownPolicy = nodeScaleDownPolicy;
     }
 
-    public void flexUpCluster(NMProfile profile, int instances, Constraint constraint) {
+    public void flexUpCluster(ServiceResourceProfile serviceResourceProfile, int instances, Constraint constraint) {
         Collection<NodeTask> nodes = new HashSet<>();
         for (int i = 0; i < instances; i++) {
-            nodes.add(new NodeTask(profile, constraint));
+          NodeTask nodeTask = new NodeTask(serviceResourceProfile, constraint);
+          nodeTask.setTaskPrefix(NodeManagerConfiguration.NM_TASK_PREFIX);
+          nodes.add(nodeTask);
         }
 
+        LOGGER.info("Adding {} NM instances to cluster", nodes.size());
         this.schedulerState.addNodes(nodes);
     }
 
-    public void flexDownCluster(NMProfile profile, Constraint constraint, int numInstancesToScaleDown) {
+    public void flexDownCluster(ServiceResourceProfile serviceResourceProfile, Constraint constraint, int numInstancesToScaleDown) {
         // Flex down Pending tasks, if any
         int numPendingTasksScaledDown = flexDownPendingTasks(
-            profile, constraint, numInstancesToScaleDown);
+            serviceResourceProfile, constraint, numInstancesToScaleDown);
 
         // Flex down Staging tasks, if any
         int numStagingTasksScaledDown = flexDownStagingTasks(
-            profile, constraint, numInstancesToScaleDown - numPendingTasksScaledDown);
+            serviceResourceProfile, constraint, numInstancesToScaleDown - numPendingTasksScaledDown);
 
         // Flex down Active tasks, if any
         int numActiveTasksScaledDown = flexDownActiveTasks(
-            profile, constraint, numInstancesToScaleDown - numPendingTasksScaledDown - numStagingTasksScaledDown);
+            serviceResourceProfile, constraint, numInstancesToScaleDown - numPendingTasksScaledDown - numStagingTasksScaledDown);
 
         if (numActiveTasksScaledDown + numStagingTasksScaledDown + numPendingTasksScaledDown == 0) {
           LOGGER.info("No Node Managers with profile '{}' and constraint '{}' found for scaling down.",
-              profile.getName(), constraint == null ? "null" : constraint.toString());
+              serviceResourceProfile.getName(), constraint == null ? "null" : constraint.toString());
         } else {
           LOGGER.info("Flexed down {} active, {} staging  and {} pending Node Managers with " +
               "'{}' profile and constraint '{}'.", numActiveTasksScaledDown, numStagingTasksScaledDown,
-              numPendingTasksScaledDown, profile.getName(), constraint == null ? "null" : constraint.toString());
+              numPendingTasksScaledDown, serviceResourceProfile.getName(), constraint == null ? "null" : constraint.toString());
         }
     }
 
-    private int flexDownPendingTasks(NMProfile profile, Constraint constraint, int numInstancesToScaleDown) {
+    /**
+     * Flexup a service
+     * @param instances
+     * @param serviceName
+     */
+    public void flexUpAService(int instances, String serviceName) throws MyriadBadConfigurationException {
+      final ServiceConfiguration auxTaskConf = cfg.getServiceConfiguration(serviceName);
+      
+      int totalflexInstances = instances + getFlexibleInstances(serviceName);
+      Integer maxInstances = auxTaskConf.getMaxInstances().orNull();
+      if (maxInstances != null && maxInstances > 0) {
+        // check number of instances
+        // sum of active, staging, pending should be < maxInstances
+        if (totalflexInstances > maxInstances) {
+          LOGGER.error("Current number of active, staging, pending and requested instances: {}"
+              + ", while it is greater then max instances allowed: {}", totalflexInstances, maxInstances);
+            throw new MyriadBadConfigurationException("Current number of active, staging, pending instances and requested: "
+            + totalflexInstances + ", while it is greater then max instances allowed: " + maxInstances);          
+        }
+      }
+
+      final Double cpu = auxTaskConf.getCpus().or(ServiceConfiguration.DEFAULT_CPU);
+      final Double mem = auxTaskConf.getJvmMaxMemoryMB().or(ServiceConfiguration.DEFAULT_MEMORY);
+      
+      Collection<NodeTask> nodes = new HashSet<>();
+      for (int i = 0; i < instances; i++) {
+        NodeTask nodeTask = new NodeTask(new ServiceResourceProfile(serviceName, cpu, mem), null);
+        nodeTask.setTaskPrefix(serviceName);
+        nodes.add(nodeTask);
+      }
+
+      LOGGER.info("Adding {} {} instances to cluster", nodes.size(), serviceName);
+      this.schedulerState.addNodes(nodes);
+    }
+    
+    /**
+     * Flexing down any service defined in the configuration
+     * @param numInstancesToScaleDown
+     * @param serviceName - name of the service
+     */
+    public void flexDownAService(int numInstancesToScaleDown, String serviceName) {
+      LOGGER.info("About to flex down {} instances of {}", numInstancesToScaleDown, serviceName);
+
+      int numScaledDown = 0;
+      
+      // Flex down Pending tasks, if any
+      if (numScaledDown < numInstancesToScaleDown) {
+        Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds(serviceName));
+
+        for (Protos.TaskID taskId : pendingTasks) {
+            this.schedulerState.makeTaskKillable(taskId);
+            numScaledDown++;
+            if (numScaledDown >= numInstancesToScaleDown) {
+                break;
+            }
+        }
+      }
+      int numPendingTasksScaledDown = numScaledDown;
+      
+      // Flex down Staging tasks, if any
+      if (numScaledDown < numInstancesToScaleDown) {
+          Set<Protos.TaskID> stagingTasks = Sets.newHashSet(this.schedulerState.getStagingTaskIds(serviceName));
+
+          for (Protos.TaskID taskId : stagingTasks) {
+              this.schedulerState.makeTaskKillable(taskId);
+              numScaledDown++;
+              if (numScaledDown >= numInstancesToScaleDown) {
+                  break;
+              }
+          }
+      }
+      int numStagingTasksScaledDown = numScaledDown - numPendingTasksScaledDown;
+
+      Set<NodeTask> activeTasks = Sets.newHashSet(this.schedulerState.getActiveTasksByType(serviceName));
+      if (numScaledDown < numInstancesToScaleDown) {
+        for (NodeTask nodeTask : activeTasks) {
+          this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
+          numScaledDown++;
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Marked NodeTask {} on host {} for kill.",
+                nodeTask.getTaskStatus().getTaskId(), nodeTask.getHostname());
+          }
+          if (numScaledDown >= numInstancesToScaleDown) {
+            break;
+          }
+        }
+      }
+      
+      LOGGER.info("Flexed down {} of {} instances including {} staging instances, and {} pending instances of {}",
+              numScaledDown, numInstancesToScaleDown, numStagingTasksScaledDown, numPendingTasksScaledDown, serviceName);
+    }
+    
+    private int flexDownPendingTasks(ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
       return numInstancesToScaleDown > 0 ? flexDownTasks(schedulerState.getPendingTaskIDsForProfile(profile),
           profile, constraint, numInstancesToScaleDown) : 0;
     }
 
-  private int flexDownStagingTasks(NMProfile profile, Constraint constraint, int numInstancesToScaleDown) {
+  private int flexDownStagingTasks(ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
       return numInstancesToScaleDown > 0 ? flexDownTasks(schedulerState.getStagingTaskIDsForProfile(profile),
           profile, constraint, numInstancesToScaleDown) : 0;
     }
 
-    private int flexDownActiveTasks(NMProfile profile, Constraint constraint, int numInstancesToScaleDown) {
+    private int flexDownActiveTasks(ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
       if (numInstancesToScaleDown > 0) {
         List<Protos.TaskID> activeTasksForProfile = Lists.newArrayList(schedulerState.getActiveTaskIDsForProfile(profile));
         nodeScaleDownPolicy.apply(activeTasksForProfile);
@@ -99,7 +205,7 @@ public class MyriadOperations {
       return 0;
     }
 
-  private int flexDownTasks(Collection<Protos.TaskID> taskIDs, NMProfile profile,
+  private int flexDownTasks(Collection<Protos.TaskID> taskIDs, ServiceResourceProfile profile,
                               Constraint constraint, int numInstancesToScaleDown) {
       int numInstancesScaledDown = 0;
       for (Protos.TaskID taskID : taskIDs) {
@@ -135,6 +241,12 @@ public class MyriadOperations {
       }
     }
     return true;
+  } 
+ 
+  public Integer getFlexibleInstances(String taskPrefix) {
+      return this.schedulerState.getActiveTaskIds(taskPrefix).size()
+              + this.schedulerState.getStagingTaskIds(taskPrefix).size()
+              + this.schedulerState.getPendingTaskIds(taskPrefix).size();
   }
 
 }

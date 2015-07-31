@@ -43,12 +43,12 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
   }
 
 @Override
-  public String generateCommandLine(NMProfile profile, NMPorts ports) {
+  public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
     StringBuilder cmdLine = new StringBuilder();
     LOGGER.info("Using remote distribution");
 
-    generateEnvironment(profile, ports);
-    appendNMExtractionCommands(cmdLine);
+    generateEnvironment(profile, (NMPorts) ports);
+    appendDistroExtractionCommands(cmdLine);
     appendCgroupsCmds(cmdLine);
     appendYarnHomeExport(cmdLine);
     appendUser(cmdLine);
@@ -57,7 +57,7 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
     return cmdLine.toString();
   }
 
-  private void appendNMExtractionCommands(StringBuilder cmdLine) {
+  protected void appendDistroExtractionCommands(StringBuilder cmdLine) {
     /*
     TODO(darinj): Overall this is messier than I'd like. We can't let mesos untar the distribution, since
     it will change the permissions.  Instead we simply download the tarball and execute tar -xvpf. We also
@@ -82,7 +82,7 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
       .append("/etc/hadoop/yarn-site.xml;");
   }
 
-  private void appendUser(StringBuilder cmdLine) {
+  protected void appendUser(StringBuilder cmdLine) {
     cmdLine.append(" sudo -E -u ").append(cfg.getFrameworkUser().get()).append(" -H");
   }
 

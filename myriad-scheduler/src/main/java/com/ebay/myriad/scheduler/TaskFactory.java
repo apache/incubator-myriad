@@ -18,11 +18,18 @@
  */
 package com.ebay.myriad.scheduler;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Objects;
+
+import javax.inject.Inject;
+
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
 import com.ebay.myriad.state.NodeTask;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
+
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.ExecutorID;
@@ -37,16 +44,18 @@ import org.apache.mesos.Protos.Value.Scalar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.inject.Inject;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Objects;
 
 /**
  * Creates Tasks based on mesos offers
  */
 public interface TaskFactory {
-  TaskInfo createTask(Offer offer, FrameworkID frameworkId,
+  static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
+  static final String YARN_RESOURCEMANAGER_WEBAPP_ADDRESS = "yarn.resourcemanager.webapp.address";
+  static final String YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS = "yarn.resourcemanager.webapp.https.address";
+  static final String YARN_HTTP_POLICY = "yarn.http.policy";
+  static final String YARN_HTTP_POLICY_HTTPS_ONLY = "HTTPS_ONLY";
+
+  TaskInfo createTask(Offer offer, FrameworkID frameworkId, 
     TaskID taskId, NodeTask nodeTask);
 
   // TODO(Santosh): This is needed because the ExecutorInfo constructed
@@ -56,7 +65,7 @@ public interface TaskFactory {
   // ExecutorInfo, we wouldn't need this interface method.
   ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId,
     Offer offer, CommandInfo commandInfo);
-
+  
   /**
    * Creates TaskInfo objects to launch NMs as mesos tasks.
    */
@@ -64,16 +73,12 @@ public interface TaskFactory {
     public static final String EXECUTOR_NAME = "myriad_task";
     public static final String EXECUTOR_PREFIX = "myriad_executor";
     public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
-    private static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
-    private static final String YARN_RESOURCEMANAGER_WEBAPP_ADDRESS = "yarn.resourcemanager.webapp.address";
-    private static final String YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS = "yarn.resourcemanager.webapp.https.address";
-    private static final String YARN_HTTP_POLICY = "yarn.http.policy";
-    private static final String YARN_HTTP_POLICY_HTTPS_ONLY = "HTTPS_ONLY";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
     private MyriadConfiguration cfg;
     private TaskUtils taskUtils;
     private ExecutorCommandLineGenerator clGenerator;
+    private TaskConstraints constraints;
 
     @Inject
     public NMTaskFactoryImpl(MyriadConfiguration cfg, TaskUtils taskUtils,
@@ -81,6 +86,7 @@ public interface TaskFactory {
       this.cfg = cfg;
       this.taskUtils = taskUtils;
       this.clGenerator = clGenerator;
+      this.constraints = new NMTaskConstraints();
     }
 
     //Utility function to get the first NMPorts.expectedNumPorts number of ports of an offer
@@ -112,25 +118,8 @@ public interface TaskFactory {
       return new NMPorts(portArray);
     }
 
-    private String getConfigurationUrl() {
-      YarnConfiguration conf = new YarnConfiguration();
-      String httpPolicy = conf.get(YARN_HTTP_POLICY);
-      if (httpPolicy != null && httpPolicy.equals(YARN_HTTP_POLICY_HTTPS_ONLY)) {
-        String address = conf.get(YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS);
-        if (address == null || address.isEmpty()) {
-          address = conf.get(YARN_RESOURCEMANAGER_HOSTNAME) + ":8090";
-        }
-        return "https://" + address + "/conf";
-      } else {
-        String address = conf.get(YARN_RESOURCEMANAGER_WEBAPP_ADDRESS);
-        if (address == null || address.isEmpty()) {
-          address = conf.get(YARN_RESOURCEMANAGER_HOSTNAME) + ":8088";
-        }
-        return "http://" + address + "/conf";
-      }
-    }
-
-    private CommandInfo getCommandInfo(NMProfile profile, NMPorts ports) {
+    @VisibleForTesting
+    CommandInfo getCommandInfo(ServiceResourceProfile profile, NMPorts ports) {
       MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
       CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
       String cmd;
@@ -150,7 +139,7 @@ public interface TaskFactory {
         URI nmUri = URI.newBuilder().setValue(nodeManagerUri).setExtract(false).build();
 
         //get configs directly from resource manager
-        String configUrlString = getConfigurationUrl();
+        String configUrlString = clGenerator.getConfigurationUrl();
         LOGGER.info("Getting config from:" + configUrlString);
         URI configUri = URI.newBuilder().setValue(configUrlString)
           .build();
@@ -177,15 +166,15 @@ public interface TaskFactory {
       NMPorts ports = getPorts(offer);
       LOGGER.debug(ports.toString());
 
-      NMProfile profile = nodeTask.getProfile();
+      ServiceResourceProfile serviceProfile = nodeTask.getProfile();
       Scalar taskMemory = Scalar.newBuilder()
-          .setValue(taskUtils.getTaskMemory(profile))
+          .setValue(serviceProfile.getAggregateMemory())
           .build();
       Scalar taskCpus = Scalar.newBuilder()
-          .setValue(taskUtils.getTaskCpus(profile))
+          .setValue(serviceProfile.getAggregateCpu())
           .build();
 
-      CommandInfo commandInfo = getCommandInfo(profile, ports);
+      CommandInfo commandInfo = getCommandInfo(serviceProfile, ports);
       ExecutorInfo executorInfo = getExecutorInfoForSlave(frameworkId, offer, commandInfo);
 
       TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
@@ -252,6 +241,18 @@ public interface TaskFactory {
                   .setType(Value.Type.SCALAR)
                   .setScalar(executorMemory).build())
           .setExecutorId(executorId).build();
+    }
+  }
+  
+  /**
+   * Implement NM Task Constraints
+   *
+   */
+  public static class NMTaskConstraints implements TaskConstraints {
+
+    @Override
+    public int portsCount() {
+      return NMPorts.expectedNumPorts();
     }
   }
 }

@@ -18,8 +18,10 @@
  */
 package com.ebay.myriad.scheduler.fgs;
 
+import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.executor.ContainerTaskStatusRequest;
 import com.ebay.myriad.scheduler.MyriadDriver;
+import com.ebay.myriad.scheduler.NMTaskFactoryAnnotation;
 import com.ebay.myriad.scheduler.SchedulerUtils;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
@@ -27,11 +29,13 @@ import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
+
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -78,7 +82,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
                                    AbstractYarnScheduler yarnScheduler,
                                    RMContext rmContext,
                                    MyriadDriver myriadDriver,
-                                   TaskFactory taskFactory,
+                                   @NMTaskFactoryAnnotation TaskFactory taskFactory,
                                    OfferLifecycleManager offerLifecycleMgr,
                                    NodeStore nodeStore,
                                    SchedulerState state) {
@@ -233,7 +237,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         Protos.ExecutorInfo executorInfo = node.getExecInfo();
         if (executorInfo == null) {
             executorInfo = Protos.ExecutorInfo.newBuilder(
-                 state.getNodeTask(offer.getSlaveId()).getExecutorInfo())
+                 state.getNodeTask(offer.getSlaveId(), NodeManagerConfiguration.NM_TASK_PREFIX).getExecutorInfo())
                 .setFrameworkId(offer.getFrameworkId()).build();
             node.setExecInfo(executorInfo);
         }

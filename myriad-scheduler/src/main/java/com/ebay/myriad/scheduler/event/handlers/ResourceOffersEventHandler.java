@@ -18,9 +18,10 @@
  */
 package com.ebay.myriad.scheduler.event.handlers;
 
-import com.ebay.myriad.scheduler.NMPorts;
-import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.SchedulerUtils;
+import com.ebay.myriad.scheduler.ServiceResourceProfile;
+import com.ebay.myriad.scheduler.TaskConstraints;
+import com.ebay.myriad.scheduler.TaskConstraintsManager;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskUtils;
 import com.ebay.myriad.scheduler.constraints.Constraint;
@@ -32,6 +33,7 @@ import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
 
 import java.util.Iterator;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -65,13 +67,16 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
   private SchedulerState schedulerState;
 
   @Inject
-  private TaskFactory taskFactory;
-
-  @Inject
   private TaskUtils taskUtils;
 
   @Inject
+  private Map<String, TaskFactory> taskFactoryMap;
+
+  @Inject
   private OfferLifecycleManager offerLifecycleMgr;
+  
+  @Inject
+  private TaskConstraintsManager taskConstraintsManager;
 
   @Override
   public void onEvent(ResourceOffersEvent event, long sequence,
@@ -95,8 +100,8 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     try {
       for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext();) {
         Offer offer = iterator.next();
-        NodeTask nodeTask = schedulerState.getNodeTask(offer.getSlaveId());
-        if (nodeTask != null) {
+        Set<NodeTask> nodeTasks = schedulerState.getNodeTasks(offer.getSlaveId());
+        for (NodeTask nodeTask : nodeTasks) {
           nodeTask.setSlaveAttributes(offer.getAttributesList());
         }
         Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
@@ -104,34 +109,39 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
           for (Protos.TaskID pendingTaskId : pendingTasks) {
             NodeTask taskToLaunch = schedulerState
                 .getTask(pendingTaskId);
-            NMProfile profile = taskToLaunch.getProfile();
+            String taskPrefix = taskToLaunch.getTaskPrefix();
+            ServiceResourceProfile profile = taskToLaunch.getProfile();
             Constraint constraint = taskToLaunch.getConstraint();
 
-            if (matches(offer, profile, constraint)
-                && SchedulerUtils.isUniqueHostname(offer,
+            if (matches(offer, taskToLaunch, constraint)
+                && SchedulerUtils.isUniqueHostname(offer, taskToLaunch,
                 schedulerState.getActiveTasks())) {
-              TaskInfo task = taskFactory.createTask(offer, schedulerState.getFrameworkID(), pendingTaskId,
-                  taskToLaunch);
-
-              List<OfferID> offerIds = new ArrayList<>();
-              offerIds.add(offer.getId());
-              List<TaskInfo> tasks = new ArrayList<>();
-              tasks.add(task);
-              LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
-              LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
-              driver.launchTasks(offerIds, tasks);
-              schedulerState.makeTaskStaging(pendingTaskId);
-
-              // For every NM Task that we launch, we currently
-              // need to backup the ExecutorInfo for that NM Task in the State Store.
-              // Without this, we will not be able to launch tasks corresponding to yarn
-              // containers. This is specially important in case the RM restarts.
-              taskToLaunch.setExecutorInfo(task.getExecutor());
-              taskToLaunch.setHostname(offer.getHostname());
-              taskToLaunch.setSlaveId(offer.getSlaveId());
-              schedulerState.addTask(pendingTaskId, taskToLaunch);
-              iterator.remove(); // remove the used offer from offers list
-              break;
+              try {
+                final TaskInfo task = 
+                      taskFactoryMap.get(taskPrefix).createTask(offer, schedulerState.getFrameworkID(), pendingTaskId,
+                      taskToLaunch);
+                List<OfferID> offerIds = new ArrayList<>();
+                offerIds.add(offer.getId());
+                List<TaskInfo> tasks = new ArrayList<>();
+                tasks.add(task);
+                LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
+                LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
+                driver.launchTasks(offerIds, tasks);
+                schedulerState.makeTaskStaging(pendingTaskId);
+  
+                // For every NM Task that we launch, we currently
+                // need to backup the ExecutorInfo for that NM Task in the State Store.
+                // Without this, we will not be able to launch tasks corresponding to yarn
+                // containers. This is specially important in case the RM restarts.
+                taskToLaunch.setExecutorInfo(task.getExecutor());
+                taskToLaunch.setHostname(offer.getHostname());
+                taskToLaunch.setSlaveId(offer.getSlaveId());
+                schedulerState.addTask(pendingTaskId, taskToLaunch);
+                iterator.remove(); // remove the used offer from offers list
+                break;
+              } catch (Throwable t) {
+                LOGGER.error("Exception thrown while trying to create a task for {}", taskPrefix, t);
+              }
             }
           }
         }
@@ -156,12 +166,10 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     }
   }
 
-  private boolean matches(Offer offer, NMProfile profile, Constraint constraint) {
-
+  private boolean matches(Offer offer, NodeTask taskToLaunch, Constraint constraint) {
     if (!meetsConstraint(offer, constraint)) {
       return false;
     }
-
     Map<String, Object> results = new HashMap<String, Object>(5);
 
     for (Resource resource : offer.getResourcesList()) {
@@ -180,8 +188,25 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     checkResource(mem < 0, "mem");
     checkResource(ports < 0, "port");
 
-    return checkAggregates(profile, ports, cpus, mem);
+    return checkAggregates(offer, taskToLaunch, ports, cpus, mem);
   }
+
+    private boolean checkAggregates(Offer offer, NodeTask taskToLaunch, int ports, double cpus, double mem) {
+        final ServiceResourceProfile profile = taskToLaunch.getProfile();
+        final String taskPrefix = taskToLaunch.getTaskPrefix();
+        final double aggrCpu = profile.getAggregateCpu() + profile.getExecutorCpu();
+        final double aggrMem = profile.getAggregateMemory() + profile.getExecutorMemory();
+        final TaskConstraints taskConstraints = taskConstraintsManager.getConstraints(taskPrefix);
+        if (aggrCpu <= cpus
+            && aggrMem <= mem
+            && taskConstraints.portsCount() <= ports) {
+            return true;
+        } else {
+            LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}",
+                aggrCpu, aggrMem, ports);
+            return false;
+        }
+    }
 
   private boolean meetsConstraint(Offer offer, Constraint constraint) {
     if (constraint != null) {
@@ -195,6 +220,8 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
             return likeConstraint.matchesSlaveAttributes(offer.getAttributesList());
           }
         }
+      default:
+        return false;
       }
     }
     return true;
@@ -203,20 +230,6 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
   private void checkResource(boolean fail, String resource) {
     if (fail) {
       LOGGER.info("No " + resource + " resources present");
-    }
-  }
-
-  private boolean checkAggregates(NMProfile profile, int ports, double cpus, double mem) {
-
-    if (taskUtils.getAggregateCpus(profile) <= cpus
-        && taskUtils.getAggregateMemory(profile) <= mem
-        && NMPorts.expectedNumPorts() <= ports) {
-      return true;
-    } else {
-      LOGGER.info("Offer not sufficient for launching task. Task requires cpu: {}, memory: {}, # of ports: {}. " +
-          "Offer has cpu: {}, memory: {}, # of ports: {}", taskUtils.getAggregateCpus(profile),
-          taskUtils.getAggregateMemory(profile), NMPorts.expectedNumPorts(), cpus, mem, ports);
-      return false;
     }
   }
 

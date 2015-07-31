@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
 
@@ -40,6 +42,7 @@ import com.ebay.myriad.state.NodeTask;
 * alternative approach.
 */
 public final class StoreContext {
+  private static Pattern taskIdPattern = Pattern.compile("\\.");
   private ByteBuffer frameworkId;
   private List<ByteBuffer> taskIds;
   private List<ByteBuffer> taskNodes;
@@ -189,8 +192,13 @@ public final class StoreContext {
       map = new HashMap<Protos.TaskID, NodeTask>(taskIds.size());
       int idx = 0;
       for (ByteBuffer bb : taskIds) {
-        map.put(ByteBufferSupport.toTaskId(bb),
-          ByteBufferSupport.toNodeTask(taskNodes.get(idx++)));
+        final Protos.TaskID taskId = ByteBufferSupport.toTaskId(bb);
+        final NodeTask task = ByteBufferSupport.toNodeTask(taskNodes.get(idx++));
+        if (task.getTaskPrefix() == null && taskId != null) {
+          String taskPrefix = taskIdPattern.split(taskId.getValue())[0];
+          task.setTaskPrefix(taskPrefix);
+        }
+        map.put(taskId, task);
       }
     } else {
       map = new HashMap<Protos.TaskID, NodeTask>(0);

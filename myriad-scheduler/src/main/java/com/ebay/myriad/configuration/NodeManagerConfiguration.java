@@ -39,6 +39,8 @@ public class NodeManagerConfiguration {
      * Default cpu for NodeManager JVM.
      */
     public static final double DEFAULT_NM_CPUS = 1;
+    
+    public static final String NM_TASK_PREFIX = "nm";
 
     /**
      * Translates to -Xmx for the NodeManager JVM.

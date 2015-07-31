@@ -18,20 +18,25 @@
  */
 package com.ebay.myriad;
 
+import com.ebay.myriad.configuration.ServiceConfiguration;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
+import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.policy.LeastAMNodesFirstPolicy;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
 import com.ebay.myriad.scheduler.MyriadScheduler;
 import com.ebay.myriad.scheduler.fgs.NMHeartBeatHandler;
-import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.scheduler.fgs.NodeStore;
 import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
 import com.ebay.myriad.scheduler.DownloadNMExecutorCLGenImpl;
 import com.ebay.myriad.scheduler.ExecutorCommandLineGenerator;
 import com.ebay.myriad.scheduler.NMExecutorCLGenImpl;
+import com.ebay.myriad.scheduler.NMTaskFactoryAnnotation;
 import com.ebay.myriad.scheduler.ReconcileService;
+import com.ebay.myriad.scheduler.ServiceProfileManager;
+import com.ebay.myriad.scheduler.ServiceTaskFactoryImpl;
+import com.ebay.myriad.scheduler.TaskConstraintsManager;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import com.ebay.myriad.scheduler.fgs.YarnNodeCapacityManager;
@@ -43,12 +48,15 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
+import com.google.inject.multibindings.MapBinder;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * Guice Module for Myriad
@@ -84,16 +92,38 @@ public class MyriadModule extends AbstractModule {
         bind(InterceptorRegistry.class).toInstance(interceptorRegistry);
         bind(MyriadDriverManager.class).in(Scopes.SINGLETON);
         bind(MyriadScheduler.class).in(Scopes.SINGLETON);
-        bind(NMProfileManager.class).in(Scopes.SINGLETON);
+        bind(ServiceProfileManager.class).in(Scopes.SINGLETON);
         bind(DisruptorManager.class).in(Scopes.SINGLETON);
-        bind(TaskFactory.class).to(NMTaskFactoryImpl.class);
         bind(ReconcileService.class).in(Scopes.SINGLETON);
         bind(HttpConnectorProvider.class).in(Scopes.SINGLETON);
+        bind(TaskConstraintsManager.class).in(Scopes.SINGLETON);
+        // add special binding between TaskFactory and NMTaskFactoryImpl to ease up 
+        // usage of TaskFactory
+        bind(TaskFactory.class).annotatedWith(NMTaskFactoryAnnotation.class).to(NMTaskFactoryImpl.class);
         bind(YarnNodeCapacityManager.class).in(Scopes.SINGLETON);
         bind(NodeStore.class).in(Scopes.SINGLETON);
         bind(OfferLifecycleManager.class).in(Scopes.SINGLETON);
         bind(NMHeartBeatHandler.class).asEagerSingleton();
 
+        MapBinder<String, TaskFactory> mapBinder
+        = MapBinder.newMapBinder(binder(), String.class, TaskFactory.class);
+        mapBinder.addBinding(NodeManagerConfiguration.NM_TASK_PREFIX).to(NMTaskFactoryImpl.class).in(Scopes.SINGLETON);
+        Map<String, ServiceConfiguration> auxServicesConfigs = cfg.getServiceConfigurations();
+        if (auxServicesConfigs != null) {
+          for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {
+            String taskFactoryClass = entry.getValue().getTaskFactoryImplName().orNull();
+            if (taskFactoryClass != null) {
+              try {
+                Class<? extends TaskFactory> implClass = (Class<? extends TaskFactory>) Class.forName(taskFactoryClass);
+                mapBinder.addBinding(entry.getKey()).to(implClass).in(Scopes.SINGLETON);
+              } catch (ClassNotFoundException e) {
+                LOGGER.error("ClassNotFoundException", e);
+              }
+            } else {
+              mapBinder.addBinding(entry.getKey()).to(ServiceTaskFactoryImpl.class).in(Scopes.SINGLETON);
+            }
+          }
+        }
         //TODO(Santosh): Should be configurable as well
         bind(NodeScaleDownPolicy.class).to(LeastAMNodesFirstPolicy.class).in(Scopes.SINGLETON);
     }

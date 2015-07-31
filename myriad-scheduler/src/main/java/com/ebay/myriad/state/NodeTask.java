@@ -18,10 +18,13 @@
  */
 package com.ebay.myriad.state;
 
-import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.constraints.Constraint;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import com.ebay.myriad.scheduler.ServiceResourceProfile;
+import com.ebay.myriad.scheduler.TaskUtils;
+import com.google.inject.Inject;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Attribute;
 
@@ -30,14 +33,18 @@ import org.apache.mesos.Protos.Attribute;
  */
 public class NodeTask {
     @JsonProperty
-    private NMProfile profile;
-    @JsonProperty
     private String hostname;
     @JsonProperty
     private Protos.SlaveID slaveId;
     @JsonProperty
     private Protos.TaskStatus taskStatus;
+    @JsonProperty
+    private String taskPrefix;
+    @JsonProperty
+    private ServiceResourceProfile serviceresourceProfile;
 
+    @Inject
+    TaskUtils taskUtils;
     /**
      * Mesos executor for this node.
      */
@@ -46,8 +53,8 @@ public class NodeTask {
     private Constraint constraint;
     private List<Attribute> slaveAttributes;
 
-    public NodeTask(NMProfile profile, Constraint constraint) {
-        this.profile = profile;
+    public NodeTask(ServiceResourceProfile profile, Constraint constraint) {
+        this.serviceresourceProfile = profile;
         this.hostname = "";
         this.constraint = constraint;
     }
@@ -58,14 +65,6 @@ public class NodeTask {
 
     public void setSlaveId(Protos.SlaveID slaveId) {
         this.slaveId = slaveId;
-    }
-
-    public NMProfile getProfile() {
-        return profile;
-    }
-
-    public void setProfile(NMProfile profile) {
-        this.profile = profile;
     }
 
     public Constraint getConstraint() {
@@ -102,5 +101,21 @@ public class NodeTask {
 
     public List<Attribute> getSlaveAttributes() {
       return slaveAttributes;
+    }
+
+    public String getTaskPrefix() {
+      return taskPrefix;
+    }
+
+    public void setTaskPrefix(String taskPrefix) {
+      this.taskPrefix = taskPrefix;
+    }
+
+    public ServiceResourceProfile getProfile() {
+      return serviceresourceProfile;
+    }
+
+    public void setProfile(ServiceResourceProfile serviceresourceProfile) {
+      this.serviceresourceProfile = serviceresourceProfile;
     }
 }

@@ -23,7 +23,7 @@ import java.util.List;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
- * Flex up request parameters
+ * Flex up an auxtask/service
  */
 public class FlexUpClusterRequest {
     @NotEmpty

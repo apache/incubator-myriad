@@ -20,6 +20,11 @@ package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.state.SchedulerState;
 import javax.inject.Inject;
+import java.util.Set;
+
+import com.ebay.myriad.configuration.NodeManagerConfiguration;
+
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +37,12 @@ public class Rebalancer implements Runnable {
 
     private final SchedulerState schedulerState;
     private final MyriadOperations myriadOperations;
-    private final NMProfileManager profileManager;
+    private final ServiceProfileManager profileManager;
 
     @Inject
     public Rebalancer(SchedulerState schedulerState,
                       MyriadOperations myriadOperations,
-                      NMProfileManager profileManager) {
+                      ServiceProfileManager profileManager) {
         this.schedulerState = schedulerState;
         this.myriadOperations = myriadOperations;
         this.profileManager = profileManager;
@@ -45,8 +50,10 @@ public class Rebalancer implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("Active {}, Pending {}", schedulerState.getActiveTaskIds().size(), schedulerState.getPendingTaskIds().size());
-        if (schedulerState.getActiveTaskIds().size() < 1 && schedulerState.getPendingTaskIds().size() < 1) {
+      final Set<Protos.TaskID> activeIds = schedulerState.getActiveTaskIds(NodeManagerConfiguration.NM_TASK_PREFIX);
+      final Set<Protos.TaskID> pendingIds = schedulerState.getPendingTaskIds(NodeManagerConfiguration.NM_TASK_PREFIX);
+        LOGGER.info("Active {}, Pending {}", activeIds.size(), pendingIds.size());
+        if (activeIds.size() < 1 && pendingIds.size() < 1) {
             myriadOperations.flexUpCluster(profileManager.get("small"), 1, null);
         }
 //            RestAdapter restAdapter = new RestAdapter.Builder()

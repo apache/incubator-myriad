@@ -18,11 +18,14 @@
  */
 package com.ebay.myriad.scheduler;
 
+import com.ebay.myriad.configuration.ServiceConfiguration;
+import com.ebay.myriad.configuration.MyriadBadConfigurationException;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
 import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.executor.MyriadExecutorDefaults;
 import com.google.common.base.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -47,6 +50,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -184,4 +188,32 @@ public class TaskUtils {
         return getAggregateMemory(profile) - getExecutorMemory();
     }
 
+    public double getAuxTaskCpus(NMProfile profile, String taskName) throws MyriadBadConfigurationException {
+      if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
+        return getAggregateCpus(profile);
+      }
+      ServiceConfiguration auxConf = cfg.getServiceConfiguration(taskName);
+      if (auxConf == null) {
+        throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
+      }
+      if (!auxConf.getCpus().isPresent()) {
+        throw new MyriadBadConfigurationException("cpu is not defined for task with name: " + taskName);
+      }
+      return auxConf.getCpus().get();
+    }
+    
+    public double getAuxTaskMemory(NMProfile profile, String taskName) throws MyriadBadConfigurationException {
+      if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
+        return getAggregateMemory(profile);
+      }
+      ServiceConfiguration auxConf = cfg.getServiceConfiguration(taskName);
+      if (auxConf == null) {
+        throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
+      }
+      if (!auxConf.getJvmMaxMemoryMB().isPresent()) {
+        throw new MyriadBadConfigurationException("memory is not defined for task with name: " + taskName);        
+      }
+      return auxConf.getJvmMaxMemoryMB().get();
+
+    }
 }

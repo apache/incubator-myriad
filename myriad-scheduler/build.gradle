@@ -15,6 +15,7 @@ dependencies {
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.5.1"
     compile "org.apache.curator:curator-framework:2.7.1"
     compile "org.apache.commons:commons-lang3:3.4"
+    compile 'com.google.inject.extensions:guice-multibindings:3.0'
     testCompile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}:tests"
 }
 
