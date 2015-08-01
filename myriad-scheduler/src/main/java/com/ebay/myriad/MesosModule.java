@@ -18,7 +18,6 @@ package com.ebay.myriad;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
@@ -42,7 +41,6 @@ import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
  * Guice Module for Mesos objects.
@@ -75,16 +73,10 @@ public class MesosModule extends AbstractModule {
       frameworkInfoBuilder.setRole(cfg.getFrameworkRole());
     }
 
-    FrameworkID frameworkId;
-    try {
-      frameworkId = schedulerState.getMyriadState().getFrameworkID();
-      if (frameworkId != null) {
-        LOGGER.info("Attempting to re-register with frameworkId: {}", frameworkId.getValue());
-        frameworkInfoBuilder.setId(frameworkId);
-      }
-    } catch (InterruptedException | ExecutionException | InvalidProtocolBufferException e) {
-      LOGGER.error("Error fetching frameworkId", e);
-      throw new RuntimeException(e);
+    FrameworkID frameworkId = schedulerState.getFrameworkID();
+    if (frameworkId != null) {
+      LOGGER.info("Attempting to re-register with frameworkId: {}", frameworkId.getValue());
+      frameworkInfoBuilder.setId(frameworkId);
     }
 
     String mesosAuthenticationPrincipal = cfg.getMesosAuthenticationPrincipal();

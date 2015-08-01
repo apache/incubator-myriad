@@ -29,7 +29,6 @@ import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import com.ebay.myriad.scheduler.fgs.YarnNodeCapacityManager;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
-import com.ebay.myriad.state.MyriadState;
 import com.ebay.myriad.state.SchedulerState;
 import com.ebay.myriad.webapp.HttpConnectorProvider;
 import com.google.inject.AbstractModule;
@@ -40,10 +39,8 @@ import com.google.inject.Singleton;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
-import org.apache.mesos.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * Guice Module for Myriad
@@ -95,11 +92,8 @@ public class MyriadModule extends AbstractModule {
 
     @Provides
     @Singleton
-    SchedulerState providesSchedulerState(MyriadConfiguration cfg,
-        State stateStore) {
-
+    SchedulerState providesSchedulerState(MyriadConfiguration cfg) {
         LOGGER.debug("Configuring SchedulerState provider");
-        MyriadState state = new MyriadState(stateStore);
-        return new SchedulerState(state);
+        return new SchedulerState(rmContext.getStateStore());
     }
 }

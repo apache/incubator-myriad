@@ -15,11 +15,6 @@
  */
 package com.ebay.myriad.state;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,6 +24,15 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.collections.CollectionUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.mesos.Protos;
+import com.ebay.myriad.state.utils.StoreContext;
+import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore;
 
 /**
  * Represents the state of the Myriad scheduler
@@ -43,15 +47,18 @@ public class SchedulerState {
     private Set<Protos.TaskID> lostTasks;
     private Set<Protos.TaskID> killableTasks;
     private MyriadState myriadState;
+    private Protos.FrameworkID frameworkId;
+    private RMStateStore stateStore;
 
-    public SchedulerState(MyriadState myriadState) {
+    public SchedulerState(RMStateStore stateStore) {
         this.tasks = new ConcurrentHashMap<>();
         this.pendingTasks = new HashSet<>();
         this.stagingTasks = new HashSet<>();
         this.activeTasks = new HashSet<>();
         this.lostTasks = new HashSet<>();
         this.killableTasks = new HashSet<>();
-        this.myriadState = myriadState;
+        this.stateStore = stateStore;
+        loadStateStore();
     }
 
     public void addNodes(Collection<NodeTask> nodes) {
@@ -66,9 +73,10 @@ public class SchedulerState {
             LOGGER.info("Marked taskId {} pending, size of pending queue {}", taskId.getValue(), this.pendingTasks.size());
             makeTaskPending(taskId);
         }
+
     }
 
-    public void addTask(Protos.TaskID taskId, NodeTask node) {
+    private void addTask(Protos.TaskID taskId, NodeTask node) {
         this.tasks.put(taskId, node);
     }
 
@@ -78,6 +86,7 @@ public class SchedulerState {
         if (this.tasks.containsKey(taskId)) {
             this.tasks.get(taskId).setTaskStatus(taskStatus);
         }
+        updateStateStore();
     }
 
     public void makeTaskPending(Protos.TaskID taskId) {
@@ -89,6 +98,7 @@ public class SchedulerState {
         activeTasks.remove(taskId);
         lostTasks.remove(taskId);
         killableTasks.remove(taskId);
+        updateStateStore();
     }
 
     public void makeTaskStaging(Protos.TaskID taskId) {
@@ -100,6 +110,7 @@ public class SchedulerState {
         activeTasks.remove(taskId);
         lostTasks.remove(taskId);
         killableTasks.remove(taskId);
+        updateStateStore();
     }
 
     public void makeTaskActive(Protos.TaskID taskId) {
@@ -111,6 +122,7 @@ public class SchedulerState {
         activeTasks.add(taskId);
         lostTasks.remove(taskId);
         killableTasks.remove(taskId);
+        updateStateStore();
     }
 
     public void makeTaskLost(Protos.TaskID taskId) {
@@ -122,6 +134,7 @@ public class SchedulerState {
         activeTasks.remove(taskId);
         lostTasks.add(taskId);
         killableTasks.remove(taskId);
+        updateStateStore();
     }
 
     public void makeTaskKillable(Protos.TaskID taskId) {
@@ -133,6 +146,7 @@ public class SchedulerState {
         activeTasks.remove(taskId);
         lostTasks.remove(taskId);
         killableTasks.add(taskId);
+        updateStateStore();
     }
 
     public Set<Protos.TaskID> getKillableTasks() {
@@ -150,6 +164,7 @@ public class SchedulerState {
         this.lostTasks.remove(taskId);
         this.killableTasks.remove(taskId);
         this.tasks.remove(taskId);
+        updateStateStore();
     }
 
     public Set<Protos.TaskID> getPendingTaskIds() {
@@ -200,5 +215,59 @@ public class SchedulerState {
 
     public boolean hasTask(Protos.TaskID taskID) {
         return this.tasks.containsKey(taskID);
+    }
+
+    public Protos.FrameworkID getFrameworkID() {
+         return this.frameworkId;
+    }
+
+    public void setFrameworkId(Protos.FrameworkID newFrameworkId) {
+        this.frameworkId = newFrameworkId;
+        updateStateStore();
+    }
+
+    private void updateStateStore() {
+        if (!isMyriadStateStore()) {
+            return;
+        }
+        try {
+            StoreContext sc = new StoreContext(frameworkId, tasks, pendingTasks,
+                stagingTasks, activeTasks, lostTasks, killableTasks);
+            ((MyriadStateStore) stateStore).storeMyriadState(
+                sc.toSerializedContext().toByteArray());
+            LOGGER.info("Scheduler state stored to state store");
+        } catch (Exception e) {
+            LOGGER.error("Failed to write scheduler state to state store", e);
+        }
+    }
+
+    private void loadStateStore() {
+        if (!isMyriadStateStore()) {
+            return;
+        }
+        try {
+            byte[] stateStoreBytes = ((MyriadStateStore) stateStore).loadMyriadState();
+            if (stateStoreBytes != null && stateStoreBytes.length > 0) {
+                StoreContext sc = StoreContext.fromSerializedBytes(stateStoreBytes);
+                this.frameworkId = sc.getFrameworkId();
+                this.tasks.putAll(sc.getTasks());
+                this.pendingTasks.addAll(sc.getPendingTasks());
+                this.stagingTasks.addAll(sc.getStagingTasks());
+                this.activeTasks.addAll(sc.getActiveTasks());
+                this.lostTasks.addAll(sc.getLostTasks());
+                this.killableTasks.addAll(sc.getKillableTasks());
+            }
+        }  catch (Exception e) {
+            LOGGER.error("Failed to read scheduler state from state store", e);
+        }
+   }
+
+    private boolean isMyriadStateStore() {
+        if (!(stateStore instanceof MyriadStateStore)) {
+            LOGGER.error("State store is not an instance of " +
+                MyriadStateStore.class.getName() + ". Cannot load/store Scheduler state.");
+            return false;
+        }
+        return true;
     }
 }

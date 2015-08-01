@@ -19,6 +19,7 @@ public class MyriadFairScheduler extends FairScheduler {
     private RMContext rmContext;
     private YarnSchedulerInterceptor yarnSchedulerInterceptor;
     private RMNodeEventHandler rmNodeEventHandler;
+    private Configuration conf;
 
     public MyriadFairScheduler() {
         super();
@@ -47,8 +48,14 @@ public class MyriadFairScheduler extends FairScheduler {
 
     @Override
     public synchronized void serviceInit(Configuration conf) throws Exception {
-        this.yarnSchedulerInterceptor.init(conf, this, rmContext);
+        this.conf = conf;
         super.serviceInit(conf);
+    }
+
+    @Override
+    public synchronized void serviceStart() throws Exception {
+        this.yarnSchedulerInterceptor.init(conf, this, rmContext);
+        super.serviceStart();
     }
 
     @Override

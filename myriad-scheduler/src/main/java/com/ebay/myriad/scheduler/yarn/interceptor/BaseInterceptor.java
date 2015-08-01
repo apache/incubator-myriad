@@ -29,7 +29,7 @@ public class BaseInterceptor implements YarnSchedulerInterceptor {
     };
   }
 
-  @Override
+    @Override
     public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException {
     }
 
