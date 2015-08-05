@@ -122,7 +122,7 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
 
     private void onNodeRemoved(NodeRemovedSchedulerEvent event) {
         SchedulerNode schedulerNode = schedulerNodes.get(event.getRemovedRMNode().getNodeID().getHost());
-        if (schedulerNode.getNodeID().equals(event.getRemovedRMNode().getNodeID())) {
+        if (schedulerNode != null && schedulerNode.getNodeID().equals(event.getRemovedRMNode().getNodeID())) {
             schedulerNodes.remove(schedulerNode.getNodeID().getHost());
         }
     }

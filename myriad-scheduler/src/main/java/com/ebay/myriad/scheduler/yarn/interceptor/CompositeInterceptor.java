@@ -108,13 +108,13 @@ public class CompositeInterceptor implements YarnSchedulerInterceptor, Intercept
   private NodeId getNodeIdForSchedulerEvent(SchedulerEvent event) {
       switch (event.getType()) {
         case NODE_ADDED:
-          return ((NodeAddedSchedulerEvent)event).getAddedRMNode().getNodeID();
+          return ((NodeAddedSchedulerEvent) event).getAddedRMNode().getNodeID();
         case NODE_REMOVED:
-          return ((NodeRemovedSchedulerEvent)event).getRemovedRMNode().getNodeID();
+          return ((NodeRemovedSchedulerEvent) event).getRemovedRMNode().getNodeID();
         case NODE_UPDATE:
-          return ((NodeUpdateSchedulerEvent)event).getRMNode().getNodeID();
+          return ((NodeUpdateSchedulerEvent) event).getRMNode().getNodeID();
         case NODE_RESOURCE_UPDATE:
-          return ((NodeResourceUpdateSchedulerEvent)event).getRMNode().getNodeID();
+          return ((NodeResourceUpdateSchedulerEvent) event).getRMNode().getNodeID();
       }
       return null;
     }

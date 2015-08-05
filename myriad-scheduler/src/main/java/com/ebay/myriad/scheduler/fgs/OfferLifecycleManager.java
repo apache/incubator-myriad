@@ -2,7 +2,6 @@ package com.ebay.myriad.scheduler.fgs;
 
 import com.ebay.myriad.scheduler.MyriadDriver;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 

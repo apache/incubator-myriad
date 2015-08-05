@@ -163,12 +163,13 @@ public class Main {
         NMProfileManager profileManager = injector.getInstance(NMProfileManager.class);
         long maxCpu = Long.MIN_VALUE;
         long maxMem = Long.MIN_VALUE;
-        for (String profile : nmInstances.keySet()) {
+        for (Map.Entry<String, Integer> entry : nmInstances.entrySet()) {
+          String profile = entry.getKey();
           NMProfile nmProfile = profileManager.get(profile);
           if (nmProfile == null) {
             throw new RuntimeException("Invalid profile name '" + profile + "' specified in 'nmInstances'");
           }
-          if (nmInstances.get(profile) > 0) {
+          if (entry.getValue() > 0) {
             if (nmProfile.getCpus() > maxCpu) { // find the profile with largest number of cpus
               maxCpu = nmProfile.getCpus();
               maxMem = nmProfile.getMemory(); // use the memory from the same profile
@@ -184,8 +185,8 @@ public class Main {
     private void startNMInstances(Injector injector) {
       Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
       MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
-      for (String profile : nmInstances.keySet()) {
-        myriadOperations.flexUpCluster(nmInstances.get(profile), profile);
+      for (Map.Entry<String, Integer> entry : nmInstances.entrySet()) {
+        myriadOperations.flexUpCluster(entry.getValue(), entry.getKey());
       }
     }
 
