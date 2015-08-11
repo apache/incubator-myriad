@@ -34,7 +34,7 @@ subprojects {
 
     ext {
         mesosVer = "0.21.1"
-        hadoopVer = "2.5.0"
+        hadoopVer = "2.7.0"
         metricsVer = "3.1.0"
     }
 
@@ -45,9 +45,6 @@ subprojects {
         capsule
         myriadExecutorConf
         myriadExecutorConf.transitive = false
-        // exclude hadoop/yarn deps for 'runtime'
-        // TODO (Kannan Rajah) Exclude only while packaging
-        //runtime.exclude group: 'org.apache.hadoop', module: '*'
     }
 
     repositories {

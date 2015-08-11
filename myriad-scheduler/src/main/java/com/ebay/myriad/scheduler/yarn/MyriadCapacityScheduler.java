@@ -4,10 +4,10 @@ import com.ebay.myriad.scheduler.yarn.interceptor.CompositeInterceptor;
 import com.ebay.myriad.scheduler.yarn.interceptor.YarnSchedulerInterceptor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
+import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEvent;
+import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
-
-import java.io.IOException;
 
 /**
  * {@link MyriadCapacityScheduler} just extends YARN's {@link CapacityScheduler} and
@@ -15,34 +15,47 @@ import java.io.IOException;
  * via the {@link YarnSchedulerInterceptor} interface.
  */
 public class MyriadCapacityScheduler extends CapacityScheduler {
-    private final YarnSchedulerInterceptor yarnSchedulerInterceptor;
 
-    public MyriadCapacityScheduler() {
-        super();
-        this.yarnSchedulerInterceptor = new CompositeInterceptor();
-    }
+  private RMContext rmContext;
+  private YarnSchedulerInterceptor yarnSchedulerInterceptor;
+  private RMNodeEventHandler rmNodeEventHandler;
 
-    /**
-     * ******** Methods overridden from YARN {@link CapacityScheduler}  *********************
-     */
+  public MyriadCapacityScheduler() {
+    super();
+  }
 
-    @Override
-    public void reinitialize(Configuration conf, RMContext rmContext) throws IOException {
-        this.yarnSchedulerInterceptor.init(conf, this);
-        super.reinitialize(conf, rmContext);
-    }
+  /**
+   * Register an event handler that receives {@link RMNodeEvent} events.
+   * This event handler is registered ahead of RM's own event handler for RMNodeEvents.
+   * For e.g. myriad can inspect a node's HB (RMNodeStatusEvent) before the HB is handled by
+   * RM and the scheduler.
+   *
+   * @param rmContext
+   */
+  @Override
+  public synchronized void setRMContext(RMContext rmContext) {
+    this.rmContext = rmContext;
+    this.yarnSchedulerInterceptor = new CompositeInterceptor();
+    rmNodeEventHandler = new RMNodeEventHandler(yarnSchedulerInterceptor, rmContext);
+    rmContext.getDispatcher().register(RMNodeEventType.class, rmNodeEventHandler);
+    super.setRMContext(rmContext);
+  }
 
-    @Override
-    public void serviceInit(Configuration conf) throws Exception {
-        this.yarnSchedulerInterceptor.init(conf, this);
-        super.serviceInit(conf);
-    }
+  /**
+   * ******** Methods overridden from YARN {@link CapacityScheduler}  *********************
+   */
 
-    @Override
-    public void handle(SchedulerEvent event) {
-        super.handle(event);
-        this.yarnSchedulerInterceptor.afterSchedulerEventHandled(event);
-    }
+  @Override
+  public synchronized void serviceInit(Configuration conf) throws Exception {
+    this.yarnSchedulerInterceptor.init(conf, this, rmContext);
+    super.serviceInit(conf);
+  }
 
+  @Override
+  public synchronized void handle(SchedulerEvent event) {
+    this.yarnSchedulerInterceptor.beforeSchedulerEventHandled(event);
+    super.handle(event);
+    this.yarnSchedulerInterceptor.afterSchedulerEventHandled(event);
+  }
 }
 

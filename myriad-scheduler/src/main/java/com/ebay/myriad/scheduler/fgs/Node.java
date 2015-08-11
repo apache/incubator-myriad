@@ -1,4 +1,4 @@
-package com.ebay.myriad.scheduler;
+package com.ebay.myriad.scheduler.fgs;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -57,7 +57,7 @@ public class Node {
     this.execInfo = execInfo;
   }
 
-  public void snapshotContainers() {
+  public void snapshotRunningContainers() {
     this.containerSnapshot = new HashSet<>(node.getRunningContainers());
   }
 

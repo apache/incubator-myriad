@@ -104,6 +104,10 @@ public class MyriadConfiguration {
   private Map<String, Map<String, String>> profiles;
 
   @JsonProperty
+  @NotEmpty
+  private Map<String, Integer> nmInstances;
+
+  @JsonProperty
   private Boolean rebalancer;
 
   @JsonProperty
@@ -173,6 +177,10 @@ public class MyriadConfiguration {
 
   public Map<String, Map<String, String>> getProfiles() {
     return profiles;
+  }
+
+  public Map<String, Integer> getNmInstances() {
+    return nmInstances;
   }
 
   public Boolean isRebalancer() {

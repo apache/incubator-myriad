@@ -1,7 +1,7 @@
-package com.ebay.myriad.scheduler;
+package com.ebay.myriad.scheduler.fgs;
 
+import com.ebay.myriad.scheduler.MyriadDriver;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,7 +47,7 @@ public class OfferLifecycleManager {
     LOGGER.debug("Declined offer {}", offer.getId());
   }
 
-  public void addOffers(List<Protos.Offer> offers) {
+  public void addOffers(Protos.Offer... offers) {
     for (Protos.Offer offer : offers) {
       String hostname = offer.getHostname();
       Node node = nodeStore.getNode(hostname);

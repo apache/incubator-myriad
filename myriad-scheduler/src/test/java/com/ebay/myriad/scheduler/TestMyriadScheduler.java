@@ -1,10 +1,7 @@
 package com.ebay.myriad.scheduler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
+import com.ebay.myriad.scheduler.yarn.MyriadFairScheduler;
 import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.AsyncDispatcher;
@@ -21,9 +18,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.ebay.myriad.Main;
-import com.ebay.myriad.scheduler.yarn.MyriadFairScheduler;
-import com.google.inject.Injector;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests myriad scheduler.
@@ -78,11 +73,7 @@ public class TestMyriadScheduler {
   }
 
   @Test
-  public void testNodeStore() throws Exception {
-    Injector injector = Main.getInjector();
-    // TODO (Kannan Rajah) Find a better way to inject instances
-    NodeStore nodeStore = injector.getInstance(NodeStore.class);
-
+  public void testClusterMemory() throws Exception {
     // Add a node
     RMNode node1 =
         MockNodes
@@ -90,8 +81,6 @@ public class TestMyriadScheduler {
     NodeAddedSchedulerEvent nodeEvent1 = new NodeAddedSchedulerEvent(node1);
     scheduler.handle(nodeEvent1);
     assertEquals(1024, scheduler.getClusterResource().getMemory());
-
-    assertNotNull(nodeStore.getNode("127.0.0.1"));
 
     // Add another node
     RMNode node2 =

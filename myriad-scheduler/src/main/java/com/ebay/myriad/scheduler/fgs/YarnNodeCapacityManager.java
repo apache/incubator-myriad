@@ -1,23 +1,29 @@
-package com.ebay.myriad.scheduler;
+package com.ebay.myriad.scheduler.fgs;
 
-import java.util.Arrays;
-import java.util.Collection;
+import com.ebay.myriad.executor.ContainerTaskStatusRequest;
+import com.ebay.myriad.scheduler.MyriadDriver;
+import com.ebay.myriad.scheduler.SchedulerUtils;
+import com.ebay.myriad.scheduler.TaskFactory;
+import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
+import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import com.ebay.myriad.state.SchedulerState;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
-
 import org.apache.hadoop.yarn.api.records.Container;
-import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceOption;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeAddedSchedulerEvent;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeResourceUpdateSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.util.resource.Resources;
@@ -25,16 +31,10 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ebay.myriad.executor.ContainerTaskStatusRequest;
-import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
-import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 /**
  * Manages the capacity exposed by NodeManager. It uses the offers available
  * from Mesos to inflate the node capacity and lets ResourceManager make the
- * scheduling decision. After the sheduling decision is done, there are 2 cases:
+ * scheduling decision. After the scheduling decision is done, there are 2 cases:
  *
  * 1. If ResourceManager did not use the expanded capacity, then the node's
  * capacity is reverted back to original value and the offer is declined.
@@ -47,64 +47,45 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         YarnNodeCapacityManager.class);
 
     private final AbstractYarnScheduler yarnScheduler;
+    private final RMContext rmContext;
     private final MyriadDriver myriadDriver;
     private final OfferLifecycleManager offerLifecycleMgr;
     private final NodeStore nodeStore;
     private final TaskFactory taskFactory;
+    private final SchedulerState state;
 
     @Inject
     public YarnNodeCapacityManager(InterceptorRegistry registry,
                                    AbstractYarnScheduler yarnScheduler,
+                                   RMContext rmContext,
                                    MyriadDriver myriadDriver,
                                    TaskFactory taskFactory,
                                    OfferLifecycleManager offerLifecycleMgr,
-                                   NodeStore nodeStore) {
+                                   NodeStore nodeStore,
+                                   SchedulerState state) {
         if (registry != null) {
             registry.register(this);
         }
         this.yarnScheduler = yarnScheduler;
+        this.rmContext = rmContext;
         this.myriadDriver = myriadDriver;
         this.taskFactory = taskFactory;
         this.offerLifecycleMgr = offerLifecycleMgr;
         this.nodeStore = nodeStore;
+        this.state = state;
     }
 
     @Override
-    public void beforeSchedulerEventHandled(SchedulerEvent event) {
-      // TODO (Kannan) This will not work with continuous scheduling
-      // Need to find out a hook to execute before the actual scheduling attempt
-      // is done.
-      if (!(event instanceof NodeUpdateSchedulerEvent)) {
-        return;
-      }
-
-      RMNode rmNode = ((NodeUpdateSchedulerEvent) event).getRMNode();
-      applyOffers(rmNode);
+    public CallBackFilter getCallBackFilter() {
+        return new CallBackFilter() {
+            @Override
+            public boolean allowCallBacksForNode(NodeId nodeManager) {
+                return SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
+            }
+        };
     }
 
-    /**
-     * Applies the offers stashed till now for this node.
-     */
-    private void applyOffers(RMNode rmNode) {
-      String hostname = rmNode.getNodeID().getHost();
-      OfferFeed feed = offerLifecycleMgr.getOfferFeed(hostname);
-      if (feed == null) {
-        LOGGER.debug("No offer feed for: {}", hostname);
-        return;
-      }
-
-      Protos.Offer offer;
-      Node node = nodeStore.getNode(hostname);
-      node.snapshotContainers();
-      while ((offer = feed.poll()) != null) {
-        Resource resOffered = getResourceFromOffer(Arrays.asList(offer));
-        addCapacity(rmNode, resOffered);
-
-        offerLifecycleMgr.markAsConsumed(offer);
-      }
-    }
-
-    @Override
+  @Override
     public void afterSchedulerEventHandled(SchedulerEvent event) {
         switch (event.getType()) {
             case NODE_ADDED: {
@@ -141,10 +122,8 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
             }
             break;
 
-            default: {
-                LOGGER.debug("Unhandled event: {}", event.getClass().getName());
-            }
-            break;
+            default:
+              break;
         }
     }
 
@@ -177,10 +156,9 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         LOGGER.debug("No containers allocated using Mesos offers for host: {}", host);
         for (Protos.Offer offer : consumedOffer.getOffers()) {
           offerLifecycleMgr.declineOffer(offer);
-
-          Resource resUnused = getResourceFromOffer(Arrays.asList(offer));
-          removeCapacity(rmNode, resUnused);
         }
+        setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(),
+            OfferUtils.getYarnResourcesFromMesosOffers(consumedOffer.getOffers())));
       } else {
         LOGGER.debug("Containers allocated using Mesos offers for host: {} count: {}",
             host, containersAllocatedByMesosOffer.size());
@@ -195,9 +173,9 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         }
 
         // Reduce node capacity to account for unused offers
-        Resource resOffered = getResourceFromOffer(consumedOffer.getOffers());
+        Resource resOffered = OfferUtils.getYarnResourcesFromMesosOffers(consumedOffer.getOffers());
         Resource resUnused = Resources.subtract(resOffered, resUsed);
-        removeCapacity(rmNode, resUnused);
+        setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(), resUnused));
 
         myriadDriver.getDriver().launchTasks(consumedOffer.getOfferIds(), tasks);
       }
@@ -206,62 +184,28 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
       node.removeContainerSnapshot();
     }
 
-    private void addCapacity(RMNode rmNode, Resource resource) {
-      Resource currentResource = rmNode.getResourceOption().getResource();
-      Resource newResource = Resources.add(currentResource, resource);
+  /**
+   * 1. Updates {@link RMNode#getTotalCapability()} with newCapacity.
+   * 2. Sends out a {@link NodeResourceUpdateSchedulerEvent} that's handled by YARN's scheduler.
+   *    The scheduler updates the corresponding {@link SchedulerNode} with the newCapacity.
+   *
+   * @param rmNode
+   * @param newCapacity
+   */
+  @SuppressWarnings("unchecked")
+  public void setNodeCapacity(RMNode rmNode, Resource newCapacity) {
+    rmNode.getTotalCapability().setMemory(newCapacity.getMemory());
+    rmNode.getTotalCapability().setVirtualCores(newCapacity.getVirtualCores());
 
-      rmNode.setResourceOption(
-          ResourceOption.newInstance(newResource,
-            RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT));
+    // updates the scheduler with the new capacity for the NM.
+    // the event is handled by the scheduler asynchronously
+    rmContext.getDispatcher().getEventHandler().handle(
+        new NodeResourceUpdateSchedulerEvent(rmNode,
+            ResourceOption.newInstance(rmNode.getTotalCapability(),
+            RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT)));
+  }
 
-      LOGGER.debug("Added_Resource: {}, Delta: {}, New NM Capacity: {}",
-          rmNode.getNodeID(), resource, newResource);
-    }
-
-    private void removeCapacity(RMNode rmNode, Resource resource) {
-      Resource currentResource = rmNode.getResourceOption().getResource();
-      // Explicitly subtracting each resource since Mesos does not
-      // support Disk IO.
-      currentResource.setVirtualCores(currentResource.getVirtualCores() - resource.getVirtualCores());
-      currentResource.setMemory(currentResource.getMemory() - resource.getMemory());
-
-      LOGGER.debug("Removed_Resource: {}, Delta: {}, New NM Capacity: {}",
-          rmNode.getNodeID(), resource, currentResource);
-    }
-
-    public void removeCapacity(RMNode rmNode, ContainerId containerId) {
-      removeCapacity(rmNode,
-          yarnScheduler.getRMContainer(containerId).getAllocatedResource());
-    }
-
-    /**
-     * Removes the entire capacity of the node.
-     */
-    public void removeCapacity(RMNode rmNode) {
-      Resource currentResource = rmNode.getResourceOption().getResource();
-      // Mesos does not support disk IO. So not zeroing out disks.
-      currentResource.setVirtualCores(0);
-      currentResource.setMemory(0);
-    }
-
-    private Resource getResourceFromOffer(Collection<Protos.Offer> offers) {
-      double cpus = 0.0;
-      double mem = 0.0;
-
-      for (Protos.Offer offer : offers) {
-        for (Protos.Resource resource : offer.getResourcesList()) {
-          if (resource.getName().equalsIgnoreCase("cpus")) {
-            cpus += resource.getScalar().getValue();
-          } else if (resource.getName().equalsIgnoreCase("mem")) {
-            mem += resource.getScalar().getValue();
-          }
-        }
-      }
-
-      return Resource.newInstance((int) mem, (int) cpus);
-    }
-
-    private Protos.TaskInfo getTaskInfoForContainer(RMContainer rmContainer,
+  private Protos.TaskInfo getTaskInfoForContainer(RMContainer rmContainer,
         ConsumedOffer consumedOffer, Node node) {
 
         Protos.Offer offer = consumedOffer.getOffers().get(0);

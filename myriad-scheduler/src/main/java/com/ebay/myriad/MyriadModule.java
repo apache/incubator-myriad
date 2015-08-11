@@ -20,14 +20,14 @@ import com.ebay.myriad.policy.LeastAMNodesFirstPolicy;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
 import com.ebay.myriad.scheduler.MyriadScheduler;
-import com.ebay.myriad.scheduler.NMHeartBeatHandler;
+import com.ebay.myriad.scheduler.fgs.NMHeartBeatHandler;
 import com.ebay.myriad.scheduler.NMProfileManager;
-import com.ebay.myriad.scheduler.NodeStore;
-import com.ebay.myriad.scheduler.OfferLifecycleManager;
+import com.ebay.myriad.scheduler.fgs.NodeStore;
+import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
 import com.ebay.myriad.scheduler.ReconcileService;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
-import com.ebay.myriad.scheduler.YarnNodeCapacityManager;
+import com.ebay.myriad.scheduler.fgs.YarnNodeCapacityManager;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.MyriadState;
 import com.ebay.myriad.state.SchedulerState;
@@ -38,6 +38,7 @@ import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.mesos.state.State;
 import org.slf4j.Logger;
@@ -53,15 +54,18 @@ public class MyriadModule extends AbstractModule {
     private MyriadConfiguration cfg;
     private Configuration hadoopConf;
     private AbstractYarnScheduler yarnScheduler;
+    private final RMContext rmContext;
     private InterceptorRegistry interceptorRegistry;
 
     public MyriadModule(MyriadConfiguration cfg,
                         Configuration hadoopConf,
                         AbstractYarnScheduler yarnScheduler,
+                        RMContext rmContext,
                         InterceptorRegistry interceptorRegistry) {
         this.cfg = cfg;
         this.hadoopConf = hadoopConf;
         this.yarnScheduler = yarnScheduler;
+        this.rmContext = rmContext;
         this.interceptorRegistry = interceptorRegistry;
     }
 
@@ -70,6 +74,7 @@ public class MyriadModule extends AbstractModule {
         LOGGER.debug("Configuring guice");
         bind(MyriadConfiguration.class).toInstance(cfg);
         bind(Configuration.class).toInstance(hadoopConf);
+        bind(RMContext.class).toInstance(rmContext);
         bind(AbstractYarnScheduler.class).toInstance(yarnScheduler);
         bind(InterceptorRegistry.class).toInstance(interceptorRegistry);
         bind(MyriadDriverManager.class).in(Scopes.SINGLETON);

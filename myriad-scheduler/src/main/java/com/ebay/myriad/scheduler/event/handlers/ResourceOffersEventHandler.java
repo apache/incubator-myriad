@@ -17,10 +17,12 @@ package com.ebay.myriad.scheduler.event.handlers;
 
 import com.ebay.myriad.scheduler.*;
 import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
+import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
 
+import java.util.Iterator;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -59,10 +61,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     @Inject
     private TaskUtils taskUtils;
 
-    @Inject
-    private YarnNodeCapacityManager yarnNodeCapacityManager;
-
-    @Inject
+  @Inject
     private OfferLifecycleManager offerLifecycleMgr;
 
     @Override
@@ -77,7 +76,8 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
         try {
             Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
             if (CollectionUtils.isNotEmpty(pendingTasks)) {
-                for (Offer offer : offers) {
+                for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext();) {
+                    Offer offer = iterator.next();
                     boolean offerMatch = false;
                     Protos.TaskID launchedTaskId = null;
                     for (Protos.TaskID pendingTaskId : pendingTasks) {
@@ -102,6 +102,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
                             taskToLaunch.setHostname(offer.getHostname());
                             taskToLaunch.setSlaveId(offer.getSlaveId());
                             offerMatch = true;
+                            iterator.remove(); // remove the used offer from offers list
                             break;
                         }
                     }
@@ -116,8 +117,21 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
                         driver.declineOffer(offer.getId());
                     }
                 }
-            } else {
-                offerLifecycleMgr.addOffers(offers);
+            }
+
+            for (Offer offer : offers) {
+              if (SchedulerUtils.isEligibleForFineGrainedScaling(offer.getHostname(), schedulerState)) {
+                if (LOGGER.isDebugEnabled()) {
+                  LOGGER.debug("Picking an offer from slave with hostname {} for fine grained scaling.",
+                      offer.getHostname());
+                }
+                offerLifecycleMgr.addOffers(offer);
+              } else {
+                if (LOGGER.isDebugEnabled()) {
+                  LOGGER.debug("Declining offer {} from slave {}.", offer, offer.getHostname());
+                }
+                driver.declineOffer(offer.getId());
+              }
             }
         } finally {
             driverOperationLock.unlock();

@@ -23,6 +23,7 @@ import com.ebay.myriad.health.MesosDriverHealthCheck;
 import com.ebay.myriad.health.MesosMasterHealthCheck;
 import com.ebay.myriad.health.ZookeeperHealthCheck;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
+import com.ebay.myriad.scheduler.MyriadOperations;
 import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.scheduler.Rebalancer;
@@ -36,6 +37,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,19 +64,20 @@ public class Main {
 
     public static void initialize(Configuration hadoopConf,
                                   AbstractYarnScheduler yarnScheduler,
+                                  RMContext rmContext,
                                   InterceptorRegistry registry) throws Exception {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         MyriadConfiguration cfg = mapper.readValue(
                 Thread.currentThread().getContextClassLoader().getResource("myriad-config-default.yml"),
                 MyriadConfiguration.class);
 
-        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, yarnScheduler, registry);
+        MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, yarnScheduler, rmContext, registry);
         MesosModule mesosModule = new MesosModule();
         injector = Guice.createInjector(
                 myriadModule, mesosModule,
                 new WebAppGuiceModule());
 
-        new Main().run(cfg, hadoopConf, yarnScheduler, registry);
+        new Main().run(cfg);
     }
 
     // TODO (Kannan Rajah) Hack to get injector in unit test.
@@ -82,10 +85,7 @@ public class Main {
       return injector;
     }
 
-    public void run(MyriadConfiguration cfg,
-                    Configuration hadoopConf,
-                    AbstractYarnScheduler yarnScheduler,
-                    InterceptorRegistry registry) throws Exception {
+    public void run(MyriadConfiguration cfg) throws Exception {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Bindings: " + injector.getAllBindings());
         }
@@ -95,11 +95,13 @@ public class Main {
         initWebApp(injector);
         initHealthChecks(injector);
         initProfiles(injector);
+        validateNMInstances(injector);
         initDisruptors(injector);
 
         initRebalancerService(cfg, injector);
         initTerminatorService(injector);
         startMesosDriver(injector);
+        startNMInstances(injector);
     }
 
     private void startMesosDriver(Injector injector) {
@@ -153,6 +155,39 @@ public class Main {
                 }
             }
         }
+    }
+
+    private void validateNMInstances(Injector injector) {
+        LOGGER.info("Validating nmInstances..");
+        Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
+        NMProfileManager profileManager = injector.getInstance(NMProfileManager.class);
+        long maxCpu = Long.MIN_VALUE;
+        long maxMem = Long.MIN_VALUE;
+        for (Map.Entry<String, Integer> entry : nmInstances.entrySet()) {
+          String profile = entry.getKey();
+          NMProfile nmProfile = profileManager.get(profile);
+          if (nmProfile == null) {
+            throw new RuntimeException("Invalid profile name '" + profile + "' specified in 'nmInstances'");
+          }
+          if (entry.getValue() > 0) {
+            if (nmProfile.getCpus() > maxCpu) { // find the profile with largest number of cpus
+              maxCpu = nmProfile.getCpus();
+              maxMem = nmProfile.getMemory(); // use the memory from the same profile
+            }
+          }
+        }
+        if (maxCpu <= 0 || maxMem <= 0) {
+          throw new RuntimeException("Please configure 'nmInstances' with at least one instance/profile " 
+              + "with non-zero cpu/mem resources.");
+        }
+    }
+
+    private void startNMInstances(Injector injector) {
+      Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
+      MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
+      for (Map.Entry<String, Integer> entry : nmInstances.entrySet()) {
+        myriadOperations.flexUpCluster(entry.getValue(), entry.getKey());
+      }
     }
 
     private void initTerminatorService(Injector injector) {

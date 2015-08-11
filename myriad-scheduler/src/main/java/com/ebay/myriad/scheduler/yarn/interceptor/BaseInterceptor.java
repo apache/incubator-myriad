@@ -1,6 +1,7 @@
 package com.ebay.myriad.scheduler.yarn.interceptor;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
@@ -18,8 +19,18 @@ public class BaseInterceptor implements YarnSchedulerInterceptor {
     protected BaseInterceptor() {
     }
 
-    @Override
-    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler) throws IOException {
+  @Override
+  public CallBackFilter getCallBackFilter() {
+    return new CallBackFilter() {
+      @Override
+      public boolean allowCallBacksForNode(NodeId nodeManager) {
+        return true;
+      }
+    };
+  }
+
+  @Override
+    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException {
     }
 
     @Override
