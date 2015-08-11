@@ -15,7 +15,11 @@
  */
 package com.ebay.myriad.scheduler.event.handlers;
 
-import com.ebay.myriad.scheduler.*;
+import com.ebay.myriad.scheduler.NMPorts;
+import com.ebay.myriad.scheduler.NMProfile;
+import com.ebay.myriad.scheduler.SchedulerUtils;
+import com.ebay.myriad.scheduler.TaskFactory;
+import com.ebay.myriad.scheduler.TaskUtils;
 import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
 import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
 import com.ebay.myriad.state.NodeTask;
@@ -48,143 +52,191 @@ import java.util.concurrent.locks.ReentrantLock;
  * handles and logs resource offers events
  */
 public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEvent> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceOffersEventHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ResourceOffersEventHandler.class);
 
-    private static final Lock driverOperationLock = new ReentrantLock();
-
-    @Inject
-    private SchedulerState schedulerState;
-
-    @Inject
-    private TaskFactory taskFactory;
-
-    @Inject
-    private TaskUtils taskUtils;
+  private static final Lock driverOperationLock = new ReentrantLock();
 
   @Inject
-    private OfferLifecycleManager offerLifecycleMgr;
+  private SchedulerState schedulerState;
 
-    @Override
-    public void onEvent(ResourceOffersEvent event, long sequence,
-                        boolean endOfBatch) throws Exception {
-        SchedulerDriver driver = event.getDriver();
-        List<Offer> offers = event.getOffers();
+  @Inject
+  private TaskFactory taskFactory;
 
-        LOGGER.info("Received offers {}", offers.size());
-        LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
-        driverOperationLock.lock();
-        try {
-            Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
-            if (CollectionUtils.isNotEmpty(pendingTasks)) {
-                for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext();) {
-                    Offer offer = iterator.next();
-                    boolean offerMatch = false;
-                    Protos.TaskID launchedTaskId = null;
-                    for (Protos.TaskID pendingTaskId : pendingTasks) {
-                        NodeTask taskToLaunch = schedulerState
-                                .getTask(pendingTaskId);
-                        NMProfile profile = taskToLaunch.getProfile();
-                        if (matches(offer, profile)
-                                && SchedulerUtils.isUniqueHostname(offer,
-                                schedulerState.getActiveTasks())) {
-                            TaskInfo task = taskFactory.createTask(offer, pendingTaskId,
-                                    taskToLaunch);
-                            List<OfferID> offerIds = new ArrayList<>();
-                            offerIds.add(offer.getId());
-                            List<TaskInfo> tasks = new ArrayList<>();
-                            tasks.add(task);
-                            LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
-                            LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
+  @Inject
+  private TaskUtils taskUtils;
 
-                            driver.launchTasks(offerIds, tasks);
-                            launchedTaskId = pendingTaskId;
+  @Inject
+  private OfferLifecycleManager offerLifecycleMgr;
 
-                            taskToLaunch.setHostname(offer.getHostname());
-                            taskToLaunch.setSlaveId(offer.getSlaveId());
-                            offerMatch = true;
-                            iterator.remove(); // remove the used offer from offers list
-                            break;
-                        }
-                    }
-                    if (null != launchedTaskId) {
-                        schedulerState.makeTaskStaging(launchedTaskId);
-                        launchedTaskId = null;
-                    }
-                    if (!offerMatch) {
-                        LOGGER.info(
-                                "Declining offer {}, as it didn't match any pending task.",
-                                offer);
-                        driver.declineOffer(offer.getId());
-                    }
-                }
+  @Override
+  public void onEvent(ResourceOffersEvent event, long sequence,
+                      boolean endOfBatch) throws Exception {
+    SchedulerDriver driver = event.getDriver();
+    List<Offer> offers = event.getOffers();
+
+    LOGGER.info("Received offers {}", offers.size());
+    LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
+    driverOperationLock.lock();
+    try {
+      Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
+      if (CollectionUtils.isNotEmpty(pendingTasks)) {
+        for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext();) {
+          Offer offer = iterator.next();
+          boolean offerMatch = false;
+          Protos.TaskID launchedTaskId = null;
+          for (Protos.TaskID pendingTaskId : pendingTasks) {
+            NodeTask taskToLaunch = schedulerState
+                .getTask(pendingTaskId);
+            NMProfile profile = taskToLaunch.getProfile();
+
+            if (matches(offer, profile)
+                && SchedulerUtils.isUniqueHostname(offer,
+                schedulerState.getActiveTasks())) {
+              TaskInfo task = taskFactory.createTask(offer, pendingTaskId,
+                  taskToLaunch);
+              List<OfferID> offerIds = new ArrayList<>();
+              offerIds.add(offer.getId());
+              List<TaskInfo> tasks = new ArrayList<>();
+              tasks.add(task);
+              LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
+              LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
+
+              driver.launchTasks(offerIds, tasks);
+              launchedTaskId = pendingTaskId;
+
+              taskToLaunch.setHostname(offer.getHostname());
+              taskToLaunch.setSlaveId(offer.getSlaveId());
+              offerMatch = true;
+              iterator.remove(); // remove the used offer from offers list
+              break;
             }
-
-            for (Offer offer : offers) {
-              if (SchedulerUtils.isEligibleForFineGrainedScaling(offer.getHostname(), schedulerState)) {
-                if (LOGGER.isDebugEnabled()) {
-                  LOGGER.debug("Picking an offer from slave with hostname {} for fine grained scaling.",
-                      offer.getHostname());
-                }
-                offerLifecycleMgr.addOffers(offer);
-              } else {
-                if (LOGGER.isDebugEnabled()) {
-                  LOGGER.debug("Declining offer {} from slave {}.", offer, offer.getHostname());
-                }
-                driver.declineOffer(offer.getId());
-              }
-            }
-        } finally {
-            driverOperationLock.unlock();
+          }
+          if (null != launchedTaskId) {
+            schedulerState.makeTaskStaging(launchedTaskId);
+            launchedTaskId = null;
+          }
+          if (!offerMatch) {
+            LOGGER.info(
+                "Declining offer {}, as it didn't match any pending task.",
+                offer);
+            driver.declineOffer(offer.getId());
+          }
         }
-    }
+      }
 
-    private boolean matches(Offer offer, NMProfile profile) {
-        double cpus = -1;
-        double mem = -1;
-
-        for (Resource resource : offer.getResourcesList()) {
-            if (resource.getName().equals("cpus")) {
-                if (resource.getType().equals(Value.Type.SCALAR)) {
-                    cpus = resource.getScalar().getValue();
-                } else {
-                    LOGGER.error("Cpus resource was not a scalar: {}", resource
-                            .getType().toString());
-                }
-            } else if (resource.getName().equals("mem")) {
-                if (resource.getType().equals(Value.Type.SCALAR)) {
-                    mem = resource.getScalar().getValue();
-                } else {
-                    LOGGER.error("Mem resource was not a scalar: {}", resource
-                            .getType().toString());
-                }
-            } else if (resource.getName().equals("disk")) {
-                LOGGER.warn("Ignoring disk resources from offer");
-            } else if (resource.getName().equals("ports")) {
-                LOGGER.info("Ignoring ports resources from offer");
-            } else {
-                LOGGER.warn("Ignoring unknown resource type: {}",
-                        resource.getName());
-            }
-        }
-
-        if (cpus < 0) {
-            LOGGER.error("No cpus resource present");
-        }
-        if (mem < 0) {
-            LOGGER.error("No mem resource present");
-        }
-
-        Map<String, String> requestAttributes = new HashMap<>();
-
-        if (taskUtils.getAggregateCpus(profile) <= cpus
-                && taskUtils.getAggregateMemory(profile) <= mem
-                && SchedulerUtils.isMatchSlaveAttributes(offer,
-                requestAttributes)) {
-            return true;
+      for (Offer offer : offers) {
+        if (SchedulerUtils.isEligibleForFineGrainedScaling(offer.getHostname(), schedulerState)) {
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Picking an offer from slave with hostname {} for fine grained scaling.",
+                offer.getHostname());
+          }
+          offerLifecycleMgr.addOffers(offer);
         } else {
-            LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}", taskUtils.getAggregateCpus(profile), taskUtils.getAggregateMemory(profile));
-            return false;
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Declining offer {} from slave {}.", offer, offer.getHostname());
+          }
+          driver.declineOffer(offer.getId());
         }
+      }
+    } finally {
+      driverOperationLock.unlock();
     }
+  }
 
+  private boolean matches(Offer offer, NMProfile profile) {
+    Map<String, Object> results = new HashMap<String, Object>(5);
+
+    for (Resource resource : offer.getResourcesList()) {
+      if (resourceEvaluators.containsKey(resource.getName())) {
+        resourceEvaluators.get(resource.getName()).eval(resource, results);
+      } else {
+        LOGGER.warn("Ignoring unknown resource type: {}",
+            resource.getName());
+      }
+    }
+    double cpus = (Double) results.get("cpus");
+    double mem = (Double) results.get("mem");
+    int ports = (Integer) results.get("ports");
+
+    checkResource(cpus < 0, "cpus");
+    checkResource(mem < 0, "mem");
+    checkResource(ports < 0, "port");
+
+    return checkAggregates(offer, profile, ports, cpus, mem);
+  }
+
+  private void checkResource(boolean fail, String resource) {
+    if (fail) {
+      LOGGER.info("No " + resource + " resources present");
+    }
+  }
+
+  private boolean checkAggregates(Offer offer, NMProfile profile, int ports, double cpus, double mem) {
+    Map<String, String> requestAttributes = new HashMap<>();
+
+    if (taskUtils.getAggregateCpus(profile) <= cpus
+        && taskUtils.getAggregateMemory(profile) <= mem
+        && SchedulerUtils.isMatchSlaveAttributes(offer, requestAttributes)
+        && NMPorts.expectedNumPorts() <= ports) {
+      return true;
+    } else {
+      LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}",
+          taskUtils.getAggregateCpus(profile), taskUtils.getAggregateMemory(profile), ports);
+      return false;
+    }
+  }
+
+  private static Double scalarToDouble(Resource resource, String id) {
+    Double value = new Double(0.0);
+    if (resource.getType().equals(Value.Type.SCALAR)) {
+      value = new Double(resource.getScalar().getValue());
+    } else {
+      LOGGER.error(id + " resource was not a scalar: {}", resource
+          .getType().toString());
+    }
+    return value;
+  }
+
+  private interface EvalResources {
+    public void eval(Resource resource, Map<String, Object>results);
+  }
+
+  private static Map<String, EvalResources> resourceEvaluators;
+
+  static {
+    resourceEvaluators = new HashMap<String, EvalResources>(4);
+    resourceEvaluators.put("cpus", new EvalResources() {
+      public void eval(Resource resource, Map<String, Object> results) {
+        results.put("cpus", scalarToDouble(resource, "cpus"));
+      }
+    });
+    resourceEvaluators.put("mem", new EvalResources() {
+      public void eval(Resource resource, Map<String, Object> results) {
+        results.put("mem", scalarToDouble(resource, "mem"));
+      }
+    });
+    resourceEvaluators.put("disk", new EvalResources() {
+      public void eval(Resource resource, Map<String, Object> results) {
+      }
+    });
+    resourceEvaluators.put("ports", new EvalResources() {
+      public void eval(Resource resource, Map<String, Object> results) {
+        int ports = 0;
+        if (resource.getType().equals(Value.Type.RANGES)) {
+          Value.Ranges ranges = resource.getRanges();
+          for (Value.Range range : ranges.getRangeList()) {
+            if (range.getBegin() < range.getEnd()) {
+              ports += range.getEnd() - range.getBegin() + 1;
+            }
+          }
+
+        } else {
+          LOGGER.error("ports resource was not Ranges: {}", resource
+              .getType().toString());
+
+        }
+        results.put("ports", Integer.valueOf(ports));
+      }
+    });
+  }
 }

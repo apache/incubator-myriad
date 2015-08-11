@@ -52,7 +52,7 @@ Create the tarball and place it in hdfs:
 ```
 cd ~
 sudo cp -rp /opt/hadoop-2.5.0 .
-sudo rm hadoop-2.5.0/etc/hadoop/*.xml
+sudo rm hadoop-2.5.0/etc/hadoop/yarn-site.xml
 sudo tar -zcpf ~/hadoop-2.5.0.tar.gz hadoop-2.5.0
 hadoop fs -put ~/hadoop-2.5.0.tar.gz /dist
 ```

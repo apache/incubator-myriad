@@ -11,6 +11,11 @@ public class NMTaskConfig {
     private Long advertisableMem;
     private String jvmOpts;
     private Boolean cgroups;
+    private Long rpcPort;
+    private Long localizerPort;
+    private Long webAppHttpPort;
+    private Long shufflePort;
+
     private Map<String, String> yarnEnvironment;
 
     public String getYarnHome() {
@@ -59,6 +64,38 @@ public class NMTaskConfig {
 
     public void setYarnEnvironment(Map<String, String> yarnEnvironment) {
         this.yarnEnvironment = yarnEnvironment;
+    }
+
+    public Long getRpcPort() {
+        return rpcPort;
+    }
+
+    public void setRpcPort(long port) {
+        rpcPort = port;
+    }
+
+    public Long gettWebAppHttpPort() {
+        return webAppHttpPort;
+    }
+
+    public void setWebAppHttpPort(Long port) {
+        webAppHttpPort = port;
+    }
+
+    public Long getLocalizerPort() {
+        return localizerPort;
+    }
+
+    public void setLocalizerPort(Long localizerPort) {
+        this.localizerPort = localizerPort;
+    }
+
+    public Long getShufflePort() {
+        return shufflePort;
+    }
+
+    public void setShufflePort(Long shufflePort) {
+        this.shufflePort = shufflePort;
     }
 
 }
