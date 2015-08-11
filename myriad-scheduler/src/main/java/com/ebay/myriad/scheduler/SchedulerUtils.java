@@ -16,6 +16,7 @@
 package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.state.NodeTask;
+import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -70,5 +71,24 @@ public class SchedulerUtils {
         }
         LOGGER.debug("Offer's hostname {} is unique: {}", offerHostname, uniqueHostname);
         return uniqueHostname;
+    }
+
+  /**
+     * Determines if a given host has a nodemanager running with zero profile. Node Managers
+     * launched with zero profile (zero cpu & memory) are eligible for fine grained scaling.
+     * Node Managers launched with a non-zero profile size are not eligible for fine grained scaling.
+     *
+     * @param hostName
+     * @return
+     */
+    public static boolean isEligibleForFineGrainedScaling(String hostName, SchedulerState state) {
+      for (NodeTask activeNMTask : state.getActiveTasks()) {
+        if (activeNMTask.getProfile().getCpus() == 0 &&
+            activeNMTask.getProfile().getMemory() == 0 &&
+            activeNMTask.getHostname().equals(hostName)) {
+          return true;
+        }
+      }
+      return false;
     }
 }

@@ -88,7 +88,7 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
     }
 
     @Override
-    public void onEventHandled(SchedulerEvent event) {
+    public void afterSchedulerEventHandled(SchedulerEvent event) {
 
         try {
             switch (event.getType()) {
@@ -99,8 +99,8 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
                 case NODE_REMOVED:
                     onNodeRemoved((NodeRemovedSchedulerEvent) event);
                     break;
+
                 default:
-                    LOGGER.warn("event type not supported");
                     break;
             }
         } catch (ClassCastException e) {
@@ -122,7 +122,7 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
 
     private void onNodeRemoved(NodeRemovedSchedulerEvent event) {
         SchedulerNode schedulerNode = schedulerNodes.get(event.getRemovedRMNode().getNodeID().getHost());
-        if (schedulerNode.getNodeID().equals(event.getRemovedRMNode().getNodeID())) {
+        if (schedulerNode != null && schedulerNode.getNodeID().equals(event.getRemovedRMNode().getNodeID())) {
             schedulerNodes.remove(schedulerNode.getNodeID().getHost());
         }
     }

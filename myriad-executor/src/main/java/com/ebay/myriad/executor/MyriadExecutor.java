@@ -1,6 +1,7 @@
 package com.ebay.myriad.executor;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
@@ -12,6 +13,7 @@ import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.Protos.TaskStatus.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -122,6 +124,15 @@ public class MyriadExecutor implements Executor {
 
     @Override
     public void launchTask(final ExecutorDriver driver, final TaskInfo task) {
+        // "task id beginning with "yarn" is a mesos task for yarn container
+        if (task.getTaskId().getValue().startsWith("yarn")) {
+            TaskStatus status = TaskStatus.newBuilder().setTaskId(task.getTaskId())
+                .setState(TaskState.TASK_RUNNING).build();
+            driver.sendStatusUpdate(status);
+            return;
+        }
+
+        // Launch NM as a task and return status to framework
         new Thread(new Runnable() {
             public void run() {
                 TaskStatus.Builder statusBuilder = TaskStatus.newBuilder()
@@ -245,6 +256,20 @@ public class MyriadExecutor implements Executor {
 
     @Override
     public void frameworkMessage(ExecutorDriver driver, byte[] data) {
+        // TODO(Santosh): Currently ContainerTaskStatusRequest is the only
+        // message a framework sends to the executor.
+        // Change this to handle other types of framework->executor messages.
+        try {
+            ContainerTaskStatusRequest request = GSON.fromJson(new String(data, Charset.defaultCharset()), ContainerTaskStatusRequest.class);
+            Builder statusBuilder = TaskStatus.newBuilder()
+                .setTaskId(TaskID.newBuilder().setValue(request.getMesosTaskId()))
+                .setState(TaskState.valueOf(request.getState()));
+            driver.sendStatusUpdate(statusBuilder.build());
+            System.out.println("Sent out status update for task id: " +
+                request.getMesosTaskId() + ", status: " + request.getState());
+        } catch (JsonSyntaxException jse) {
+            jse.printStackTrace(); // spit it out to stderr
+        }
         LOGGER.info("Framework message received: ", new String(data, Charset.defaultCharset()));
     }
 

@@ -12,6 +12,9 @@ zkServers: localhost:2181
 zkTimeout: 20000
 restApiPort: 8192
 profiles:
+  zero:  # NMs launched with this profile dynamically obtain cpu/mem from Mesos
+    cpu: 0
+    mem: 0
   small:
     cpu: 1
     mem: 1100
@@ -21,6 +24,8 @@ profiles:
   large:
     cpu: 4
     mem: 4096
+nmInstances: # NMs to start with. Requires at least 1 NM with a non-zero profile.
+  medium: 1 # <profile_name : instances>
 rebalancer: false
 nodemanager:
   jvmMaxMemoryMB: 1024
