@@ -13,6 +13,7 @@ import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.Protos.TaskStatus.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
