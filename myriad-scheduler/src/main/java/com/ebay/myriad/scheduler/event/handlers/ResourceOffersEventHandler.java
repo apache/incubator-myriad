@@ -94,6 +94,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
                 schedulerState.getActiveTasks())) {
               TaskInfo task = taskFactory.createTask(offer, pendingTaskId,
                   taskToLaunch);
+
               List<OfferID> offerIds = new ArrayList<>();
               offerIds.add(offer.getId());
               List<TaskInfo> tasks = new ArrayList<>();
@@ -103,6 +104,15 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
 
               driver.launchTasks(offerIds, tasks);
               launchedTaskId = pendingTaskId;
+
+              // TODO (sdaingade) For every NM Task that we launch, we currently
+              // need to backup the ExecutorInfo for that NM Task in the State Store.
+              // Without this, we will not be able to launch tasks corresponding to yarn
+              // containers. This is specially important in case the RM restarts.
+              if (task.hasExecutor() && taskToLaunch.getExecutorInfo() == null) {
+                  taskToLaunch.setExecutorInfo(task.getExecutor());
+                  schedulerState.updateStateStore();
+              }
 
               taskToLaunch.setHostname(offer.getHostname());
               taskToLaunch.setSlaveId(offer.getSlaveId());

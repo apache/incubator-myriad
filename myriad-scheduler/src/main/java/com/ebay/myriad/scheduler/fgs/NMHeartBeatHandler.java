@@ -1,23 +1,20 @@
 package com.ebay.myriad.scheduler.fgs;
 
-import com.ebay.myriad.executor.ContainerTaskStatusRequest;
 import com.ebay.myriad.scheduler.MyriadDriver;
 import com.ebay.myriad.scheduler.SchedulerUtils;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.SchedulerState;
-import com.google.gson.Gson;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
-import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerState;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
+import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeStatusEvent;
@@ -118,8 +115,10 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     RMNode rmNode = context.getRMNodes().get(event.getNodeId());
     String hostName = rmNode.getNodeID().getHost();
 
-    nodeStore.getNode(hostName).snapshotRunningContainers();
-    sendStatusUpdatesToMesosForCompletedContainers(statusEvent);
+    Node host = nodeStore.getNode(hostName);
+    if (host != null) {
+      host.snapshotRunningContainers();
+    }
 
     // New capacity of the node =
     // resources under use on the node (due to previous offers) +
@@ -155,52 +154,15 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     Resource usedResources = Resource.newInstance(0, 0);
     for (ContainerStatus status : statusEvent.getContainers()) {
       if (status.getState() == ContainerState.NEW || status.getState() == ContainerState.RUNNING) {
-        Resources.addTo(usedResources, yarnScheduler.getRMContainer(status.getContainerId()).getAllocatedResource());
+        RMContainer rmContainer = yarnScheduler.getRMContainer(status.getContainerId());
+        // (sdaingade) This check is needed as RMContainer information may not be populated
+        // immediately after a RM restart.
+        if (rmContainer != null) {
+          Resources.addTo(usedResources, rmContainer.getAllocatedResource());
+        }
       }
     }
     return usedResources;
-  }
-
-  private void sendStatusUpdatesToMesosForCompletedContainers(RMNodeStatusEvent statusEvent) {
-    // Send task update to Mesos
-    Protos.SlaveID slaveId = nodeStore.getNode(statusEvent.getNodeId().getHost()).getSlaveId();
-    for (ContainerStatus status : statusEvent.getContainers()) {
-      ContainerId containerId = status.getContainerId();
-      if (status.getState() == ContainerState.COMPLETE) {
-        requestExecutorToSendTaskStatusUpdate(slaveId, containerId, Protos.TaskState.TASK_FINISHED);
-      } else { // state == NEW | RUNNING
-        requestExecutorToSendTaskStatusUpdate(slaveId, containerId, Protos.TaskState.TASK_RUNNING);
-      }
-    }
-  }
-
-
-  /**
-   * sends a request to executor on the given slave to send back a status update
-   * for the mesos task launched for this container.
-   *
-   * TODO(Santosh):
-   *  Framework messages are unreliable. Try a NM auxiliary service that can help
-   *  send out the status messages from NM itself. NM and MyriadExecutor would need
-   *  to be merged into a single process.
-   *
-   * @param slaveId
-   * @param containerId
-   * @param taskState
-   */
-  private void requestExecutorToSendTaskStatusUpdate(Protos.SlaveID slaveId,
-      ContainerId containerId,
-      Protos.TaskState taskState) {
-    final String mesosTaskId = ContainerTaskStatusRequest.YARN_CONTAINER_TASK_ID_PREFIX + containerId.toString();
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Sending out framework message requesting the executor to send {} status for task: {}",
-          taskState.name(), mesosTaskId);
-    }
-    ContainerTaskStatusRequest containerTaskStatusRequest = new ContainerTaskStatusRequest();
-    containerTaskStatusRequest.setMesosTaskId(mesosTaskId);
-    containerTaskStatusRequest.setState(taskState.name());
-    myriadDriver.getDriver().sendFrameworkMessage(getExecutorId(slaveId), slaveId,
-        new Gson().toJson(containerTaskStatusRequest).getBytes(Charset.defaultCharset()));
   }
 
   private Protos.ExecutorID getExecutorId(Protos.SlaveID slaveId) {

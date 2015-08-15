@@ -31,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.SlaveID;
+
 import com.ebay.myriad.state.utils.StoreContext;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore;
 
@@ -188,6 +190,16 @@ public class SchedulerState {
         return activeNodeTasks;
     }
 
+    public NodeTask getNodeTask(SlaveID slaveId) {
+        for (Map.Entry<Protos.TaskID, NodeTask> entry : tasks.entrySet()) {
+            if (entry.getValue().getSlaveId() != null &&
+                entry.getValue().getSlaveId().equals(slaveId)) {
+                return entry.getValue(); 
+            }
+        }
+        return null;
+    }
+
     public Set<Protos.TaskID> getStagingTaskIds() {
         return this.stagingTasks;
     }
@@ -226,7 +238,7 @@ public class SchedulerState {
         updateStateStore();
     }
 
-    private void updateStateStore() {
+    public void updateStateStore() {
         if (!isMyriadStateStore()) {
             return;
         }

@@ -32,6 +32,11 @@ public class NodeTask {
     @JsonProperty
     private Protos.TaskStatus taskStatus;
 
+    /**
+     * Mesos executor for this node.
+     */
+    private Protos.ExecutorInfo executorInfo;
+
     public NodeTask(NMProfile profile) {
         this.profile = profile;
         this.hostname = "";
@@ -67,5 +72,13 @@ public class NodeTask {
 
     public void setTaskStatus(Protos.TaskStatus taskStatus) {
         this.taskStatus = taskStatus;
+    }
+
+    public Protos.ExecutorInfo getExecutorInfo() {
+        return executorInfo;
+    }
+
+    public void setExecutorInfo(Protos.ExecutorInfo executorInfo) {
+        this.executorInfo = executorInfo;
     }
 }

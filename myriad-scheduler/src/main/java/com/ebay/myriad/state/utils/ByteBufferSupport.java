@@ -116,6 +116,12 @@ public class ByteBufferSupport {
     } else {
       size += INT_SIZE;
     }
+    
+    if (nt.getExecutorInfo() != null) {
+        size += nt.getExecutorInfo().getSerializedSize() + INT_SIZE;
+    } else {
+        size += INT_SIZE;
+    }
 
     // Allocate and populate the buffer.
     ByteBuffer bb = createBuffer(size);
@@ -123,6 +129,7 @@ public class ByteBufferSupport {
     putBytes(bb, hostname);
     putBytes(bb, getSlaveBytes(nt));
     putBytes(bb, getTaskBytes(nt));
+    putBytes(bb, getExecutorInfoBytes(nt));
     // Make sure the buffer is at the beginning
     bb.rewind();
     return bb;
@@ -170,6 +177,7 @@ public class ByteBufferSupport {
       nt.setHostname(toString(bb));
       nt.setSlaveId(toSlaveId(bb));
       nt.setTaskStatus(toTaskStatus(bb));
+      nt.setExecutorInfo(toExecutorInfo(bb));
     }
     return nt;
   }
@@ -177,6 +185,14 @@ public class ByteBufferSupport {
   public static byte[] getTaskBytes(NodeTask nt) {
     if (nt.getTaskStatus() != null) {
       return nt.getTaskStatus().toByteArray();
+    } else {
+      return ZERO_BYTES;
+    }
+  }
+
+  public static byte[] getExecutorInfoBytes(NodeTask nt) {
+    if (nt.getExecutorInfo() != null) {
+      return nt.getExecutorInfo().toByteArray();
     } else {
       return ZERO_BYTES;
     }
@@ -266,6 +282,20 @@ public class ByteBufferSupport {
       } catch (Exception e) {
         throw new RuntimeException("ByteBuffer not in expected format," +
           " failed to parse TaskStatus bytes", e);
+      }
+    } else {
+      return null;
+    }
+  }
+
+  public static Protos.ExecutorInfo toExecutorInfo(ByteBuffer bb) {
+    int size = bb.getInt();
+    if (size > 0) {
+      try {
+        return Protos.ExecutorInfo.parseFrom(getBytes(bb, size));
+      } catch (Exception e) {
+        throw new RuntimeException("ByteBuffer not in expected format," +
+          " failed to parse ExecutorInfo bytes", e);
       }
     } else {
       return null;
