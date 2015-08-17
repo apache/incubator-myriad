@@ -17,32 +17,26 @@ var NavbarComponent = React.createClass({
 
   render: function () {
     return(
-<<<<<<< HEAD
     <Navbar fixedTop inverse>
       <Nav>
       <a className="navbar-brand" href="#">
           <img src="/img/navbar_logo.png"></img>
       </a>
-=======
-    <Navbar fixedTop>
-      <Nav bsStyle='tabs'   >
-	<DropdownButton  title='Myriad' naveItem={true} >
-	   <NavItemLink  to="rmDown">Shutdown RM Only</NavItemLink>
-	   <NavItemLink  to="frameworkDown">Shutdown Framework, Stopping Driver</NavItemLink>
-	   <NavItemLink  to="gracefulDown">Shutdown Framework, Aborting Driver</NavItemLink>
-	</DropdownButton>
->>>>>>> 4721509... Update
       </Nav>
+      <Nav bsStyle='tabs'   >
+      		<DropdownButton  title='Myriad' naveItem={true} >
+      			<NavItemLink  to="frameworkDown">Shutdown Framework</NavItemLink>
+ 	   		</DropdownButton>
+ 	  </Nav>
       <Nav>
         <NavItemLink to="flex">Flex</NavItemLink>
         <NavItemLink to="tasks">Tasks</NavItemLink>
       </Nav>
-
       <Nav bsStyle='tabs'   >
-	<DropdownButton  title='Help' naveItem={true} >
-	   <NavItemLink  to="help">Menu Options</NavItemLink>
-	   <NavItemLink  to="about">About Myriad</NavItemLink>
-	</DropdownButton>
+      	<DropdownButton  title='Help' naveItem={true} >
+      		<NavItemLink  to="help">Menu Options</NavItemLink>
+      		<NavItemLink  to="about">About Myriad</NavItemLink>
+      	</DropdownButton>
       </Nav>
 
       <Nav right>
