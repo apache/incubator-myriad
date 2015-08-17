@@ -18,6 +18,7 @@
  */
 package org.apache.myriad.scheduler;
 
+import org.apache.mesos.Protos.Status;
 import org.apache.myriad.configuration.MyriadBadConfigurationException;
 import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.configuration.MyriadConfiguration;
@@ -48,12 +49,14 @@ public class MyriadOperations {
 
   private MyriadConfiguration cfg;
   private NodeScaleDownPolicy nodeScaleDownPolicy;
+  private MyriadDriverManager driverManager;
 
   @Inject
-  public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState, NodeScaleDownPolicy nodeScaleDownPolicy) {
+  public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState, NodeScaleDownPolicy nodeScaleDownPolicy, MyriadDriverManager driverManager) {
     this.cfg = cfg;
     this.schedulerState = schedulerState;
     this.nodeScaleDownPolicy = nodeScaleDownPolicy;
+    this.driverManager = driverManager;
   }
 
   public void flexUpCluster(ServiceResourceProfile serviceResourceProfile, int instances, Constraint constraint) {
@@ -233,4 +236,18 @@ public class MyriadOperations {
     return this.schedulerState.getActiveTaskIds(taskPrefix).size() + this.schedulerState.getStagingTaskIds(taskPrefix).size() + this.schedulerState.getPendingTaskIds(taskPrefix).size();
   }
 
+  /**
+   * Shutdown framework means the Mesos driver is stopped taking down the executors and associated tasks
+   */
+  public void shutdownFramework() {
+    Status driverStatus = driverManager.getDriverStatus();
+
+    if (Status.DRIVER_RUNNING != driverStatus) {
+      LOGGER.warn("Driver is not running. Status: " + driverStatus);
+    } else {
+      // Stop the driver, tasks, and executor.
+      driverStatus = driverManager.stopDriver(false);
+      LOGGER.info("shutdown....driver status " + driverStatus);
+    }
+  }
 }

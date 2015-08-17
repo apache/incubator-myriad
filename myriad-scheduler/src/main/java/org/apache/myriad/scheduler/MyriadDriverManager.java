@@ -58,7 +58,36 @@ public class MyriadDriverManager {
     return this.driverStatus;
   }
 
-  public Status stopDriver() {
+
+  /**
+   * Stop driver, executor, and tasks if false, otherwise just the driver.
+   *
+   * @return driver status
+   */
+  public Status stopDriver(boolean failover) {
+    this.driverLock.lock();
+    try {
+      if (isRunning()) {
+        if (failover) {
+          LOGGER.info("Stopping driver ...");
+        } else {
+          LOGGER.info("Stopping driver and terminating tasks...");
+        }
+        this.driverStatus = this.driver.stop(failover);
+        LOGGER.info("Stopped driver with status: {}", this.driverStatus);
+      }
+    } finally {
+      this.driverLock.unlock();
+    }
+    return driverStatus;
+  }
+
+  /**
+   * Aborting driver without stopping tasks.
+   *
+   * @return driver status
+   */
+  public Status abortDriver() {
     this.driverLock.lock();
     try {
       if (isRunning()) {
