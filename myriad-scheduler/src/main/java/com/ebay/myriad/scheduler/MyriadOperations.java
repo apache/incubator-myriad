@@ -247,5 +247,19 @@ public class MyriadOperations {
               + this.schedulerState.getStagingTaskIds(taskPrefix).size()
               + this.schedulerState.getPendingTaskIds(taskPrefix).size();
   }
-
+   
+    /**
+     * Shutdown framework means the Mesos driver is stopped taking down the executors and associated tasks
+     */    
+    public void shutdownFramework() {
+       Status driverStatus = driverManager.getDriverStatus();
+        
+        if (Status.DRIVER_RUNNING != driverStatus) {
+            LOGGER.warn("Driver is not running. Status: " + driverStatus);
+        } else {
+            // Stop the driver, tasks, and executor. 
+            driverStatus = driverManager.stopDriver(false);
+            LOGGER.info("shutdown....driver status " + driverStatus);
+        }  
+    }   
 }

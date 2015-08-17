@@ -120,21 +120,6 @@ public class MyriadDriverManager {
         return driverStatus;
     }
 
-   public Status sendFrameworkMessage(ExecutorID executorId, SlaveID slaveId, byte [] data) {
-        this.driverLock.lock();
-        try {
-            if (isRunning()) {
-                this.driverStatus = driver.sendFrameworkMessage(executorId, slaveId, data);
-            } else {
-                LOGGER.warn("Cannot send Framework message, driver is not running");
-            }
-        } finally {
-            this.driverLock.unlock();
-        }
-
-        return driverStatus;      
-    }
-
     public Status getDriverStatus() {
         return this.driverStatus;
     }
