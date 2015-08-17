@@ -20,8 +20,6 @@ package com.ebay.myriad.scheduler;
 
 import com.google.common.base.Preconditions;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.ExecutorID;
-import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
 import org.slf4j.Logger;

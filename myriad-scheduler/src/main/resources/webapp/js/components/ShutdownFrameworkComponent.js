@@ -27,8 +27,7 @@ var XModal = React.createClass({
   	render() {
     		return ( <Modal {...this.props} bsStyle='primary'   id="shutdownModal" title='Shutdown Myriad Framework ?' animation={false}  					onRequestHide={this.handleToggle}>
 	 			<div className='modal-body' >
-					<p> This will stop the driver in failover mode, which will stop the executor and tasks, then stop the ResourceManager.</p>
-       					<p> This requires the ResourceManager to be either in HA mode or restarted so that it re-registers with Mesos. </p>
+					<p> This will stop the driver in failover mode, which will stop the executor and tasks, but not stop the ResourceManager.</p>
 				</div>
        				<div className='modal-footer'>
        	    				<Button bsStyle="default" onClick={function() {

@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,14 +49,17 @@ public class MyriadOperations {
 
     private MyriadConfiguration cfg;
     private NodeScaleDownPolicy nodeScaleDownPolicy;
+    private MyriadDriverManager driverManager;
 
     @Inject
     public MyriadOperations(MyriadConfiguration cfg,
                             SchedulerState schedulerState,
-                            NodeScaleDownPolicy nodeScaleDownPolicy) {
-      this.cfg = cfg;
-      this.schedulerState = schedulerState;
-      this.nodeScaleDownPolicy = nodeScaleDownPolicy;
+                            NodeScaleDownPolicy nodeScaleDownPolicy,
+                            MyriadDriverManager driverManager) {
+        this.cfg = cfg;
+        this.schedulerState = schedulerState;
+        this.nodeScaleDownPolicy = nodeScaleDownPolicy;
+        this.driverManager = driverManager;
     }
 
     public void flexUpCluster(ServiceResourceProfile serviceResourceProfile, int instances, Constraint constraint) {

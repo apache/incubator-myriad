@@ -41,9 +41,8 @@ public class ControllerResource {
         this.myriadOperations = myriadOperations;
     }
     /**
-     * Shutdown framework means the RM shutdown and the Mesos driver is stopped in failover mode
-     * so the RM must come back up and re-register, or another RM takes over in HA mode.
-     * 
+     * Shutdown framework means the Mesos driver is stopped, all executors and tasks as well.
+      * 
      * @return a successful response. 
      */      
     @Timed
@@ -58,39 +57,5 @@ public class ControllerResource {
         return Response.ok().build();
     }  
     
-    /**
-     * Shutdown "manager only" means the RM shutdown and the Mesos driver is stopped in failover mode
-     * so the RM must come back up and re-register, or another RM takes over in HA mode.
-     * 
-     * @return a successful response. 
-     */   
-    @Timed
-    @GET
-    @Path("/shutdown/managerOnly")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response shutdownResourceManager() {
-        LOGGER.info("shutdown....terminating resource manager only ... ");
-     
-        myriadOperations.shutdownResourceManager();
    
-        return Response.ok().build();
-    }
-    
-    /**
-     * Shutdown gracefully means the RM, tasks, and executor(s) are stopped but
-     * the RM can be started right back up.
-     * 
-     * @return a successful response. 
-     */
-    @Timed
-    @GET
-    @Path("/shutdown/graceful")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response shutdownGraceful() {
-        LOGGER.info("shutdown....terminating myraid gracefully ... ");
-        
-        myriadOperations.shutdownGraceful();
-        
-        return Response.ok().build();
-    }
 }
