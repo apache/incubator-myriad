@@ -17,6 +17,7 @@ package com.ebay.myriad.executor;
 
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.FrameworkInfo;
 import org.apache.mesos.Protos.SlaveInfo;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
+import java.util.Set;
 
 /**
  * Myriad's Executor
@@ -37,58 +39,88 @@ public class MyriadExecutor implements Executor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MyriadExecutor.class);
 
-    @Override
-    public void registered(ExecutorDriver driver,
-                           ExecutorInfo executorInfo,
-                           FrameworkInfo frameworkInfo,
-                           SlaveInfo slaveInfo) {
-        LOGGER.debug("Registered ", executorInfo, " for framework ", frameworkInfo, " on mesos slave ", slaveInfo);
-    }
+  private static final String YARN_CONTAINER_TASK_ID_PREFIX
+     = "yarn_";
 
-    @Override
-    public void reregistered(ExecutorDriver driver, SlaveInfo slaveInfo) {
-        LOGGER.debug("ReRegistered");
-    }
+  private Set<String> containerIds;
 
-    @Override
-    public void disconnected(ExecutorDriver driver) {
-        LOGGER.info("Disconnected");
-    }
+  public MyriadExecutor(Set<String> containerTaskIds) {
+    this.containerIds = containerTaskIds;
+  }
 
-    @Override
-    public void launchTask(final ExecutorDriver driver, final TaskInfo task) {
-      TaskStatus status = TaskStatus.newBuilder()
-        .setTaskId(task.getTaskId())
-        .setState(TaskState.TASK_RUNNING)
+  @Override
+  public void registered(ExecutorDriver driver, ExecutorInfo executorInfo,
+    FrameworkInfo frameworkInfo, SlaveInfo slaveInfo) {
+      LOGGER.debug("Registered ", executorInfo, " for framework ", frameworkInfo, " on mesos slave ", slaveInfo);
+  }
+
+  @Override
+  public void reregistered(ExecutorDriver driver, SlaveInfo slaveInfo) {
+    LOGGER.debug("ReRegistered");
+  }
+
+  @Override
+  public void disconnected(ExecutorDriver driver) {
+    LOGGER.info("Disconnected");
+  }
+
+  @Override
+  public void launchTask(final ExecutorDriver driver, final TaskInfo task) {
+    LOGGER.debug("launchTask received for taskId: " + task.getTaskId());
+    TaskStatus status = TaskStatus.newBuilder()
+      .setTaskId(task.getTaskId())
+      .setState(TaskState.TASK_RUNNING)
+      .build();
+      driver.sendStatusUpdate(status);
+  }
+
+  @Override
+  public void killTask(ExecutorDriver driver, TaskID taskId) {
+    LOGGER.debug("killTask received for taskId: " + taskId.getValue());
+    TaskStatus status;
+
+    if (!taskId.toString().contains(YARN_CONTAINER_TASK_ID_PREFIX)) {
+      // Inform mesos of killing all tasks corresponding to yarn containers that are
+      // currently running 
+      synchronized (containerIds) {
+        for (String containerId : containerIds) {
+          Protos.TaskID containerTaskId = Protos.TaskID.newBuilder()
+            .setValue(YARN_CONTAINER_TASK_ID_PREFIX + containerId)
+            .build();
+            status = TaskStatus.newBuilder().setTaskId(containerTaskId)
+              .setState(TaskState.TASK_KILLED)
+              .build();
+            driver.sendStatusUpdate(status);
+        }
+      }
+
+      // Now kill the node manager task
+      status = TaskStatus.newBuilder()
+        .setTaskId(taskId)
+        .setState(TaskState.TASK_KILLED)
         .build();
       driver.sendStatusUpdate(status);
-    }
+      LOGGER.info("NodeManager shutdown after receiving" +
+        " KillTask for taskId " + taskId.getValue());
+      Runtime.getRuntime().exit(0);
 
-    @Override
-    public void killTask(ExecutorDriver driver, TaskID taskId) {
-        LOGGER.debug("KillTask received for taskId: " + taskId.getValue());
-
-        TaskStatus status = TaskStatus.newBuilder()
-                .setTaskId(taskId)
-                .setState(TaskState.TASK_KILLED)
-                .build();
-        driver.sendStatusUpdate(status);
-        throw new RuntimeException("NodeManager shutdown after receiving" +
-          " KillTask for taskId " + taskId.getValue());
+    } else {
+      LOGGER.debug("Cannot delete tasks corresponding to yarn container " + taskId);
     }
+  }
 
-    @Override
-    public void frameworkMessage(ExecutorDriver driver, byte[] data) {
-        LOGGER.info("Framework message received: ", new String(data, Charset.defaultCharset()));
-    }
+  @Override
+  public void frameworkMessage(ExecutorDriver driver, byte[] data) {
+    LOGGER.info("Framework message received: ", new String(data, Charset.defaultCharset()));
+  }
 
-    @Override
-    public void shutdown(ExecutorDriver driver) {
-        LOGGER.debug("Shutdown");
-    }
+  @Override
+  public void shutdown(ExecutorDriver driver) {
+    LOGGER.debug("Shutdown");
+  }
 
-    @Override
-    public void error(ExecutorDriver driver, String message) {
-        LOGGER.error("Error message: " + message);
-    }
+  @Override
+  public void error(ExecutorDriver driver, String message) {
+    LOGGER.error("Error message: " + message);
+  }
 }

@@ -27,6 +27,7 @@ profiles:
 nmInstances: # NMs to start with. Requires at least 1 NM with a non-zero profile.
   medium: 1 # <profile_name : instances>
 rebalancer: false
+haEnabled: false
 nodemanager:
   jvmMaxMemoryMB: 1024
   cpus: 0.2

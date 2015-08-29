@@ -29,6 +29,7 @@ import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import com.ebay.myriad.scheduler.fgs.YarnNodeCapacityManager;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import com.ebay.myriad.state.MyriadStateStore;
 import com.ebay.myriad.state.SchedulerState;
 import com.ebay.myriad.webapp.HttpConnectorProvider;
 import com.google.inject.AbstractModule;
@@ -94,6 +95,19 @@ public class MyriadModule extends AbstractModule {
     @Singleton
     SchedulerState providesSchedulerState(MyriadConfiguration cfg) {
         LOGGER.debug("Configuring SchedulerState provider");
-        return new SchedulerState(rmContext.getStateStore());
+        MyriadStateStore myriadStateStore = null;
+        if (cfg.isHAEnabled()) {
+            myriadStateStore = providesMyriadStateStore();
+        }
+        return new SchedulerState(myriadStateStore);
+    }
+
+    private MyriadStateStore providesMyriadStateStore() {
+        // TODO (sdaingade) Read the implementation class from yml
+        // once multiple implementations are available.
+        if (rmContext.getStateStore() instanceof MyriadStateStore) {
+            return (MyriadStateStore) rmContext.getStateStore();
+        }
+        return null;
     }
 }

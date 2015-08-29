@@ -9,11 +9,11 @@ import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.ExecutorInfo;
+import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Scalar;
 import org.slf4j.Logger;
@@ -28,14 +28,16 @@ import java.util.Objects;
  * Creates Tasks based on mesos offers
  */
 public interface TaskFactory {
-  TaskInfo createTask(Offer offer, TaskID taskId, NodeTask nodeTask);
+  TaskInfo createTask(Offer offer, FrameworkID frameworkId,
+    TaskID taskId, NodeTask nodeTask);
 
   // TODO(Santosh): This is needed because the ExecutorInfo constructed
   // to launch NM needs to be specified to launch placeholder tasks for
   // yarn containers (for fine grained scaling).
   // If mesos supports just specifying the 'ExecutorId' without the full
   // ExecutorInfo, we wouldn't need this interface method.
-  ExecutorInfo getExecutorInfoForSlave(SlaveID slave, CommandInfo commandInfo);
+  ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId,
+    Offer offer, CommandInfo commandInfo);
 
   /**
    * Creates TaskInfo objects to launch NMs as mesos tasks.
@@ -150,7 +152,7 @@ public interface TaskFactory {
     }
 
     @Override
-    public TaskInfo createTask(Offer offer, TaskID taskId, NodeTask nodeTask) {
+    public TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, NodeTask nodeTask) {
       Objects.requireNonNull(offer, "Offer should be non-null");
       Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
@@ -166,7 +168,7 @@ public interface TaskFactory {
           .build();
 
       CommandInfo commandInfo = getCommandInfo(profile, ports);
-      ExecutorInfo executorInfo = getExecutorInfoForSlave(offer.getSlaveId(), commandInfo);
+      ExecutorInfo executorInfo = getExecutorInfoForSlave(frameworkId, offer, commandInfo);
 
       TaskInfo.Builder taskBuilder = TaskInfo.newBuilder()
           .setName("task-" + taskId.getValue())
@@ -208,7 +210,7 @@ public interface TaskFactory {
     }
 
     @Override
-    public ExecutorInfo getExecutorInfoForSlave(SlaveID slave,
+    public ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId, Offer offer,
       CommandInfo commandInfo) {
       Scalar executorMemory = Scalar.newBuilder()
           .setValue(taskUtils.getExecutorMemory()).build();
@@ -216,7 +218,8 @@ public interface TaskFactory {
           .setValue(taskUtils.getExecutorCpus()).build();
 
       ExecutorID executorId = ExecutorID.newBuilder()
-          .setValue(EXECUTOR_PREFIX + slave.getValue())
+          .setValue(EXECUTOR_PREFIX + frameworkId.getValue() +
+              offer.getId().getValue() + offer.getSlaveId().getValue())
           .build();
       return ExecutorInfo
           .newBuilder()

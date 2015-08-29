@@ -17,6 +17,7 @@ package com.ebay.myriad.state;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
 
 import com.ebay.myriad.state.utils.StoreContext;
-import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore;
 
 /**
  * Represents the state of the Myriad scheduler
@@ -48,11 +48,11 @@ public class SchedulerState {
     private Set<Protos.TaskID> activeTasks;
     private Set<Protos.TaskID> lostTasks;
     private Set<Protos.TaskID> killableTasks;
-    private MyriadState myriadState;
+    //private MyriadState myriadState;
     private Protos.FrameworkID frameworkId;
-    private RMStateStore stateStore;
+    private MyriadStateStore stateStore;
 
-    public SchedulerState(RMStateStore stateStore) {
+    public SchedulerState(MyriadStateStore stateStore) {
         this.tasks = new ConcurrentHashMap<>();
         this.pendingTasks = new HashSet<>();
         this.stagingTasks = new HashSet<>();
@@ -78,11 +78,13 @@ public class SchedulerState {
 
     }
 
-    private void addTask(Protos.TaskID taskId, NodeTask node) {
+    // TODO (sdaingade) Clone NodeTask
+    public synchronized void addTask(Protos.TaskID taskId, NodeTask node) {
         this.tasks.put(taskId, node);
+        updateStateStore();
     }
 
-    public void updateTask(Protos.TaskStatus taskStatus) {
+    public synchronized void updateTask(Protos.TaskStatus taskStatus) {
         Objects.requireNonNull(taskStatus, "TaskStatus object shouldn't be null");
         Protos.TaskID taskId = taskStatus.getTaskId();
         if (this.tasks.containsKey(taskId)) {
@@ -91,10 +93,9 @@ public class SchedulerState {
         updateStateStore();
     }
 
-    public void makeTaskPending(Protos.TaskID taskId) {
+    public synchronized void makeTaskPending(Protos.TaskID taskId) {
         Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
-
         pendingTasks.add(taskId);
         stagingTasks.remove(taskId);
         activeTasks.remove(taskId);
@@ -103,7 +104,7 @@ public class SchedulerState {
         updateStateStore();
     }
 
-    public void makeTaskStaging(Protos.TaskID taskId) {
+    public synchronized void makeTaskStaging(Protos.TaskID taskId) {
         Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
@@ -115,7 +116,7 @@ public class SchedulerState {
         updateStateStore();
     }
 
-    public void makeTaskActive(Protos.TaskID taskId) {
+    public synchronized void makeTaskActive(Protos.TaskID taskId) {
         Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
@@ -127,7 +128,7 @@ public class SchedulerState {
         updateStateStore();
     }
 
-    public void makeTaskLost(Protos.TaskID taskId) {
+    public synchronized void makeTaskLost(Protos.TaskID taskId) {
         Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
@@ -139,7 +140,7 @@ public class SchedulerState {
         updateStateStore();
     }
 
-    public void makeTaskKillable(Protos.TaskID taskId) {
+    public synchronized void makeTaskKillable(Protos.TaskID taskId) {
         Objects.requireNonNull(taskId,
                 "taskId cannot be empty or null");
 
@@ -152,14 +153,15 @@ public class SchedulerState {
     }
 
     public Set<Protos.TaskID> getKillableTasks() {
-        return this.killableTasks;
+        return Collections.unmodifiableSet(this.killableTasks);
     }
 
-    public NodeTask getTask(Protos.TaskID taskId) {
+    // TODO (sdaingade) Clone NodeTask
+    public synchronized NodeTask getTask(Protos.TaskID taskId) {
         return this.tasks.get(taskId);
     }
 
-    public void removeTask(Protos.TaskID taskId) {
+    public synchronized void removeTask(Protos.TaskID taskId) {
         this.pendingTasks.remove(taskId);
         this.stagingTasks.remove(taskId);
         this.activeTasks.remove(taskId);
@@ -169,15 +171,15 @@ public class SchedulerState {
         updateStateStore();
     }
 
-    public Set<Protos.TaskID> getPendingTaskIds() {
-        return this.pendingTasks;
+    public synchronized Set<Protos.TaskID> getPendingTaskIds() {
+        return Collections.unmodifiableSet(this.pendingTasks);
     }
 
     public Set<Protos.TaskID> getActiveTaskIds() {
-        return this.activeTasks;
+        return Collections.unmodifiableSet(this.activeTasks);
     }
 
-    public Collection<NodeTask> getActiveTasks() {
+    public synchronized Collection<NodeTask> getActiveTasks() {
         List<NodeTask> activeNodeTasks = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(activeTasks)
                 && CollectionUtils.isNotEmpty(tasks.values())) {
@@ -187,10 +189,11 @@ public class SchedulerState {
                 }
             }
         }
-        return activeNodeTasks;
+        return Collections.unmodifiableCollection(activeNodeTasks);
     }
 
-    public NodeTask getNodeTask(SlaveID slaveId) {
+    // TODO (sdaingade) Clone NodeTask
+    public synchronized NodeTask getNodeTask(SlaveID slaveId) {
         for (Map.Entry<Protos.TaskID, NodeTask> entry : tasks.entrySet()) {
             if (entry.getValue().getSlaveId() != null &&
                 entry.getValue().getSlaveId().equals(slaveId)) {
@@ -200,19 +203,17 @@ public class SchedulerState {
         return null;
     }
 
-    public Set<Protos.TaskID> getStagingTaskIds() {
-        return this.stagingTasks;
+    public synchronized Set<Protos.TaskID> getStagingTaskIds() {
+        return Collections.unmodifiableSet(this.stagingTasks);
     }
 
-    public Set<Protos.TaskID> getLostTaskIds() {
-        return this.lostTasks;
+    public synchronized Set<Protos.TaskID> getLostTaskIds() {
+        return Collections.unmodifiableSet(this.lostTasks);
     }
 
-    public MyriadState getMyriadState() {
-        return this.myriadState;
-    }
-
-    public Collection<Protos.TaskStatus> getTaskStatuses() {
+    // TODO (sdaingade) Currently cannot return unmodifiableCollection
+    // as this will break ReconcileService code
+    public synchronized Collection<Protos.TaskStatus> getTaskStatuses() {
         Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>(this.tasks.size());
         Collection<NodeTask> tasks = this.tasks.values();
         for (NodeTask task : tasks) {
@@ -225,42 +226,44 @@ public class SchedulerState {
         return taskStatuses;
     }
 
-    public boolean hasTask(Protos.TaskID taskID) {
+    public synchronized boolean hasTask(Protos.TaskID taskID) {
         return this.tasks.containsKey(taskID);
     }
 
-    public Protos.FrameworkID getFrameworkID() {
+    public synchronized Protos.FrameworkID getFrameworkID() {
          return this.frameworkId;
     }
 
-    public void setFrameworkId(Protos.FrameworkID newFrameworkId) {
+    public synchronized void setFrameworkId(Protos.FrameworkID newFrameworkId) {
         this.frameworkId = newFrameworkId;
         updateStateStore();
     }
 
-    public void updateStateStore() {
-        if (!isMyriadStateStore()) {
+    private synchronized void updateStateStore() {
+        if (this.stateStore == null) {
+            LOGGER.debug("Could not update state to state store as HA is disabled");
             return;
         }
+
         try {
             StoreContext sc = new StoreContext(frameworkId, tasks, pendingTasks,
                 stagingTasks, activeTasks, lostTasks, killableTasks);
-            ((MyriadStateStore) stateStore).storeMyriadState(
-                sc.toSerializedContext().toByteArray());
-            LOGGER.info("Scheduler state stored to state store");
+            stateStore.storeMyriadState(sc);
+            LOGGER.info("Scheduler state updated to state store");
         } catch (Exception e) {
-            LOGGER.error("Failed to write scheduler state to state store", e);
+            LOGGER.error("Failed to update scheduler state to state store", e);
         }
     }
 
-    private void loadStateStore() {
-        if (!isMyriadStateStore()) {
+    private synchronized void loadStateStore() {
+        if (this.stateStore == null) {
+            LOGGER.debug("Could not load state from state store as HA is disabled");
             return;
         }
+
         try {
-            byte[] stateStoreBytes = ((MyriadStateStore) stateStore).loadMyriadState();
-            if (stateStoreBytes != null && stateStoreBytes.length > 0) {
-                StoreContext sc = StoreContext.fromSerializedBytes(stateStoreBytes);
+            StoreContext sc = stateStore.loadMyriadState();
+            if (sc != null) {
                 this.frameworkId = sc.getFrameworkId();
                 this.tasks.putAll(sc.getTasks());
                 this.pendingTasks.addAll(sc.getPendingTasks());
@@ -273,13 +276,4 @@ public class SchedulerState {
             LOGGER.error("Failed to read scheduler state from state store", e);
         }
    }
-
-    private boolean isMyriadStateStore() {
-        if (!(stateStore instanceof MyriadStateStore)) {
-            LOGGER.error("State store is not an instance of " +
-                MyriadStateStore.class.getName() + ". Cannot load/store Scheduler state.");
-            return false;
-        }
-        return true;
-    }
 }

@@ -105,7 +105,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
   @Override
   public String generateCommandLine() {
-    StringBuffer cmdLine = new StringBuffer();
+    StringBuilder cmdLine = new StringBuilder();
 
     generateEnvironment();
     appendCgroupsCmds(cmdLine);
@@ -162,7 +162,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
       ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getShufflePort()).toString());
   }
 
-  protected void appendEnvForNM(StringBuffer cmdLine) {
+  protected void appendEnvForNM(StringBuilder cmdLine) {
     cmdLine.append(" env ");
     for (Map.Entry<String, String> env : environment.entrySet()) {
       cmdLine.append(env.getKey()).append("=").append("\"")
@@ -170,14 +170,14 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     }
   }
 
-  protected void appendCgroupsCmds(StringBuffer cmdLine) { 
+  protected void appendCgroupsCmds(StringBuilder cmdLine) { 
     if (cfg.getNodeManagerConfiguration().getCgroups().or(Boolean.FALSE)) {
       cmdLine.append(" export TASK_DIR=`basename $PWD`;");
       cmdLine.append(" chmod +x /sys/fs/cgroup/cpu/mesos/$TASK_DIR;");
     }
   }
 
-  protected void appendYarnHomeExport(StringBuffer cmdLine) {
+  protected void appendYarnHomeExport(StringBuilder cmdLine) {
     if (environment.containsKey("YARN_HOME")) {
       cmdLine.append(" export YARN_HOME=" + environment.get("YARN_HOME") + ";");
     }

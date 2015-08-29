@@ -19,11 +19,14 @@
 package com.ebay.myriad.executor;
 
 import java.nio.ByteBuffer;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.server.api.ApplicationInitializationContext;
 import org.apache.hadoop.yarn.server.api.ApplicationTerminationContext;
 import org.apache.hadoop.yarn.server.api.AuxiliaryService;
+import org.apache.hadoop.yarn.server.api.ContainerInitializationContext;
 import org.apache.hadoop.yarn.server.api.ContainerTerminationContext;
 
 import org.apache.mesos.MesosExecutorDriver;
@@ -45,6 +48,10 @@ public class MyriadExecutorAuxService  extends AuxiliaryService {
   public static final String YARN_CONTAINER_TASK_ID_PREFIX = "yarn_";
 
   private MesosExecutorDriver driver;
+  private Thread myriadExecutorThread;
+  // Storing container id strings as it is difficult to get access to
+  // NodeManager's NMContext object from an auxiliary service.
+  private Set<String> containerIds = new HashSet<>();
 
   protected MyriadExecutorAuxService() {
     super(SERVICE_NAME);
@@ -54,13 +61,14 @@ public class MyriadExecutorAuxService  extends AuxiliaryService {
   protected void serviceStart() throws Exception {
     LOGGER.info("Starting MyriadExecutor...");
 
-    new Thread(new Runnable() {
+    myriadExecutorThread = new Thread(new Runnable() {
       public void run() {
-        driver = new MesosExecutorDriver(new MyriadExecutor());
+        driver = new MesosExecutorDriver(new MyriadExecutor(containerIds));
         LOGGER.error("MyriadExecutor exit with status " +
         Integer.toString(driver.run() == Status.DRIVER_STOPPED ? 0 : 1));
       }
-    }).start();
+    });
+    myriadExecutorThread.start();
   }
 
   @Override
@@ -81,7 +89,20 @@ public class MyriadExecutorAuxService  extends AuxiliaryService {
   }
 
   @Override
+  public void initializeContainer(ContainerInitializationContext initContainerContext) {
+    ContainerId containerId = initContainerContext.getContainerId();
+    synchronized (containerIds) {
+      containerIds.add(containerId.toString());
+    }
+    sendStatus(containerId, TaskState.TASK_RUNNING);
+  }
+
+  @Override
   public void stopContainer(ContainerTerminationContext stopContainerContext) {
+    ContainerId containerId = stopContainerContext.getContainerId();
+    synchronized (containerIds) {
+      containerIds.remove(containerId.toString());
+    }
     sendStatus(stopContainerContext.getContainerId(), TaskState.TASK_FINISHED);
   }
 

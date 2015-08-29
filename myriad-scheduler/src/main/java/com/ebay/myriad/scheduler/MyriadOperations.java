@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -70,6 +71,22 @@ public class MyriadOperations {
         if (activeTasks.size() > nodesToScaleDown.size()) {
             LOGGER.info("Will skip flexing down {} Node Manager instances that were launched but " +
                     "have not yet registered with Resource Manager.", activeTasks.size() - nodesToScaleDown.size());
+        }
+        
+        // If a NM is flexed down it takes time for the RM to realize the NM is no longer up
+        // We need to make sure we filter out nodes that have already been flexed down
+        // but have not disappeared from the RM's view of the cluster
+        for (Iterator<String> iterator = nodesToScaleDown.iterator(); iterator.hasNext();) {
+            String nodeToScaleDown = iterator.next();
+            boolean nodePresentInMyriad = false;
+            for (NodeTask nodeTask : activeTasks) {
+                if (nodeTask.getHostname().equals(nodeToScaleDown)) {
+                    nodePresentInMyriad = true;    
+                }
+            }
+            if (!nodePresentInMyriad) {
+                iterator.remove();
+            }
         }
 
         // TODO(Santosh): Make this more efficient by using a Map<HostName, NodeTask> in scheduler state

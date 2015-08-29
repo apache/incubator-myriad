@@ -18,13 +18,15 @@
 
 package com.ebay.myriad.state;
 
+import com.ebay.myriad.state.utils.StoreContext;
+
 /**
  * Interface implemented by all Myriad State Store implementations 
  */
 public interface MyriadStateStore {
 
-  byte[] loadMyriadState() throws Exception;
+  StoreContext loadMyriadState() throws Exception;
 
-  void storeMyriadState(byte[] myriadState) throws Exception;
+  void storeMyriadState(StoreContext storeContext) throws Exception;
 
 }

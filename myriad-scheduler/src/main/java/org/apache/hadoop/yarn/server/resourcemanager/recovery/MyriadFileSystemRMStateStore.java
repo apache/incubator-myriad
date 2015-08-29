@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ebay.myriad.state.MyriadStateStore;
+import com.ebay.myriad.state.utils.StoreContext;
 
 /**
  * StateStore that stores Myriad state in addition to RM state to DFS. 
@@ -43,7 +44,7 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore
   private static final String MYRIAD_STATE_FILE = "MyriadState";
 
   private Path myriadPathRoot = null;
-  private byte[] myriadState = null; 
+  private byte[] myriadStateBytes = null; 
 
   @Override
   public synchronized void initInternal(Configuration conf) throws Exception{
@@ -69,8 +70,8 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore
       // Throws IOException if file is not present.
       FileStatus fileStatus = fs.listStatus(myriadStatePath)[0];
       FSDataInputStream in = fs.open(myriadStatePath);        
-      myriadState = new byte[(int) fileStatus.getLen()];
-      in.readFully(myriadState);
+      myriadStateBytes = new byte[(int) fileStatus.getLen()];
+      in.readFully(myriadStateBytes);
       in.close();
     } catch (IOException e) {
       LOGGER.error("State information for Myriad could not be loaded from: "
@@ -80,22 +81,22 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore
   }
 
   @Override
-  public synchronized byte[] loadMyriadState() throws Exception {
-    byte[] ms = null;
-    if (myriadState != null) {
-      ms = myriadState.clone();
-      myriadState = null;
+  public synchronized StoreContext loadMyriadState() throws Exception {
+    StoreContext sc = null;
+    if (myriadStateBytes != null && myriadStateBytes.length > 0) {
+      sc = StoreContext.fromSerializedBytes(myriadStateBytes);
+      myriadStateBytes = null;
     }
-    return ms;
+    return sc;
   }
 
   @Override
-  public synchronized void storeMyriadState(byte[] myriadState) throws Exception{
+  public synchronized void storeMyriadState(StoreContext sc) throws Exception{
     Path myriadStatePath = new Path(myriadPathRoot, MYRIAD_STATE_FILE);
 
     LOGGER.info("Storing state informatio for Myriad at: " + myriadStatePath);
     try {
-      updateFile(myriadStatePath, myriadState);
+      updateFile(myriadStatePath, sc.toSerializedContext().toByteArray());
     } catch (Exception e) {
         LOGGER.error("State information for Myriad could not be stored at: "
                 + myriadStatePath, e);
