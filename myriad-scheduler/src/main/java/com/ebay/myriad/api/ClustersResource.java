@@ -60,38 +60,89 @@ public class ClustersResource {
     @Timed
     @PUT
     @Path("/flexup")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response flexUp(FlexUpClusterRequest request) {
         Preconditions.checkNotNull(request,
                 "request object cannot be null or empty");
 
-        // TODO(mohit): Validation
         LOGGER.info("Received Flexup Cluster Request");
-
 
         Integer instances = request.getInstances();
         String profile = request.getProfile();
 
-        LOGGER.info("Instances: ", instances);
-        LOGGER.info("Profile: ", profile);
+        LOGGER.info("Instances: {}", instances);
+        LOGGER.info("Profile: {}", profile);
 
-        this.myriadOperations.flexUpCluster(instances, profile);
-        return Response.ok().build();
+        // Validate profile request
+        Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
+        if (!this.profileManager.exists(profile)) {
+            response.status(Response.Status.BAD_REQUEST)
+                    .entity("Profile does not exist: " + profile);
+            LOGGER.error("Provided profile does not exist " + profile);
+        } else if (!this.isValidInstanceSize(instances)) {
+            response.status(Response.Status.BAD_REQUEST)
+                    .entity("Invalid instance size: " + instances);
+            LOGGER.error("Invalid instance size request " + instances);
+        }
+
+        Response returnResponse = response.build();
+        if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
+            this.myriadOperations.flexUpCluster(instances, profile);
+        }
+
+        return returnResponse;
     }
 
     @Timed
     @PUT
     @Path("/flexdown")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response flexDown(FlexDownClusterRequest request) {
         Preconditions.checkNotNull(request,
                 "request object cannot be null or empty");
 
-        // TODO(mohit): Make safer.
-        this.myriadOperations.flexDownCluster(request.getInstances());
-        return Response.ok().build();
+        Integer instances = request.getInstances();
+
+        LOGGER.info("Received flexdown request");
+        LOGGER.info("Instances: " + instances);
+
+        Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
+
+        if (!this.isValidInstanceSize(instances)) {
+            response.status(Response.Status.BAD_REQUEST)
+                    .entity("Invalid instance size: " + instances);
+            LOGGER.error("Invalid instance size request " + instances);
+        }
+
+        // warn that number of requested instances isn't available
+        // but instances will still be flexed down
+        Integer flexibleInstances = this.getFlexibleInstances();
+        if (flexibleInstances < instances)  {
+            response.entity("Number of requested instances is greater than available.");
+            // just doing a simple check here. pass the requested number of instances
+            // to myriadOperations and let it sort out how many actually get flexxed down.
+            LOGGER.warn("Requested number of instances greater than available: {} < {}", flexibleInstances, instances);
+        }
+
+        Response returnResponse = response.build();
+        if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
+            this.myriadOperations.flexDownCluster(instances);
+        }
+        return returnResponse;
+    }
+
+    private boolean isValidInstanceSize(Integer instances) {
+        return (instances > 0);
+    }
+
+    // TODO (mohit): put this in Myriad Operations?
+    private Integer getFlexibleInstances() {
+        // this follows the logic of myriadOperations.flexDownCluster
+        return this.schedulerState.getActiveTaskIds().size()
+                + this.schedulerState.getStagingTaskIds().size()
+                + this.schedulerState.getPendingTaskIds().size();
     }
 
 }
