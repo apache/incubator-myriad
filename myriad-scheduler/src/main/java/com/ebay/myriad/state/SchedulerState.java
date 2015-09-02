@@ -48,7 +48,6 @@ public class SchedulerState {
     private Set<Protos.TaskID> activeTasks;
     private Set<Protos.TaskID> lostTasks;
     private Set<Protos.TaskID> killableTasks;
-    //private MyriadState myriadState;
     private Protos.FrameworkID frameworkId;
     private MyriadStateStore stateStore;
 
@@ -152,7 +151,7 @@ public class SchedulerState {
         updateStateStore();
     }
 
-    public Set<Protos.TaskID> getKillableTasks() {
+    public synchronized Set<Protos.TaskID> getKillableTasks() {
         return Collections.unmodifiableSet(this.killableTasks);
     }
 
@@ -175,7 +174,7 @@ public class SchedulerState {
         return Collections.unmodifiableSet(this.pendingTasks);
     }
 
-    public Set<Protos.TaskID> getActiveTaskIds() {
+    public synchronized Set<Protos.TaskID> getActiveTaskIds() {
         return Collections.unmodifiableSet(this.activeTasks);
     }
 

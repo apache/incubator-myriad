@@ -100,10 +100,6 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
               NodeAddedSchedulerEvent nodeAddedEvent = (NodeAddedSchedulerEvent) event;
               NodeId nodeId = nodeAddedEvent.getAddedRMNode().getNodeID();
               String host = nodeId.getHost();
-              if (nodeStore.isPresent(host)) {
-                LOGGER.warn("Ignoring duplicate node registration. Host: {}", host);
-                return;
-              }
 
               SchedulerNode node = yarnScheduler.getSchedulerNode(nodeId);
               nodeStore.add(node);
@@ -197,7 +193,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   public void setNodeCapacity(RMNode rmNode, Resource newCapacity) {
     rmNode.getTotalCapability().setMemory(newCapacity.getMemory());
     rmNode.getTotalCapability().setVirtualCores(newCapacity.getVirtualCores());
-    LOGGER.info("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
+    LOGGER.debug("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
     // updates the scheduler with the new capacity for the NM.
     // the event is handled by the scheduler asynchronously
     rmContext.getDispatcher().getEventHandler().handle(

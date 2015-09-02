@@ -39,9 +39,6 @@ public class MyriadExecutor implements Executor {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MyriadExecutor.class);
 
-  private static final String YARN_CONTAINER_TASK_ID_PREFIX
-     = "yarn_";
-
   private Set<String> containerIds;
 
   public MyriadExecutor(Set<String> containerTaskIds) {
@@ -79,14 +76,15 @@ public class MyriadExecutor implements Executor {
     LOGGER.debug("killTask received for taskId: " + taskId.getValue());
     TaskStatus status;
 
-    if (!taskId.toString().contains(YARN_CONTAINER_TASK_ID_PREFIX)) {
+    if (!taskId.toString().contains(
+      MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX)) {
       // Inform mesos of killing all tasks corresponding to yarn containers that are
       // currently running 
       synchronized (containerIds) {
         for (String containerId : containerIds) {
           Protos.TaskID containerTaskId = Protos.TaskID.newBuilder()
-            .setValue(YARN_CONTAINER_TASK_ID_PREFIX + containerId)
-            .build();
+            .setValue(MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX
+              + containerId).build();
             status = TaskStatus.newBuilder().setTaskId(containerTaskId)
               .setState(TaskState.TASK_KILLED)
               .build();

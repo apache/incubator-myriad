@@ -82,6 +82,7 @@ public class MyriadOperations {
             for (NodeTask nodeTask : activeTasks) {
                 if (nodeTask.getHostname().equals(nodeToScaleDown)) {
                     nodePresentInMyriad = true;    
+                    break;
                 }
             }
             if (!nodePresentInMyriad) {

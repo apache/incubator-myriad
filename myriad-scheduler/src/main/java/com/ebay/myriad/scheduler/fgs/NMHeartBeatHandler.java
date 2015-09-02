@@ -89,11 +89,6 @@ public class NMHeartBeatHandler extends BaseInterceptor {
       }
       break;
 
-      case EXPIRE: {
-        nodeStore.remove(event.getNodeId().getHost());
-      }
-      break;
-
       case STATUS_UPDATE: {
         handleStatusUpdate(event, context);
       }
