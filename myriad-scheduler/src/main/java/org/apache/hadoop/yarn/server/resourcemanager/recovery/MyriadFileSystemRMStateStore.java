@@ -34,7 +34,7 @@ import com.ebay.myriad.state.utils.StoreContext;
  * StateStore that stores Myriad state in addition to RM state to DFS. 
  */
 public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore
-  implements MyriadStateStore{
+  implements MyriadStateStore {
 
   private static final Logger LOGGER =
     LoggerFactory.getLogger(MyriadFileSystemRMStateStore.class);
@@ -94,7 +94,7 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore
   public synchronized void storeMyriadState(StoreContext sc) throws Exception{
     Path myriadStatePath = new Path(myriadPathRoot, MYRIAD_STATE_FILE);
 
-    LOGGER.info("Storing state informatio for Myriad at: " + myriadStatePath);
+    LOGGER.debug("Storing state information for Myriad at: " + myriadStatePath);
     try {
       updateFile(myriadStatePath, sc.toSerializedContext().toByteArray());
     } catch (Exception e) {

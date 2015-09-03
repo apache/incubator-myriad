@@ -55,11 +55,14 @@ public interface TaskFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
     private MyriadConfiguration cfg;
     private TaskUtils taskUtils;
+    private ExecutorCommandLineGenerator clGenerator;
 
     @Inject
-    public NMTaskFactoryImpl(MyriadConfiguration cfg, TaskUtils taskUtils) {
+    public NMTaskFactoryImpl(MyriadConfiguration cfg, TaskUtils taskUtils,
+      ExecutorCommandLineGenerator clGenerator) {
       this.cfg = cfg;
       this.taskUtils = taskUtils;
+      this.clGenerator = clGenerator;
     }
 
     //Utility function to get the first NMPorts.expectedNumPorts number of ports of an offer
@@ -112,7 +115,6 @@ public interface TaskFactory {
     private CommandInfo getCommandInfo(NMProfile profile, NMPorts ports) {
       MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
       CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
-      ExecutorCommandLineGenerator clGenerator;
       String cmd;
 
       if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
@@ -122,8 +124,7 @@ public interface TaskFactory {
             "and/or frameworkSuperUser not set!");
         }
         String nodeManagerUri = myriadExecutorConfiguration.getNodeManagerUri().get();
-        clGenerator = new DownloadNMExecutorCLGenImpl(cfg, profile, ports, nodeManagerUri);
-        cmd = clGenerator.generateCommandLine();
+        cmd = clGenerator.generateCommandLine(profile, ports);
 
         //get the nodemanagerURI
         //We're going to extract ourselves, so setExtract is false
@@ -140,8 +141,7 @@ public interface TaskFactory {
         commandInfo.setUser(cfg.getFrameworkSuperUser().get());
 
       } else {
-        clGenerator = new NMExecutorCLGenImpl(cfg, profile, ports);
-        cmd = clGenerator.generateCommandLine();
+        cmd = clGenerator.generateCommandLine(profile, ports);
         commandInfo.setValue("echo \"" + cmd + "\";" + cmd);
 
         if (cfg.getFrameworkUser().isPresent()) {

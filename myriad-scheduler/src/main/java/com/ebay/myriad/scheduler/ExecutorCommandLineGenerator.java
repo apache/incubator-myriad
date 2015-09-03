@@ -22,5 +22,5 @@ package com.ebay.myriad.scheduler;
  * Interface to plugin multiple implementations for executor command generation  
  */
 public interface ExecutorCommandLineGenerator {
-    String generateCommandLine();
+    String generateCommandLine(NMProfile profile, NMPorts ports);
 }

@@ -248,7 +248,6 @@ public class SchedulerState {
             StoreContext sc = new StoreContext(frameworkId, tasks, pendingTasks,
                 stagingTasks, activeTasks, lostTasks, killableTasks);
             stateStore.storeMyriadState(sc);
-            LOGGER.info("Scheduler state updated to state store");
         } catch (Exception e) {
             LOGGER.error("Failed to update scheduler state to state store", e);
         }
@@ -270,6 +269,15 @@ public class SchedulerState {
                 this.activeTasks.addAll(sc.getActiveTasks());
                 this.lostTasks.addAll(sc.getLostTasks());
                 this.killableTasks.addAll(sc.getKillableTasks());
+
+                LOGGER.info("Loaded Myriad state from state store successfully.");
+                LOGGER.debug("State Store state includes " +
+                  "frameworkId: {}, pending tasks count: {}, staging tasks count: {} " +
+                  "active tasks count: {}, lost tasks count: {}, " +
+                  "and killable tasks count: {}", frameworkId.getValue(),
+                  this.pendingTasks.size(), this.stagingTasks.size(),
+                  this.activeTasks.size(), this.lostTasks.size(),
+                  this.killableTasks.size());
             }
         }  catch (Exception e) {
             LOGGER.error("Failed to read scheduler state from state store", e);

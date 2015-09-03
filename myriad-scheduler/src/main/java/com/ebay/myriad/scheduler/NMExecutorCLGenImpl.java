@@ -93,21 +93,16 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
   private Map<String, String> environment = new HashMap<>();
   protected MyriadConfiguration cfg;
-  private NMProfile profile;
-  private NMPorts ports;
 
-  public NMExecutorCLGenImpl(MyriadConfiguration cfg, NMProfile profile,
-    NMPorts ports) {
+  public NMExecutorCLGenImpl(MyriadConfiguration cfg) {
     this.cfg = cfg;
-    this.profile = profile;
-    this.ports = ports;
   }
 
   @Override
-  public String generateCommandLine() {
+  public String generateCommandLine(NMProfile profile, NMPorts ports) {
     StringBuilder cmdLine = new StringBuilder();
 
-    generateEnvironment();
+    generateEnvironment(profile, ports);
     appendCgroupsCmds(cmdLine);
     appendYarnHomeExport(cmdLine);
     appendEnvForNM(cmdLine);
@@ -115,8 +110,8 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     return cmdLine.toString();
   }
 
-  protected void generateEnvironment() {
-    //yarnEnvironemnt configuration from yaml file 
+  protected void generateEnvironment(NMProfile profile, NMPorts ports) {
+    //yarnEnvironemnt configuration from yaml file
     Map<String, String> yarnEnvironmentMap = cfg.getYarnEnvironment();
     if (yarnEnvironmentMap != null) {
       environment.putAll(yarnEnvironmentMap);

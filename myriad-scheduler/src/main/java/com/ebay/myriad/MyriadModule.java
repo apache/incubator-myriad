@@ -16,6 +16,7 @@
 package com.ebay.myriad;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
 import com.ebay.myriad.policy.LeastAMNodesFirstPolicy;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
@@ -24,6 +25,9 @@ import com.ebay.myriad.scheduler.fgs.NMHeartBeatHandler;
 import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.scheduler.fgs.NodeStore;
 import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
+import com.ebay.myriad.scheduler.DownloadNMExecutorCLGenImpl;
+import com.ebay.myriad.scheduler.ExecutorCommandLineGenerator;
+import com.ebay.myriad.scheduler.NMExecutorCLGenImpl;
 import com.ebay.myriad.scheduler.ReconcileService;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
@@ -98,6 +102,13 @@ public class MyriadModule extends AbstractModule {
         MyriadStateStore myriadStateStore = null;
         if (cfg.isHAEnabled()) {
             myriadStateStore = providesMyriadStateStore();
+            if (myriadStateStore == null) {
+                throw new RuntimeException("Could not find a state store" +
+                    " implementation for Myriad. The 'yarn.resourcemanager.store.class'" +
+                    " property should be set to a class implementing the" +
+                    " MyriadStateStore interface. For e.g." +
+                    " org.apache.hadoop.yarn.server.resourcemanager.recovery.MyriadFileSystemRMStateStore");
+            }
         }
         return new SchedulerState(myriadStateStore);
     }
@@ -110,4 +121,19 @@ public class MyriadModule extends AbstractModule {
         }
         return null;
     }
+
+    @Provides
+    @Singleton
+    ExecutorCommandLineGenerator providesCLIGenerator(MyriadConfiguration cfg) {
+        ExecutorCommandLineGenerator cliGenerator = null;
+        MyriadExecutorConfiguration myriadExecutorConfiguration =
+            cfg.getMyriadExecutorConfiguration();
+        if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
+            cliGenerator = new DownloadNMExecutorCLGenImpl(cfg,
+               myriadExecutorConfiguration.getNodeManagerUri().get());
+        } else {
+            cliGenerator = new NMExecutorCLGenImpl(cfg);
+        }
+        return cliGenerator;
+    }    
 }

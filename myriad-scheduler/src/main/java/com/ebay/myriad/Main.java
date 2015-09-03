@@ -95,13 +95,13 @@ public class Main {
         initWebApp(injector);
         initHealthChecks(injector);
         initProfiles(injector);
-        //validateNMInstances(injector);
+        validateNMInstances(injector);
         initDisruptors(injector);
 
         initRebalancerService(cfg, injector);
         initTerminatorService(injector);
         startMesosDriver(injector);
-        //startNMInstances(injector);
+        startNMInstances(injector);
     }
 
     private void startMesosDriver(Injector injector) {

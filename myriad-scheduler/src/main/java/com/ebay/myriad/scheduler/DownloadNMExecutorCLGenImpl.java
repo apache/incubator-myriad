@@ -35,19 +35,18 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
 
   private final String nodeManagerUri;
 
-  public DownloadNMExecutorCLGenImpl(MyriadConfiguration cfg, NMProfile profile,
-    NMPorts ports, String nodeManagerUri) {
-    super(cfg, profile, ports);
+  public DownloadNMExecutorCLGenImpl(MyriadConfiguration cfg,
+    String nodeManagerUri) {
+    super(cfg);
     this.nodeManagerUri = nodeManagerUri;
   }
 
 @Override
-  public String generateCommandLine() {
-
+  public String generateCommandLine(NMProfile profile, NMPorts ports) {
     StringBuilder cmdLine = new StringBuilder();
     LOGGER.info("Using remote distribution");
 
-    generateEnvironment();
+    generateEnvironment(profile, ports);
     appendNMExtractionCommands(cmdLine);
     appendCgroupsCmds(cmdLine);
     appendYarnHomeExport(cmdLine);
