@@ -124,6 +124,17 @@ export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so
     <value>com.ebay.myriad.scheduler.yarn.MyriadFairScheduler</value>
     <description>One can configure other scehdulers as well from following list: com.ebay.myriad.scheduler.yarn.MyriadCapacityScheduler, com.ebay.myriad.scheduler.yarn.MyriadFifoScheduler</description>
 </property>
+<property>
+    <description>A comma separated list of services where service name should only contain a-zA-Z0-9_ and can not start with numbers</description>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle,myriad_executor</value>
+    <!-- If using MapR distribution
+    <value>mapreduce_shuffle,mapr_direct_shuffle,myriad_executor</value> -->
+</property>
+<property>
+    <name>yarn.nodemanager.aux-services.myriad_executor.class</name>
+    <value>com.ebay.myriad.executor.MyriadExecutorAuxService</value>
+</property>
 
 ```
 
