@@ -16,6 +16,7 @@
 package com.ebay.myriad;
 
 import com.ebay.myriad.configuration.MyriadConfiguration;
+import com.ebay.myriad.configuration.MyriadExecutorConfiguration;
 import com.ebay.myriad.policy.LeastAMNodesFirstPolicy;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
@@ -24,12 +25,15 @@ import com.ebay.myriad.scheduler.fgs.NMHeartBeatHandler;
 import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.scheduler.fgs.NodeStore;
 import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
+import com.ebay.myriad.scheduler.DownloadNMExecutorCLGenImpl;
+import com.ebay.myriad.scheduler.ExecutorCommandLineGenerator;
+import com.ebay.myriad.scheduler.NMExecutorCLGenImpl;
 import com.ebay.myriad.scheduler.ReconcileService;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import com.ebay.myriad.scheduler.fgs.YarnNodeCapacityManager;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
-import com.ebay.myriad.state.MyriadState;
+import com.ebay.myriad.state.MyriadStateStore;
 import com.ebay.myriad.state.SchedulerState;
 import com.ebay.myriad.webapp.HttpConnectorProvider;
 import com.google.inject.AbstractModule;
@@ -40,10 +44,8 @@ import com.google.inject.Singleton;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
-import org.apache.mesos.state.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * Guice Module for Myriad
@@ -95,11 +97,43 @@ public class MyriadModule extends AbstractModule {
 
     @Provides
     @Singleton
-    SchedulerState providesSchedulerState(MyriadConfiguration cfg,
-        State stateStore) {
-
+    SchedulerState providesSchedulerState(MyriadConfiguration cfg) {
         LOGGER.debug("Configuring SchedulerState provider");
-        MyriadState state = new MyriadState(stateStore);
-        return new SchedulerState(state);
+        MyriadStateStore myriadStateStore = null;
+        if (cfg.isHAEnabled()) {
+            myriadStateStore = providesMyriadStateStore();
+            if (myriadStateStore == null) {
+                throw new RuntimeException("Could not find a state store" +
+                    " implementation for Myriad. The 'yarn.resourcemanager.store.class'" +
+                    " property should be set to a class implementing the" +
+                    " MyriadStateStore interface. For e.g." +
+                    " org.apache.hadoop.yarn.server.resourcemanager.recovery.MyriadFileSystemRMStateStore");
+            }
+        }
+        return new SchedulerState(myriadStateStore);
     }
+
+    private MyriadStateStore providesMyriadStateStore() {
+        // TODO (sdaingade) Read the implementation class from yml
+        // once multiple implementations are available.
+        if (rmContext.getStateStore() instanceof MyriadStateStore) {
+            return (MyriadStateStore) rmContext.getStateStore();
+        }
+        return null;
+    }
+
+    @Provides
+    @Singleton
+    ExecutorCommandLineGenerator providesCLIGenerator(MyriadConfiguration cfg) {
+        ExecutorCommandLineGenerator cliGenerator = null;
+        MyriadExecutorConfiguration myriadExecutorConfiguration =
+            cfg.getMyriadExecutorConfiguration();
+        if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
+            cliGenerator = new DownloadNMExecutorCLGenImpl(cfg,
+               myriadExecutorConfiguration.getNodeManagerUri().get());
+        } else {
+            cliGenerator = new NMExecutorCLGenImpl(cfg);
+        }
+        return cliGenerator;
+    }    
 }

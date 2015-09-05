@@ -15,6 +15,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoSchedule
  * via the {@link YarnSchedulerInterceptor} interface.
  */
 public class MyriadFifoScheduler extends FifoScheduler {
+  private Configuration conf;
 
   private RMContext rmContext;
   private YarnSchedulerInterceptor yarnSchedulerInterceptor;
@@ -47,8 +48,14 @@ public class MyriadFifoScheduler extends FifoScheduler {
 
   @Override
   public synchronized void serviceInit(Configuration conf) throws Exception {
-    this.yarnSchedulerInterceptor.init(conf, this, rmContext);
+    this.conf = conf;
     super.serviceInit(conf);
+  }
+
+  @Override
+  public synchronized void serviceStart() throws Exception {
+    this.yarnSchedulerInterceptor.init(conf, this, rmContext);
+    super.serviceStart();
   }
 
   @Override

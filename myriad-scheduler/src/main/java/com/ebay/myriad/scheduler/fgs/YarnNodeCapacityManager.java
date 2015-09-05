@@ -12,6 +12,7 @@ import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.NodeId;
@@ -99,10 +100,6 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
               NodeAddedSchedulerEvent nodeAddedEvent = (NodeAddedSchedulerEvent) event;
               NodeId nodeId = nodeAddedEvent.getAddedRMNode().getNodeID();
               String host = nodeId.getHost();
-              if (nodeStore.isPresent(host)) {
-                LOGGER.warn("Ignoring duplicate node registration. Host: {}", host);
-                return;
-              }
 
               SchedulerNode node = yarnScheduler.getSchedulerNode(nodeId);
               nodeStore.add(node);
@@ -196,7 +193,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   public void setNodeCapacity(RMNode rmNode, Resource newCapacity) {
     rmNode.getTotalCapability().setMemory(newCapacity.getMemory());
     rmNode.getTotalCapability().setVirtualCores(newCapacity.getVirtualCores());
-
+    LOGGER.debug("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
     // updates the scheduler with the new capacity for the NM.
     // the event is handled by the scheduler asynchronously
     rmContext.getDispatcher().getEventHandler().handle(
@@ -213,10 +210,12 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         Protos.TaskID taskId = Protos.TaskID.newBuilder()
             .setValue(ContainerTaskStatusRequest.YARN_CONTAINER_TASK_ID_PREFIX + container.getId().toString()).build();
 
+        // TODO (sdaingade) Remove ExecutorInfo from the Node object
+        // as this is now cached in the NodeTask object in scheduler state.
         Protos.ExecutorInfo executorInfo = node.getExecInfo();
         if (executorInfo == null) {
             executorInfo = Protos.ExecutorInfo.newBuilder(
-                taskFactory.getExecutorInfoForSlave(offer.getSlaveId()))
+                 state.getNodeTask(offer.getSlaveId()).getExecutorInfo())
                 .setFrameworkId(offer.getFrameworkId()).build();
             node.setExecInfo(executorInfo);
         }

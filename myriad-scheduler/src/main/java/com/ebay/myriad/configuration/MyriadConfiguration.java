@@ -65,6 +65,11 @@ public class MyriadConfiguration {
   public static final Boolean DEFAULT_REBALANCER = true;
 
   /**
+   * By default ha is turned off.
+   */
+  public static final Boolean DEFAULT_HA_ENABLED = false;
+
+  /**
    * By default framework failover timeout is 1 day.
    */
   public static final Double DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS = 86400000.0;
@@ -109,6 +114,9 @@ public class MyriadConfiguration {
 
   @JsonProperty
   private Boolean rebalancer;
+
+  @JsonProperty
+  private Boolean haEnabled;
 
   @JsonProperty
   private NodeManagerConfiguration nodemanager;
@@ -185,6 +193,10 @@ public class MyriadConfiguration {
 
   public Boolean isRebalancer() {
     return rebalancer != null ? rebalancer : DEFAULT_REBALANCER;
+  }
+
+  public Boolean isHAEnabled() {
+    return haEnabled != null ? haEnabled : DEFAULT_HA_ENABLED;
   }
 
   public NodeManagerConfiguration getNodeManagerConfiguration() {
