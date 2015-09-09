@@ -12,6 +12,7 @@ The name _Myriad_ means, _countless or extremely great number_. In context of th
 
 * [How Myriad works](docs/how-it-works.md)
 * [Developing Myriad](docs/myriad-dev.md)
+* [Deploying the Myriad Resource-Manger using Docker](docker/README.md)
 * [Local vagrant setup guide](docs/vagrant.md)
 * [Myriad REST API](docs/API.md)
 * [Auto-scaling YARN cluster](docs/control-plane-algorithm.md)
