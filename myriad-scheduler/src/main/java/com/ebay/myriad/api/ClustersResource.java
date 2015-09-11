@@ -18,11 +18,11 @@ package com.ebay.myriad.api;
 import com.codahale.metrics.annotation.Timed;
 import com.ebay.myriad.api.model.FlexDownClusterRequest;
 import com.ebay.myriad.api.model.FlexUpClusterRequest;
-import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.scheduler.MyriadOperations;
 import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,17 +41,14 @@ import javax.ws.rs.core.Response;
 public class ClustersResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClustersResource.class);
 
-    private MyriadConfiguration cfg;
-    private SchedulerState schedulerState;
-    private NMProfileManager profileManager;
-    private MyriadOperations myriadOperations;
+    private final SchedulerState schedulerState;
+    private final NMProfileManager profileManager;
+    private final MyriadOperations myriadOperations;
 
     @Inject
-    public ClustersResource(MyriadConfiguration cfg,
-                            SchedulerState state,
+    public ClustersResource(SchedulerState state,
                             NMProfileManager profileManager,
                             MyriadOperations myriadOperations) {
-        this.cfg = cfg;
         this.schedulerState = state;
         this.profileManager = profileManager;
         this.myriadOperations = myriadOperations;
@@ -66,25 +63,18 @@ public class ClustersResource {
         Preconditions.checkNotNull(request,
                 "request object cannot be null or empty");
 
-        LOGGER.info("Received Flexup Cluster Request");
-
         Integer instances = request.getInstances();
         String profile = request.getProfile();
-
-        LOGGER.info("Instances: {}", instances);
-        LOGGER.info("Profile: {}", profile);
+        LOGGER.info("Received flexup request. Profile: {}, Instances: {}", profile, instances);
 
         // Validate profile request
         Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
         if (!this.profileManager.exists(profile)) {
             response.status(Response.Status.BAD_REQUEST)
-                    .entity("Profile does not exist: " + profile);
-            LOGGER.error("Provided profile does not exist " + profile);
-        } else if (!this.isValidInstanceSize(instances)) {
-            response.status(Response.Status.BAD_REQUEST)
-                    .entity("Invalid instance size: " + instances);
-            LOGGER.error("Invalid instance size request " + instances);
+                    .entity("Profile does not exist: '" + profile + "'");
+            LOGGER.error("Provided profile does not exist: '" + profile + "'");
         }
+        validateInstances(instances, response);
 
         Response returnResponse = response.build();
         if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
@@ -104,26 +94,18 @@ public class ClustersResource {
                 "request object cannot be null or empty");
 
         Integer instances = request.getInstances();
-
-        LOGGER.info("Received flexdown request");
-        LOGGER.info("Instances: " + instances);
+        LOGGER.info("Received flexdown request. Instances: {}", instances);
 
         Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
+        validateInstances(instances, response);
 
-        if (!this.isValidInstanceSize(instances)) {
-            response.status(Response.Status.BAD_REQUEST)
-                    .entity("Invalid instance size: " + instances);
-            LOGGER.error("Invalid instance size request " + instances);
-        }
-
-        // warn that number of requested instances isn't available
-        // but instances will still be flexed down
-        Integer flexibleInstances = this.getFlexibleInstances();
-        if (flexibleInstances < instances)  {
-            response.entity("Number of requested instances is greater than available.");
-            // just doing a simple check here. pass the requested number of instances
-            // to myriadOperations and let it sort out how many actually get flexxed down.
-            LOGGER.warn("Requested number of instances greater than available: {} < {}", flexibleInstances, instances);
+        Integer numFlexedUp = this.getNumFlexedupNMs();
+        if (numFlexedUp < instances)  {
+            String message = String.format("Number of requested instances for flexdown is greater than the number " +
+                "of Node Managers flexed up. Requested: %d, Flexed Up: %d. Only %d Node Managers " +
+                "will be flexed down", instances, numFlexedUp, numFlexedUp);
+            response.entity(message);
+            LOGGER.warn(message);
         }
 
         Response returnResponse = response.build();
@@ -133,13 +115,15 @@ public class ClustersResource {
         return returnResponse;
     }
 
-    private boolean isValidInstanceSize(Integer instances) {
-        return (instances > 0);
+    private void validateInstances(Integer instances, ResponseBuilder response) {
+      if (!(instances > 0)) {
+          response.status(Response.Status.BAD_REQUEST)
+                  .entity("Invalid instance size: " + instances);
+          LOGGER.error("Invalid instance size request " + instances);
+      }
     }
 
-    // TODO (mohit): put this in Myriad Operations?
-    private Integer getFlexibleInstances() {
-        // this follows the logic of myriadOperations.flexDownCluster
+    private Integer getNumFlexedupNMs() {
         return this.schedulerState.getActiveTaskIds().size()
                 + this.schedulerState.getStagingTaskIds().size()
                 + this.schedulerState.getPendingTaskIds().size();
