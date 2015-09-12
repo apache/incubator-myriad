@@ -24,13 +24,17 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class FlexDownClusterRequest {
 
     @NotEmpty
+    public String profile;
+
+    @NotEmpty
     public Integer instances;
 
     public FlexDownClusterRequest() {
     }
 
-    public FlexDownClusterRequest(Integer instances) {
+    public FlexDownClusterRequest(String profile, Integer instances) {
         this.instances = instances;
+        this.profile = profile;
     }
 
     public Integer getInstances() {
@@ -39,6 +43,14 @@ public class FlexDownClusterRequest {
 
     public void setInstances(Integer instances) {
         this.instances = instances;
+    }
+
+    public String getProfile() {
+      return profile;
+    }
+
+    public void setProfile(String profile) {
+      this.profile = profile;
     }
 
     public String toString() {

@@ -185,8 +185,9 @@ public class Main {
     private void startNMInstances(Injector injector) {
       Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
       MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
+      NMProfileManager profileManager = injector.getInstance(NMProfileManager.class);
       for (Map.Entry<String, Integer> entry : nmInstances.entrySet()) {
-        myriadOperations.flexUpCluster(entry.getValue(), entry.getKey());
+        myriadOperations.flexUpCluster(profileManager.get(entry.getKey()), entry.getValue());
       }
     }
 

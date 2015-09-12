@@ -15,13 +15,10 @@
  */
 package com.ebay.myriad.scheduler;
 
-import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.state.SchedulerState;
-import com.google.common.base.Preconditions;
+import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 
 /**
  * {@link Rebalancer} is responsible for scaling registered YARN clusters as per
@@ -30,30 +27,24 @@ import javax.inject.Inject;
 public class Rebalancer implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Rebalancer.class);
 
-    private MyriadConfiguration cfg;
-    private SchedulerState schedulerState;
-    private MyriadDriverManager driverManager;
-    private MyriadOperations myriadOperations;
+    private final SchedulerState schedulerState;
+    private final MyriadOperations myriadOperations;
+    private final NMProfileManager profileManager;
 
     @Inject
-    public Rebalancer(MyriadConfiguration cfg, SchedulerState schedulerState,
-                      MyriadDriverManager driverManager, MyriadOperations myriadOperations) {
-        Preconditions.checkArgument(cfg != null);
-        Preconditions.checkArgument(schedulerState != null);
-        Preconditions.checkArgument(driverManager != null);
-        Preconditions.checkArgument(myriadOperations != null);
-
-        this.cfg = cfg;
+    public Rebalancer(SchedulerState schedulerState,
+                      MyriadOperations myriadOperations,
+                      NMProfileManager profileManager) {
         this.schedulerState = schedulerState;
-        this.driverManager = driverManager;
         this.myriadOperations = myriadOperations;
+        this.profileManager = profileManager;
     }
 
     @Override
     public void run() {
         LOGGER.info("Active {}, Pending {}", schedulerState.getActiveTaskIds().size(), schedulerState.getPendingTaskIds().size());
         if (schedulerState.getActiveTaskIds().size() < 1 && schedulerState.getPendingTaskIds().size() < 1) {
-            myriadOperations.flexUpCluster(1, "small");
+            myriadOperations.flexUpCluster(profileManager.get("small"), 1);
         }
 //            RestAdapter restAdapter = new RestAdapter.Builder()
 //                    .setEndpoint("http://" + host + ":" + port)

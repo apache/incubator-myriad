@@ -15,6 +15,7 @@
  */
 package com.ebay.myriad.state;
 
+import com.ebay.myriad.scheduler.NMProfile;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -191,7 +192,21 @@ public class SchedulerState {
         return Collections.unmodifiableCollection(activeNodeTasks);
     }
 
-    // TODO (sdaingade) Clone NodeTask
+    public synchronized Collection<NodeTask> getActiveTasksForProfile(NMProfile profile) {
+      List<NodeTask> activeNodeTasks = new ArrayList<>();
+      if (CollectionUtils.isNotEmpty(activeTasks)
+          && CollectionUtils.isNotEmpty(tasks.values())) {
+        for (Map.Entry<Protos.TaskID, NodeTask> entry : tasks.entrySet()) {
+          NodeTask nodeTask = entry.getValue();
+          if (activeTasks.contains(entry.getKey()) && nodeTask.getProfile().getName().equals(profile.getName())) {
+            activeNodeTasks.add(nodeTask);
+          }
+        }
+      }
+      return Collections.unmodifiableCollection(activeNodeTasks);
+    }
+
+  // TODO (sdaingade) Clone NodeTask
     public synchronized NodeTask getNodeTask(SlaveID slaveId) {
         for (Map.Entry<Protos.TaskID, NodeTask> entry : tasks.entrySet()) {
             if (entry.getValue().getSlaveId() != null &&

@@ -60,25 +60,19 @@ public class ClustersResource {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response flexUp(FlexUpClusterRequest request) {
-        Preconditions.checkNotNull(request,
-                "request object cannot be null or empty");
+        Preconditions.checkNotNull(request, "request object cannot be null or empty");
 
         Integer instances = request.getInstances();
         String profile = request.getProfile();
         LOGGER.info("Received flexup request. Profile: {}, Instances: {}", profile, instances);
 
-        // Validate profile request
         Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
-        if (!this.profileManager.exists(profile)) {
-            response.status(Response.Status.BAD_REQUEST)
-                    .entity("Profile does not exist: '" + profile + "'");
-            LOGGER.error("Provided profile does not exist: '" + profile + "'");
-        }
-        validateInstances(instances, response);
+        boolean isValidRequest = validateProfile(profile, response);
+        isValidRequest = isValidRequest && validateInstances(instances, response);
 
         Response returnResponse = response.build();
         if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
-            this.myriadOperations.flexUpCluster(instances, profile);
+            this.myriadOperations.flexUpCluster(this.profileManager.get(profile), instances);
         }
 
         return returnResponse;
@@ -90,37 +84,59 @@ public class ClustersResource {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response flexDown(FlexDownClusterRequest request) {
-        Preconditions.checkNotNull(request,
-                "request object cannot be null or empty");
+        Preconditions.checkNotNull(request, "request object cannot be null or empty");
 
         Integer instances = request.getInstances();
-        LOGGER.info("Received flexdown request. Instances: {}", instances);
+        String profile = request.getProfile();
+        LOGGER.info("Received flex down request. Profile: {}, Instances: {}", profile, instances);
 
         Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
-        validateInstances(instances, response);
+        boolean isValidRequest = validateProfile(profile, response);
+        isValidRequest = isValidRequest && validateInstances(instances, response);
 
         Integer numFlexedUp = this.getNumFlexedupNMs();
-        if (numFlexedUp < instances)  {
-            String message = String.format("Number of requested instances for flexdown is greater than the number " +
-                "of Node Managers flexed up. Requested: %d, Flexed Up: %d. Only %d Node Managers " +
-                "will be flexed down", instances, numFlexedUp, numFlexedUp);
+        if (isValidRequest && numFlexedUp < instances)  {
+            String message = String.format("Number of requested instances for flexdown is greater than the number of " +
+                "Node Managers previously flexed up. Requested: %d, Previously flexed Up: %d. " +
+                "Only %d Node Managers will be flexed down", instances, numFlexedUp, numFlexedUp);
             response.entity(message);
             LOGGER.warn(message);
         }
 
         Response returnResponse = response.build();
         if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
-            this.myriadOperations.flexDownCluster(instances);
+            this.myriadOperations.flexDownCluster(profileManager.get(profile), instances);
         }
         return returnResponse;
     }
 
-    private void validateInstances(Integer instances, ResponseBuilder response) {
-      if (!(instances > 0)) {
+    private boolean validateProfile(String profile, ResponseBuilder response) {
+      if (profile == null || profile.isEmpty()) {
+        response.status(Response.Status.BAD_REQUEST).entity("'profile' is null or empty");
+        LOGGER.error("'profile' is null or empty");
+        return false;
+      }
+      if (!this.profileManager.exists(profile)) {
+        response.status(Response.Status.BAD_REQUEST)
+            .entity("Profile does not exist: '" + profile + "'");
+        LOGGER.error("Provided profile does not exist: '" + profile + "'");
+        return false;
+      }
+      return true;
+    }
+
+    private boolean validateInstances(Integer instances, ResponseBuilder response) {
+      if (instances == null) {
+        response.status(Response.Status.BAD_REQUEST).entity("'instances' is null");
+        LOGGER.error("'instances' is null");
+        return false;
+      } else if (!(instances > 0)) {
           response.status(Response.Status.BAD_REQUEST)
                   .entity("Invalid instance size: " + instances);
           LOGGER.error("Invalid instance size request " + instances);
+        return false;
       }
+      return true;
     }
 
     private Integer getNumFlexedupNMs() {

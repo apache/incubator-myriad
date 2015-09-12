@@ -74,6 +74,13 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     SchedulerDriver driver = event.getDriver();
     List<Offer> offers = event.getOffers();
 
+    // Sometimes, we see that mesos sends resource offers before Myriad receives
+    // a notification for "framework registration". This is a simple defensive code
+    // to not process any offers unless Myriad receives a "framework registered" notification.
+    if (schedulerState.getFrameworkID() == null) {
+      LOGGER.warn("Received {} offers, but not processing them since Framework ID is not yet set", offers.size());
+      return;
+    }
     LOGGER.info("Received offers {}", offers.size());
     LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
     driverOperationLock.lock();

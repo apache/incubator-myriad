@@ -15,7 +15,6 @@
  */
 package com.ebay.myriad.scheduler;
 
-import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
@@ -37,65 +36,36 @@ import java.util.Set;
 public class MyriadOperations {
     private static final Logger LOGGER = LoggerFactory.getLogger(MyriadOperations.class);
     private final SchedulerState schedulerState;
-    private MyriadConfiguration cfg;
-    private NMProfileManager profileManager;
     private NodeScaleDownPolicy nodeScaleDownPolicy;
 
     @Inject
-    public MyriadOperations(MyriadConfiguration cfg,
-                            SchedulerState schedulerState,
-                            NMProfileManager profileManager,
+    public MyriadOperations(SchedulerState schedulerState,
                             NodeScaleDownPolicy nodeScaleDownPolicy) {
-        this.cfg = cfg;
-        this.schedulerState = schedulerState;
-        this.profileManager = profileManager;
-        this.nodeScaleDownPolicy = nodeScaleDownPolicy;
+      this.schedulerState = schedulerState;
+      this.nodeScaleDownPolicy = nodeScaleDownPolicy;
     }
 
-    public void flexUpCluster(int instances, String profile) {
+    public void flexUpCluster(NMProfile profile, int instances) {
         Collection<NodeTask> nodes = new HashSet<>();
         for (int i = 0; i < instances; i++) {
-            nodes.add(new NodeTask(profileManager.get(profile)));
+            nodes.add(new NodeTask(profile));
         }
 
-        LOGGER.info("Adding {} instances to cluster", nodes.size());
         this.schedulerState.addNodes(nodes);
     }
 
-    public void flexDownCluster(int numInstancesToScaleDown) {
-        LOGGER.info("About to flex down {} instances", numInstancesToScaleDown);
-
-        int numScaledDown = 0;
-        Set<NodeTask> activeTasks = Sets.newHashSet(this.schedulerState.getActiveTasks());
+    public void flexDownCluster(NMProfile profile, int numInstancesToScaleDown) {
+        Set<NodeTask> activeTasksForProfile = Sets.newHashSet(this.schedulerState.getActiveTasksForProfile(profile));
         List<String> nodesToScaleDown = nodeScaleDownPolicy.getNodesToScaleDown();
-        if (activeTasks.size() > nodesToScaleDown.size()) {
-            LOGGER.info("Will skip flexing down {} Node Manager instances that were launched but " +
-                    "have not yet registered with Resource Manager.", activeTasks.size() - nodesToScaleDown.size());
-        }
-        
-        // If a NM is flexed down it takes time for the RM to realize the NM is no longer up
-        // We need to make sure we filter out nodes that have already been flexed down
-        // but have not disappeared from the RM's view of the cluster
-        for (Iterator<String> iterator = nodesToScaleDown.iterator(); iterator.hasNext();) {
-            String nodeToScaleDown = iterator.next();
-            boolean nodePresentInMyriad = false;
-            for (NodeTask nodeTask : activeTasks) {
-                if (nodeTask.getHostname().equals(nodeToScaleDown)) {
-                    nodePresentInMyriad = true;    
-                    break;
-                }
-            }
-            if (!nodePresentInMyriad) {
-                iterator.remove();
-            }
-        }
+        filterUnregisteredNMs(activeTasksForProfile, nodesToScaleDown);
 
         // TODO(Santosh): Make this more efficient by using a Map<HostName, NodeTask> in scheduler state
+        int numActiveTasksScaledDown = 0;
         for (int i = 0; i < numInstancesToScaleDown; i++) {
-            for (NodeTask nodeTask : activeTasks) {
+            for (NodeTask nodeTask : activeTasksForProfile) {
                 if (nodesToScaleDown.size() > i && nodesToScaleDown.get(i).equals(nodeTask.getHostname())) {
                     this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
-                    numScaledDown++;
+                    numActiveTasksScaledDown++;
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("Marked NodeTask {} on host {} for kill.",
                                 nodeTask.getTaskStatus().getTaskId(), nodeTask.getHostname());
@@ -103,37 +73,64 @@ public class MyriadOperations {
                 }
             }
         }
-        int numActiveTasksScaledDown = numScaledDown;
 
         // Flex down Staging tasks, if any
-        if (numScaledDown < numInstancesToScaleDown) {
+        int numStagingTasksScaledDown = 0;
+        if (numActiveTasksScaledDown < numInstancesToScaleDown) {
             Set<Protos.TaskID> stagingTasks = Sets.newHashSet(this.schedulerState.getStagingTaskIds());
 
             for (Protos.TaskID taskId : stagingTasks) {
-                this.schedulerState.makeTaskKillable(taskId);
-                numScaledDown++;
-                if (numScaledDown == numInstancesToScaleDown) {
+                if (schedulerState.getTask(taskId).getProfile().getName().equals(profile.getName())) {
+                  this.schedulerState.makeTaskKillable(taskId);
+                  numStagingTasksScaledDown++;
+                  if (numStagingTasksScaledDown + numActiveTasksScaledDown == numInstancesToScaleDown) {
                     break;
+                  }
                 }
             }
         }
-        int numStagingTasksScaledDown = numScaledDown - numActiveTasksScaledDown;
 
         // Flex down Pending tasks, if any
-        if (numScaledDown < numInstancesToScaleDown) {
-            Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds());
+        int numPendingTasksScaledDown = 0;
+        if (numStagingTasksScaledDown + numActiveTasksScaledDown < numInstancesToScaleDown) {
+          Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds());
 
-            for (Protos.TaskID taskId : pendingTasks) {
+          for (Protos.TaskID taskId : pendingTasks) {
+              if (schedulerState.getTask(taskId).getProfile().getName().equals(profile.getName())) {
                 this.schedulerState.makeTaskKillable(taskId);
-                numScaledDown++;
-                if (numScaledDown == numInstancesToScaleDown) {
-                    break;
+                numPendingTasksScaledDown++;
+                if (numActiveTasksScaledDown + numStagingTasksScaledDown + numPendingTasksScaledDown
+                    == numInstancesToScaleDown) {
+                  break;
                 }
+              }
             }
         }
-        int numPendingTasksScaledDown = numScaledDown - numStagingTasksScaledDown;
 
-        LOGGER.info("Flexed down {} of {} instances including {} staging instances, and {} pending instances.",
-                numScaledDown, numInstancesToScaleDown, numStagingTasksScaledDown, numPendingTasksScaledDown);
+        if (numActiveTasksScaledDown + numStagingTasksScaledDown + numPendingTasksScaledDown == 0) {
+          LOGGER.info("No Node Managers with profile '{}' found for scaling down.", profile.getName());
+        } else {
+          LOGGER.info("Flexed down {} active, {} staging  and {} pending Node Managers with '{}' profile.",
+              numActiveTasksScaledDown, numStagingTasksScaledDown, numPendingTasksScaledDown, profile.getName());
+        }
     }
+
+  private void filterUnregisteredNMs(Set<NodeTask> activeTasksForProfile, List<String> registeredNMHosts) {
+    // If a NM is flexed down it takes time for the RM to realize the NM is no longer up
+    // We need to make sure we filter out nodes that have already been flexed down
+    // but have not disappeared from the RM's view of the cluster
+    for (Iterator<String> iterator = registeredNMHosts.iterator(); iterator.hasNext();) {
+        String nodeToScaleDown = iterator.next();
+        boolean nodePresentInMyriad = false;
+        for (NodeTask nodeTask : activeTasksForProfile) {
+            if (nodeTask.getHostname().equals(nodeToScaleDown)) {
+                nodePresentInMyriad = true;
+                break;
+            }
+        }
+        if (!nodePresentInMyriad) {
+            iterator.remove();
+        }
+    }
+  }
 }
