@@ -24,7 +24,7 @@ You can also pass in custom values via docker run for the following env vars:
 
 In order for the ResourceManager to operate correctly, you will need to provide 2 configuration files:
 
-* [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/src/main/resources/myriad-config-default.yml)
+* [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml)
 * modified [yarn-site.xml](https://github.com/mesos/myriad/blob/phase1/docs/myriad-dev.md)
 
 If you already had a working Vagrant instance, you will need to run `vagrant reload` in order to allow zookeeper and hdfs port-forwarding.
