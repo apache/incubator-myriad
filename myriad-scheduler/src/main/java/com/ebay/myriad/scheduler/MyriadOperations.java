@@ -55,56 +55,54 @@ public class MyriadOperations {
     }
 
     public void flexDownCluster(NMProfile profile, int numInstancesToScaleDown) {
-        Set<NodeTask> activeTasksForProfile = Sets.newHashSet(this.schedulerState.getActiveTasksForProfile(profile));
-        List<String> nodesToScaleDown = nodeScaleDownPolicy.getNodesToScaleDown();
-        filterUnregisteredNMs(activeTasksForProfile, nodesToScaleDown);
-
-        // TODO(Santosh): Make this more efficient by using a Map<HostName, NodeTask> in scheduler state
-        int numActiveTasksScaledDown = 0;
-        for (int i = 0; i < numInstancesToScaleDown; i++) {
-            for (NodeTask nodeTask : activeTasksForProfile) {
-                if (nodesToScaleDown.size() > i && nodesToScaleDown.get(i).equals(nodeTask.getHostname())) {
-                    this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
-                    numActiveTasksScaledDown++;
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Marked NodeTask {} on host {} for kill.",
-                                nodeTask.getTaskStatus().getTaskId(), nodeTask.getHostname());
-                    }
-                }
-            }
-        }
-
-        // Flex down Staging tasks, if any
-        int numStagingTasksScaledDown = 0;
-        if (numActiveTasksScaledDown < numInstancesToScaleDown) {
-            Set<Protos.TaskID> stagingTasks = Sets.newHashSet(this.schedulerState.getStagingTaskIds());
-
-            for (Protos.TaskID taskId : stagingTasks) {
-                if (schedulerState.getTask(taskId).getProfile().getName().equals(profile.getName())) {
-                  this.schedulerState.makeTaskKillable(taskId);
-                  numStagingTasksScaledDown++;
-                  if (numStagingTasksScaledDown + numActiveTasksScaledDown == numInstancesToScaleDown) {
-                    break;
-                  }
-                }
-            }
-        }
-
         // Flex down Pending tasks, if any
         int numPendingTasksScaledDown = 0;
-        if (numStagingTasksScaledDown + numActiveTasksScaledDown < numInstancesToScaleDown) {
           Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds());
 
           for (Protos.TaskID taskId : pendingTasks) {
-              if (schedulerState.getTask(taskId).getProfile().getName().equals(profile.getName())) {
-                this.schedulerState.makeTaskKillable(taskId);
-                numPendingTasksScaledDown++;
-                if (numActiveTasksScaledDown + numStagingTasksScaledDown + numPendingTasksScaledDown
-                    == numInstancesToScaleDown) {
-                  break;
+            if (schedulerState.getTask(taskId).getProfile().getName().equals(profile.getName())) {
+              this.schedulerState.makeTaskKillable(taskId);
+              numPendingTasksScaledDown++;
+              if (numPendingTasksScaledDown == numInstancesToScaleDown) {
+                break;
+              }
+            }
+          }
+
+        // Flex down Staging tasks, if any
+        int numStagingTasksScaledDown = 0;
+        if (numPendingTasksScaledDown < numInstancesToScaleDown) {
+          Set<Protos.TaskID> stagingTasks = Sets.newHashSet(this.schedulerState.getStagingTaskIds());
+
+          for (Protos.TaskID taskId : stagingTasks) {
+            if (schedulerState.getTask(taskId).getProfile().getName().equals(profile.getName())) {
+              this.schedulerState.makeTaskKillable(taskId);
+              numStagingTasksScaledDown++;
+              if (numStagingTasksScaledDown + numPendingTasksScaledDown == numInstancesToScaleDown) {
+                break;
+              }
+            }
+          }
+        }
+
+        int numActiveTasksScaledDown = 0;
+        if (numPendingTasksScaledDown + numStagingTasksScaledDown < numInstancesToScaleDown) {
+          Set<NodeTask> activeTasksForProfile = Sets.newHashSet(this.schedulerState.getActiveTasksForProfile(profile));
+          List<String> nodesToScaleDown = nodeScaleDownPolicy.getNodesToScaleDown();
+          filterUnregisteredNMs(activeTasksForProfile, nodesToScaleDown);
+
+          for (int i = 0; i < numInstancesToScaleDown - (numPendingTasksScaledDown + numStagingTasksScaledDown); i++) {
+            for (NodeTask nodeTask : activeTasksForProfile) {
+              if (nodesToScaleDown.size() > i && nodesToScaleDown.get(i).equals(nodeTask.getHostname())) {
+                this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
+                numActiveTasksScaledDown++;
+                if (LOGGER.isDebugEnabled()) {
+                  LOGGER.debug("Marked NodeTask {} on host {} for kill.",
+                      nodeTask.getTaskStatus().getTaskId(), nodeTask.getHostname());
                 }
               }
             }
+          }
         }
 
         if (numActiveTasksScaledDown + numStagingTasksScaledDown + numPendingTasksScaledDown == 0) {
