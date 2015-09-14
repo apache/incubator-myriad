@@ -29,4 +29,4 @@ In order for the ResourceManager to operate correctly, you will need to provide 
 
 If you already had a working Vagrant instance, you will need to run `vagrant reload` in order to allow zookeeper and hdfs port-forwarding.
 
-Still having problems connecting to Zookeeper? Be sure that your zkServer and MesosMaster values are correct in the [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/src/main/resources/myriad-config-default.yml) file.
+Still having problems connecting to Zookeeper? Be sure that your zkServer and MesosMaster values are correct in the [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml) file.
