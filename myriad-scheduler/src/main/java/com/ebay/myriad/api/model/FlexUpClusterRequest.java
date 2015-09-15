@@ -16,6 +16,7 @@
 package com.ebay.myriad.api.model;
 
 import com.google.gson.Gson;
+import java.util.List;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -28,12 +29,15 @@ public class FlexUpClusterRequest {
     @NotEmpty
     public String profile;
 
+    public List<String> constraints;
+
     public FlexUpClusterRequest() {
     }
     
-    public FlexUpClusterRequest(Integer instances, String profile) {
+    public FlexUpClusterRequest(Integer instances, String profile, List<String> constraints) {
         this.instances = instances;
         this.profile = profile;
+        this.constraints = constraints;
     }
 
     public Integer getInstances() {
@@ -50,6 +54,14 @@ public class FlexUpClusterRequest {
 
     public void setProfile(String profile) {
         this.profile = profile;
+    }
+
+    public List<String> getConstraints() {
+      return constraints;
+    }
+
+    public void setConstraints(List<String> constraints) {
+      this.constraints = constraints;
     }
 
     public String toString() {

@@ -22,10 +22,7 @@ import com.ebay.myriad.scheduler.MyriadOperations;
 import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.util.List;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -33,6 +30,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RESTful API to resource manager
@@ -40,12 +41,14 @@ import javax.ws.rs.core.Response;
 @Path("/cluster")
 public class ClustersResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClustersResource.class);
+    private static final String CONSTRAINT_FORMAT =
+        "'<mesos_slave_attribute|hostname> LIKE <value_regex>'";
 
     private final SchedulerState schedulerState;
     private final NMProfileManager profileManager;
     private final MyriadOperations myriadOperations;
 
-    @Inject
+  @Inject
     public ClustersResource(SchedulerState state,
                             NMProfileManager profileManager,
                             MyriadOperations myriadOperations) {
@@ -64,11 +67,14 @@ public class ClustersResource {
 
         Integer instances = request.getInstances();
         String profile = request.getProfile();
-        LOGGER.info("Received flexup request. Profile: {}, Instances: {}", profile, instances);
+        List<String> constraints = request.getConstraints();
+        LOGGER.info("Received flexup request. Profile: {}, Instances: {}, Constraints: {}",
+            profile, instances, constraints);
 
         Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
         boolean isValidRequest = validateProfile(profile, response);
         isValidRequest = isValidRequest && validateInstances(instances, response);
+        isValidRequest = isValidRequest && validateConstraints(constraints, response);
 
         Response returnResponse = response.build();
         if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
@@ -88,11 +94,14 @@ public class ClustersResource {
 
         Integer instances = request.getInstances();
         String profile = request.getProfile();
-        LOGGER.info("Received flex down request. Profile: {}, Instances: {}", profile, instances);
+        List<String> constraints = request.getConstraints();
+        LOGGER.info("Received flex down request. Profile: {}, Instances: {}, Constraints: {}",
+            profile, instances, constraints);
 
         Response.ResponseBuilder response = Response.status(Response.Status.ACCEPTED);
         boolean isValidRequest = validateProfile(profile, response);
         isValidRequest = isValidRequest && validateInstances(instances, response);
+        isValidRequest = isValidRequest && validateConstraints(constraints, response);
 
         Integer numFlexedUp = this.getNumFlexedupNMs();
         if (isValidRequest && numFlexedUp < instances)  {
@@ -138,6 +147,45 @@ public class ClustersResource {
       }
       return true;
     }
+
+    private boolean validateConstraints(List<String> constraints, ResponseBuilder response) {
+      if (constraints != null && !constraints.isEmpty()) {
+        boolean valid = validateConstraintsSize(constraints, response);
+        valid = valid && validateLIKEConstraint(constraints.get(0), response);
+        return valid;
+      }
+      return true;
+    }
+
+    private boolean validateConstraintsSize(List<String> constraints, ResponseBuilder response) {
+      if (constraints.size() > 1) {
+        String message = String.format("Only 1 constraint is currently supported. Received: %s", constraints.toString());
+        response.status(Status.BAD_REQUEST).entity(message);
+        LOGGER.error(message);
+        return false;
+      }
+      return true;
+    }
+
+    private boolean validateLIKEConstraint(String constraint, ResponseBuilder response) {
+      if (constraint.isEmpty()) {
+        String message = String.format("The value provided for 'constraints' is empty. Format: %s", CONSTRAINT_FORMAT);
+        response.status(Status.BAD_REQUEST).entity(message);
+        LOGGER.error(message);
+        return false;
+      }
+
+      String[] splits = constraint.split(" LIKE "); // "<key> LIKE <val_regex>"
+      if (splits.length != 2) {
+        String message = String.format("Invalid regex for LIKE operator in constraint: %s. Format: %s",
+            constraint, CONSTRAINT_FORMAT);
+        response.status(Status.BAD_REQUEST).entity(message);
+        LOGGER.error(message);
+        return false;
+      }
+      return true;
+    }
+
 
     private Integer getNumFlexedupNMs() {
         return this.schedulerState.getActiveTaskIds().size()
