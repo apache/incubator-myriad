@@ -44,7 +44,7 @@ public class Rebalancer implements Runnable {
     public void run() {
         LOGGER.info("Active {}, Pending {}", schedulerState.getActiveTaskIds().size(), schedulerState.getPendingTaskIds().size());
         if (schedulerState.getActiveTaskIds().size() < 1 && schedulerState.getPendingTaskIds().size() < 1) {
-            myriadOperations.flexUpCluster(profileManager.get("small"), 1);
+            myriadOperations.flexUpCluster(profileManager.get("small"), 1, null);
         }
 //            RestAdapter restAdapter = new RestAdapter.Builder()
 //                    .setEndpoint("http://" + host + ":" + port)

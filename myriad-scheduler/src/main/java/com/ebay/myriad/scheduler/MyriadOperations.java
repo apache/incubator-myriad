@@ -16,19 +16,20 @@
 package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.policy.NodeScaleDownPolicy;
+import com.ebay.myriad.scheduler.constraints.Constraint;
+import com.ebay.myriad.scheduler.constraints.LikeConstraint;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Myriad scheduler operations
@@ -45,22 +46,24 @@ public class MyriadOperations {
       this.nodeScaleDownPolicy = nodeScaleDownPolicy;
     }
 
-    public void flexUpCluster(NMProfile profile, int instances) {
+    public void flexUpCluster(NMProfile profile, int instances, Constraint constraint) {
         Collection<NodeTask> nodes = new HashSet<>();
         for (int i = 0; i < instances; i++) {
-            nodes.add(new NodeTask(profile));
+            nodes.add(new NodeTask(profile, constraint));
         }
 
         this.schedulerState.addNodes(nodes);
     }
 
-    public void flexDownCluster(NMProfile profile, int numInstancesToScaleDown) {
+    public void flexDownCluster(NMProfile profile, Constraint constraint, int numInstancesToScaleDown) {
         // Flex down Pending tasks, if any
         int numPendingTasksScaledDown = 0;
           Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds());
 
           for (Protos.TaskID taskId : pendingTasks) {
-            if (schedulerState.getTask(taskId).getProfile().getName().equals(profile.getName())) {
+            NodeTask nodeTask = schedulerState.getTask(taskId);
+            if (nodeTask.getProfile().getName().equals(profile.getName()) &&
+                meetsConstraint(nodeTask, constraint)) {
               this.schedulerState.makeTaskKillable(taskId);
               numPendingTasksScaledDown++;
               if (numPendingTasksScaledDown == numInstancesToScaleDown) {
@@ -75,7 +78,9 @@ public class MyriadOperations {
           Set<Protos.TaskID> stagingTasks = Sets.newHashSet(this.schedulerState.getStagingTaskIds());
 
           for (Protos.TaskID taskId : stagingTasks) {
-            if (schedulerState.getTask(taskId).getProfile().getName().equals(profile.getName())) {
+            NodeTask nodeTask = schedulerState.getTask(taskId);
+            if (nodeTask.getProfile().getName().equals(profile.getName()) &&
+                meetsConstraint(nodeTask, constraint)) {
               this.schedulerState.makeTaskKillable(taskId);
               numStagingTasksScaledDown++;
               if (numStagingTasksScaledDown + numPendingTasksScaledDown == numInstancesToScaleDown) {
@@ -93,7 +98,9 @@ public class MyriadOperations {
 
           for (int i = 0; i < numInstancesToScaleDown - (numPendingTasksScaledDown + numStagingTasksScaledDown); i++) {
             for (NodeTask nodeTask : activeTasksForProfile) {
-              if (nodesToScaleDown.size() > i && nodesToScaleDown.get(i).equals(nodeTask.getHostname())) {
+              if (nodesToScaleDown.size() > i &&
+                  nodesToScaleDown.get(i).equals(nodeTask.getHostname()) &&
+                  meetsConstraint(nodeTask, constraint)) {
                 this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
                 numActiveTasksScaledDown++;
                 if (LOGGER.isDebugEnabled()) {
@@ -106,12 +113,31 @@ public class MyriadOperations {
         }
 
         if (numActiveTasksScaledDown + numStagingTasksScaledDown + numPendingTasksScaledDown == 0) {
-          LOGGER.info("No Node Managers with profile '{}' found for scaling down.", profile.getName());
+          LOGGER.info("No Node Managers with profile '{}' and constraint {} found for scaling down.",
+              profile.getName(), constraint.toString());
         } else {
           LOGGER.info("Flexed down {} active, {} staging  and {} pending Node Managers with '{}' profile.",
               numActiveTasksScaledDown, numStagingTasksScaledDown, numPendingTasksScaledDown, profile.getName());
         }
     }
+
+  private boolean meetsConstraint(NodeTask nodeTask, Constraint constraint) {
+    if (constraint != null) {
+      if (constraint.equals(nodeTask.getConstraint())) {
+        return true;
+      }
+      switch (constraint.getType()) {
+        case LIKE:
+          LikeConstraint likeConstraint = (LikeConstraint) constraint;
+          if (likeConstraint.isConstraintOnHostName()) {
+            return likeConstraint.matchesHostName(nodeTask.getHostname());
+          } else {
+            return likeConstraint.matchesSlaveAttributes(nodeTask.getSlaveAttributes());
+          }
+      }
+    }
+    return true;
+  }
 
   private void filterUnregisteredNMs(Set<NodeTask> activeTasksForProfile, List<String> registeredNMHosts) {
     // If a NM is flexed down it takes time for the RM to realize the NM is no longer up

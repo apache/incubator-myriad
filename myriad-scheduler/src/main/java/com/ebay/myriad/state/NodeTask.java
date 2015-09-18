@@ -16,8 +16,11 @@
 package com.ebay.myriad.state;
 
 import com.ebay.myriad.scheduler.NMProfile;
+import com.ebay.myriad.scheduler.constraints.Constraint;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Attribute;
 
 /**
  * Represents a task to be launched by the executor
@@ -37,9 +40,13 @@ public class NodeTask {
      */
     private Protos.ExecutorInfo executorInfo;
 
-    public NodeTask(NMProfile profile) {
+    private Constraint constraint;
+    private List<Attribute> slaveAttributes;
+
+    public NodeTask(NMProfile profile, Constraint constraint) {
         this.profile = profile;
         this.hostname = "";
+        this.constraint = constraint;
     }
 
     public Protos.SlaveID getSlaveId() {
@@ -56,6 +63,10 @@ public class NodeTask {
 
     public void setProfile(NMProfile profile) {
         this.profile = profile;
+    }
+
+    public Constraint getConstraint() {
+      return constraint;
     }
 
     public String getHostname() {
@@ -80,5 +91,13 @@ public class NodeTask {
 
     public void setExecutorInfo(Protos.ExecutorInfo executorInfo) {
         this.executorInfo = executorInfo;
+    }
+
+    public void setSlaveAttributes(List<Attribute> slaveAttributes) {
+      this.slaveAttributes = slaveAttributes;
+    }
+
+    public List<Attribute> getSlaveAttributes() {
+      return slaveAttributes;
     }
 }

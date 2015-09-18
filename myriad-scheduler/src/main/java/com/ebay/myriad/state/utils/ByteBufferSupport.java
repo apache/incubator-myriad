@@ -18,6 +18,9 @@
 
 package com.ebay.myriad.state.utils;
 
+import com.ebay.myriad.scheduler.constraints.Constraint;
+import com.ebay.myriad.scheduler.constraints.Constraint.Type;
+import com.ebay.myriad.scheduler.constraints.LikeConstraint;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -102,6 +105,18 @@ public class ByteBufferSupport {
     byte[] profile = toBytes(nt.getProfile().toString());
     int size = profile.length + INT_SIZE;
 
+    Constraint constraint = nt.getConstraint();
+    Constraint.Type type = constraint == null ? Type.NULL : constraint.getType();
+    size += INT_SIZE;
+
+    byte[] constraintBytes = ZERO_BYTES;
+    if (constraint != null) {
+      constraintBytes = toBytes(constraint.toString());
+      size += constraintBytes.length + INT_SIZE;
+    } else {
+      size += INT_SIZE;
+    }
+
     byte[] hostname = toBytes(nt.getHostname());
     size += hostname.length + INT_SIZE;
 
@@ -126,6 +141,8 @@ public class ByteBufferSupport {
     // Allocate and populate the buffer.
     ByteBuffer bb = createBuffer(size);
     putBytes(bb, profile);
+    bb.putInt(type.ordinal());
+    putBytes(bb, constraintBytes);
     putBytes(bb, hostname);
     putBytes(bb, getSlaveBytes(nt));
     putBytes(bb, getTaskBytes(nt));
@@ -173,7 +190,7 @@ public class ByteBufferSupport {
   public static NodeTask toNodeTask(ByteBuffer bb) {
     NodeTask nt = null;
     if (bb != null && bb.array().length > 0) {
-      nt = new NodeTask(getProfile(bb));
+      nt = new NodeTask(getProfile(bb), getConstraint(bb));
       nt.setHostname(toString(bb));
       nt.setSlaveId(toSlaveId(bb));
       nt.setTaskStatus(toTaskStatus(bb));
@@ -258,6 +275,22 @@ public class ByteBufferSupport {
     } else {
       return null;
     }
+  }
+
+  public static Constraint getConstraint(ByteBuffer bb) {
+    Constraint.Type type = Constraint.Type.values()[bb.getInt()];
+    String p = toString(bb);
+    switch (type) {
+      case NULL:
+        return null;
+
+      case LIKE:
+
+        if (!StringUtils.isEmpty(p)) {
+          return gson.fromJson(p, LikeConstraint.class);
+        }
+    }
+    return null;
   }
 
   public static Protos.SlaveID toSlaveId(ByteBuffer bb) {

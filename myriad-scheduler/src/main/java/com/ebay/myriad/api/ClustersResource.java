@@ -20,9 +20,12 @@ import com.ebay.myriad.api.model.FlexDownClusterRequest;
 import com.ebay.myriad.api.model.FlexUpClusterRequest;
 import com.ebay.myriad.scheduler.MyriadOperations;
 import com.ebay.myriad.scheduler.NMProfileManager;
+import com.ebay.myriad.scheduler.constraints.ConstraintFactory;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -78,7 +81,9 @@ public class ClustersResource {
 
         Response returnResponse = response.build();
         if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
-            this.myriadOperations.flexUpCluster(this.profileManager.get(profile), instances);
+          String constraint = constraints != null && !constraints.isEmpty() ? constraints.get(0) : null;
+          this.myriadOperations.flexUpCluster(this.profileManager.get(profile), instances,
+              ConstraintFactory.createConstraint(constraint));
         }
 
         return returnResponse;
@@ -114,7 +119,9 @@ public class ClustersResource {
 
         Response returnResponse = response.build();
         if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
-            this.myriadOperations.flexDownCluster(profileManager.get(profile), instances);
+            String constraint = constraints != null && !constraints.isEmpty() ? constraints.get(0) : null;
+            this.myriadOperations.flexDownCluster(profileManager.get(profile),
+                ConstraintFactory.createConstraint(constraint), instances);
         }
         return returnResponse;
     }
@@ -177,10 +184,18 @@ public class ClustersResource {
 
       String[] splits = constraint.split(" LIKE "); // "<key> LIKE <val_regex>"
       if (splits.length != 2) {
-        String message = String.format("Invalid regex for LIKE operator in constraint: %s. Format: %s",
+        String message = String.format("Invalid format for LIKE operator in constraint: %s. Format: %s",
             constraint, CONSTRAINT_FORMAT);
         response.status(Status.BAD_REQUEST).entity(message);
         LOGGER.error(message);
+        return false;
+      }
+      try {
+        Pattern.compile(splits[1]);
+      } catch (PatternSyntaxException e) {
+        String message = String.format("Invalid regex for LIKE operator in constraint: %s", constraint);
+        response.status(Status.BAD_REQUEST).entity(message);
+        LOGGER.error(message, e);
         return false;
       }
       return true;
