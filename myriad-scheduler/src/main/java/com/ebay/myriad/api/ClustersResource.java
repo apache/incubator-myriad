@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 @Path("/cluster")
 public class ClustersResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(ClustersResource.class);
-    private static final String CONSTRAINT_FORMAT =
+    private static final String LIKE_CONSTRAINT_FORMAT =
         "'<mesos_slave_attribute|hostname> LIKE <value_regex>'";
 
     private final SchedulerState schedulerState;
@@ -176,7 +176,8 @@ public class ClustersResource {
 
     private boolean validateLIKEConstraint(String constraint, ResponseBuilder response) {
       if (constraint.isEmpty()) {
-        String message = String.format("The value provided for 'constraints' is empty. Format: %s", CONSTRAINT_FORMAT);
+        String message = String.format("The value provided for 'constraints' is empty. Format: %s",
+          LIKE_CONSTRAINT_FORMAT);
         response.status(Status.BAD_REQUEST).entity(message);
         LOGGER.error(message);
         return false;
@@ -185,7 +186,7 @@ public class ClustersResource {
       String[] splits = constraint.split(" LIKE "); // "<key> LIKE <val_regex>"
       if (splits.length != 2) {
         String message = String.format("Invalid format for LIKE operator in constraint: %s. Format: %s",
-            constraint, CONSTRAINT_FORMAT);
+            constraint, LIKE_CONSTRAINT_FORMAT);
         response.status(Status.BAD_REQUEST).entity(message);
         LOGGER.error(message);
         return false;

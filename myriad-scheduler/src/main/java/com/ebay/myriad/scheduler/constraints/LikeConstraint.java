@@ -14,32 +14,34 @@ import org.slf4j.LoggerFactory;
 public class LikeConstraint implements Constraint {
   private static final Logger LOGGER = LoggerFactory.getLogger(LikeConstraint.class);
 
-  private String lhs;
-  private String rhsRegex;
+  private static final String HOSTNAME = "hostname";
+
+  private final String lhs;
+  private final Pattern pattern;
 
   public LikeConstraint(String lhs, String rhsRegex) {
     this.lhs = lhs;
-    this.rhsRegex = rhsRegex;
+    this.pattern = Pattern.compile(rhsRegex);
   }
 
   public boolean isConstraintOnHostName() {
-    return lhs.equalsIgnoreCase("hostname");
+    return lhs.equalsIgnoreCase(HOSTNAME);
   }
 
   public boolean matchesHostName(String hostname) {
-    return lhs.equalsIgnoreCase("hostname") && hostname != null && Pattern.matches(rhsRegex, hostname);
+    return lhs.equalsIgnoreCase(HOSTNAME) && hostname != null && pattern.matcher(hostname).matches();
   }
 
   public boolean matchesSlaveAttributes(Collection<Attribute> attributes) {
-    if (!lhs.equalsIgnoreCase("hostname") && attributes != null) {
+    if (!lhs.equalsIgnoreCase(HOSTNAME) && attributes != null) {
       for (Attribute attr : attributes) {
         if (attr.getName().equalsIgnoreCase(lhs)) {
           switch (attr.getType()) {
             case TEXT:
-              return Pattern.matches(rhsRegex, attr.getText().getValue());
+              return this.pattern.matcher(attr.getText().getValue()).matches();
 
             case SCALAR:
-              return Pattern.matches(rhsRegex, String.valueOf(attr.getScalar().getValue()));
+              return this.pattern.matcher(String.valueOf(attr.getScalar().getValue())).matches();
 
             default:
               LOGGER.warn("LIKE constraint currently doesn't support Mesos slave attributes " +
@@ -78,7 +80,7 @@ public class LikeConstraint implements Constraint {
     if (lhs != null ? !lhs.equals(that.lhs) : that.lhs != null) {
       return false;
     }
-    if (rhsRegex != null ? !rhsRegex.equals(that.rhsRegex) : that.rhsRegex != null) {
+    if (pattern != null ? !pattern.equals(that.pattern) : that.pattern != null) {
       return false;
     }
 
@@ -88,7 +90,7 @@ public class LikeConstraint implements Constraint {
   @Override
   public int hashCode() {
     int result = lhs != null ? lhs.hashCode() : 0;
-    result = 31 * result + (rhsRegex != null ? rhsRegex.hashCode() : 0);
+    result = 31 * result + (pattern != null ? pattern.hashCode() : 0);
     return result;
   }
 }

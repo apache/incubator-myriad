@@ -62,7 +62,7 @@ public class MyriadOperations {
 
           for (Protos.TaskID taskId : pendingTasks) {
             NodeTask nodeTask = schedulerState.getTask(taskId);
-            if (nodeTask.getProfile().getName().equals(profile.getName()) &&
+            if (nodeTask != null && nodeTask.getProfile().getName().equals(profile.getName()) &&
                 meetsConstraint(nodeTask, constraint)) {
               this.schedulerState.makeTaskKillable(taskId);
               numPendingTasksScaledDown++;
@@ -79,7 +79,7 @@ public class MyriadOperations {
 
           for (Protos.TaskID taskId : stagingTasks) {
             NodeTask nodeTask = schedulerState.getTask(taskId);
-            if (nodeTask.getProfile().getName().equals(profile.getName()) &&
+            if (nodeTask != null && nodeTask.getProfile().getName().equals(profile.getName()) &&
                 meetsConstraint(nodeTask, constraint)) {
               this.schedulerState.makeTaskKillable(taskId);
               numStagingTasksScaledDown++;
@@ -134,6 +134,9 @@ public class MyriadOperations {
           } else {
             return likeConstraint.matchesSlaveAttributes(nodeTask.getSlaveAttributes());
           }
+
+        default:
+          return false;
       }
     }
     return true;
