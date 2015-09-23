@@ -154,7 +154,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     addYarnNodemanagerOpt(KEY_NM_WEBAPP_ADDRESS,
       ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getWebAppHttpPort()).toString());
     addYarnNodemanagerOpt(KEY_NM_SHUFFLE_PORT,
-      ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getShufflePort()).toString());
+      Long.valueOf(ports.getShufflePort()).toString());
   }
 
   protected void appendEnvForNM(StringBuilder cmdLine) {
