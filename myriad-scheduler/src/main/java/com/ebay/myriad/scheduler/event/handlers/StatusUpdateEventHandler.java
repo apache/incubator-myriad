@@ -19,15 +19,15 @@
 package com.ebay.myriad.scheduler.event.handlers;
 
 import com.ebay.myriad.scheduler.event.StatusUpdateEvent;
+import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
 import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
+import javax.inject.Inject;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
 
 /**
  * handles and logs mesos status update events
@@ -36,8 +36,14 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusUpdateEventHandler.class);
 
+    private final SchedulerState schedulerState;
+    private final OfferLifecycleManager offerLifecycleManager;
+
     @Inject
-    private SchedulerState schedulerState;
+    public StatusUpdateEventHandler(SchedulerState schedulerState, OfferLifecycleManager offerLifecycleManager) {
+      this.schedulerState = schedulerState;
+      this.offerLifecycleManager = offerLifecycleManager;
+    }
 
     @Override
     public void onEvent(StatusUpdateEvent event,
@@ -47,10 +53,10 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
         this.schedulerState.updateTask(status);
         TaskID taskId = status.getTaskId();
         if (!schedulerState.hasTask(taskId)) {
-            LOGGER.warn("Task: {} not found, status: {}", taskId, status.getState());
+            LOGGER.warn("Task: {} not found, status: {}", taskId.getValue(), status.getState());
             return;
         }
-        LOGGER.info("Status Update for task: {} | state: {}", taskId, status.getState());
+        LOGGER.info("Status Update for task: {} | state: {}", taskId.getValue(), status.getState());
         TaskState state = status.getState();
 
         switch (state) {
@@ -64,16 +70,20 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
                 schedulerState.makeTaskActive(taskId);
                 break;
             case TASK_FINISHED:
+                offerLifecycleManager.declineOutstandingOffers(schedulerState.getTask(taskId).getHostname());
                 schedulerState.removeTask(taskId);
                 break;
             case TASK_FAILED:
                 // Add to pending tasks
-                schedulerState.makeTaskPending(taskId);
+              offerLifecycleManager.declineOutstandingOffers(schedulerState.getTask(taskId).getHostname());
+              schedulerState.makeTaskPending(taskId);
                 break;
             case TASK_KILLED:
+              offerLifecycleManager.declineOutstandingOffers(schedulerState.getTask(taskId).getHostname());
                 schedulerState.removeTask(taskId);
                 break;
             case TASK_LOST:
+              offerLifecycleManager.declineOutstandingOffers(schedulerState.getTask(taskId).getHostname());
                 schedulerState.makeTaskPending(taskId);
                 break;
             default:
