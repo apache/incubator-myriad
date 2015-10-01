@@ -64,6 +64,12 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
 
   private static final Lock driverOperationLock = new ReentrantLock();
 
+  private static final String RESOURCES_CPU_KEY = "cpus";
+  private static final String RESOURCES_MEM_KEY = "mem";
+  private static final String RESOURCES_PORTS_KEY = "ports";
+  private static final String RESOURCES_DISK_KEY = "disk";
+
+
   @Inject
   private SchedulerState schedulerState;
 
@@ -155,7 +161,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
         if (SchedulerUtils.isEligibleForFineGrainedScaling(offer.getHostname(), schedulerState)) {
           if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Picking an offer from slave with hostname {} for fine grained scaling.",
-                offer.getHostname());
+                    offer.getHostname());
           }
           offerLifecycleMgr.addOffers(offer);
         } else {
@@ -175,22 +181,27 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
       return false;
     }
     Map<String, Object> results = new HashMap<String, Object>(5);
+    //Assign default values to avoid NPE
+    results.put(RESOURCES_CPU_KEY, Double.valueOf(0.0));
+    results.put(RESOURCES_MEM_KEY, Double.valueOf(0.0));
+    results.put(RESOURCES_DISK_KEY, Double.valueOf(0.0));
+    results.put(RESOURCES_PORTS_KEY, Integer.valueOf(0));
 
     for (Resource resource : offer.getResourcesList()) {
       if (resourceEvaluators.containsKey(resource.getName())) {
         resourceEvaluators.get(resource.getName()).eval(resource, results);
       } else {
         LOGGER.warn("Ignoring unknown resource type: {}",
-            resource.getName());
+                resource.getName());
       }
     }
-    double cpus = (Double) results.get("cpus");
-    double mem = (Double) results.get("mem");
-    int ports = (Integer) results.get("ports");
+    double cpus = (Double) results.get(RESOURCES_CPU_KEY);
+    double mem = (Double) results.get(RESOURCES_MEM_KEY);
+    int ports = (Integer) results.get(RESOURCES_PORTS_KEY);
 
-    checkResource(cpus < 0, "cpus");
-    checkResource(mem < 0, "mem");
-    checkResource(ports < 0, "port");
+    checkResource(cpus <= 0, RESOURCES_CPU_KEY);
+    checkResource(mem <= 0, RESOURCES_MEM_KEY);
+    checkResource(ports <= 0, RESOURCES_PORTS_KEY);
 
     return checkAggregates(offer, taskToLaunch, ports, cpus, mem);
   }
@@ -243,7 +254,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
       value = new Double(resource.getScalar().getValue());
     } else {
       LOGGER.error(id + " resource was not a scalar: {}", resource
-          .getType().toString());
+              .getType().toString());
     }
     return value;
   }
@@ -256,21 +267,23 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
 
   static {
     resourceEvaluators = new HashMap<String, EvalResources>(4);
-    resourceEvaluators.put("cpus", new EvalResources() {
+    resourceEvaluators.put(RESOURCES_CPU_KEY, new EvalResources() {
       public void eval(Resource resource, Map<String, Object> results) {
-        results.put("cpus", scalarToDouble(resource, "cpus"));
+        results.put(RESOURCES_CPU_KEY, (Double) results.get(RESOURCES_CPU_KEY) +
+                scalarToDouble(resource, RESOURCES_CPU_KEY));
       }
     });
-    resourceEvaluators.put("mem", new EvalResources() {
+    resourceEvaluators.put(RESOURCES_MEM_KEY, new EvalResources() {
       public void eval(Resource resource, Map<String, Object> results) {
-        results.put("mem", scalarToDouble(resource, "mem"));
+        results.put(RESOURCES_MEM_KEY, (Double) results.get(RESOURCES_MEM_KEY) +
+                scalarToDouble(resource, RESOURCES_MEM_KEY));
       }
     });
-    resourceEvaluators.put("disk", new EvalResources() {
+    resourceEvaluators.put(RESOURCES_DISK_KEY, new EvalResources() {
       public void eval(Resource resource, Map<String, Object> results) {
       }
     });
-    resourceEvaluators.put("ports", new EvalResources() {
+    resourceEvaluators.put(RESOURCES_PORTS_KEY, new EvalResources() {
       public void eval(Resource resource, Map<String, Object> results) {
         int ports = 0;
         if (resource.getType().equals(Value.Type.RANGES)) {
@@ -280,13 +293,13 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
               ports += range.getEnd() - range.getBegin() + 1;
             }
           }
-
         } else {
           LOGGER.error("ports resource was not Ranges: {}", resource
-              .getType().toString());
+                  .getType().toString());
 
         }
-        results.put("ports", Integer.valueOf(ports));
+        results.put(RESOURCES_PORTS_KEY, (Integer) results.get(RESOURCES_PORTS_KEY) +
+                Integer.valueOf(ports));
       }
     });
   }
