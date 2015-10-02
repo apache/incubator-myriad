@@ -5,12 +5,13 @@
 FROM centos
 MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
 
-ENV HADOOP_VER="2.5.2"
+ENV HADOOP_VER="2.7.1"
+ENV HADOOP_TARBALL_URL="http://localhost/hadoop-2.7.0.tar.gz"
 
 # Install Hadoop & Dependencies
 RUN yum -y update && yum install -y java-1.7.0-openjdk wget
-RUN wget http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
-RUN yum install -y tar
+#RUN wget http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
+#RUN yum install -y tar
 
 # Install Mesos
 RUN rpm -Uvh http://repos.mesosphere.io/el/7/noarch/RPMS/mesosphere-el-repo-7-1.noarch.rpm

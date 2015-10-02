@@ -1,11 +1,24 @@
 #!/bin/bash
 
+##
 # YARN installer script for Apache Myriad Deployment
-# VERSION 0.0.1
-
+##
 yum install -y tar curl
 
-HADOOP_VER=2.5.2
+HADOOP_TARBALL_URL="http://172.31.1.11/hadoop-2.7.0.tar.gz"
+
+
+if [ -z ${HADOOP_TARBALL_URL} ];
+then
+  if [ -z ${HADOOP_VER} ];then
+    echo "[FATAL] HADOOP_VER is not set. Unable to download hadoop tarball."
+  fi
+#  HADOOP_TARBALL_URL=http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
+fi
+
+# Download the tarball
+wget -O /opt/hadoop.tgz ${HADOOP_TARBALL_URL}
+HADOOP_BASENAME=`basename ${HADOOP_TARBALL_URL} .tar.gz`
 
 # Put in env defaults if they are missing
 export HADOOP_GROUP=${HADOOP_GROUP:='hadoop'}
@@ -16,12 +29,14 @@ export HADOOP_HOME=${HADOOP_HOME:='/usr/local/hadoop'}
 # Add hduser user
 groupadd $HADOOP_GROUP
 useradd $HADOOP_USER -g $HADOOP_GROUP
-mkdir /home/${HADOOP_USER}
+#mkdir /home/${HADOOP_USER}
 chown -R $HADOOP_USER:$HADOOP_GROUP /home/${HADOOP_USER}
 
 # Extract Hadoop
-tar vxzf hadoop-${HADOOP_VER}.tar.gz -C /tmp
-mv /tmp/hadoop-${HADOOP_VER} ${HADOOP_HOME}
+tar vxzf /opt/hadoop.tgz -C /tmp
+#mv /tmp/hadoop-${HADOOP_VER} ${HADOOP_HOME}
+echo "Moving /tmp/hadoop-${HADOOP_BASENAME}"
+mv /tmp/$HADOOP_BASENAME ${HADOOP_HOME}
 chown -R ${HADOOP_USER}:${HADOOP_GROUP} ${HADOOP_HOME}
 
 # Init bashrc with hadoop env variables
@@ -39,5 +54,8 @@ sh -c 'echo export HADOOP_OPTS=\"-Djava.library.path=\${HADOOP_HOME}/lib\" >> /h
 
 # Link Mesos Libraries
 echo "export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so" >> ${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
+
+# Ensure the hadoop-env is executable
+chmod +x ${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
 
 echo "end of install-yarn.sh script"
