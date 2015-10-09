@@ -1,5 +1,12 @@
 #!/bin/bash
 
+echo "Starting Myriad..."
+
+if [ ! -z $ALTERNATE_HADOOP_URL ]; then
+  echo "OVERIDING URL"
+  exec /install-yarn.sh $ALTERNATE_HADOOP_URL
+  unset $ALTERNATE_HADOOP_URL
+fi
 
 export MYRIAD_CONFIG_FILE="/myriad-conf/myriad-config-default.yml"
 export YARN_SITE="/myriad-conf/yarn-site.xml"

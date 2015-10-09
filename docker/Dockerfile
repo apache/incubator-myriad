@@ -6,7 +6,7 @@ FROM debian
 MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
 
 ENV HADOOP_VER="2.7.1"
-ENV HADOOP_TARBALL_URL="http://localhost/hadoop-2.7.0.tar.gz"
+ENV HADOOP_TARBALL_URL="http://192.168.99.100/files/hadoop-2.7.1.tar.gz"
 
 # Setup mesosphere repositories
 RUN apt-get -y update
@@ -16,7 +16,7 @@ RUN DISTRO=$(lsb_release -is | tr '[:upper:]' '[:lower:]') CODENAME=$(lsb_releas
 RUN apt-get -y update
 
 # Install Mesos
-RUN apt-get install -y mesos
+RUN apt-get install -y mesos curl tar
 
 # Run local YARN install
 ADD myriad-bin/install-yarn.sh /install-yarn.sh
