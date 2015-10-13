@@ -177,7 +177,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     checkResource(mem < 0, "mem");
     checkResource(ports < 0, "port");
 
-    return checkAggregates(offer, profile, ports, cpus, mem);
+    return checkAggregates(profile, ports, cpus, mem);
   }
 
   private boolean meetsConstraint(Offer offer, Constraint constraint) {
@@ -203,17 +203,16 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     }
   }
 
-  private boolean checkAggregates(Offer offer, NMProfile profile, int ports, double cpus, double mem) {
-    Map<String, String> requestAttributes = new HashMap<>();
+  private boolean checkAggregates(NMProfile profile, int ports, double cpus, double mem) {
 
     if (taskUtils.getAggregateCpus(profile) <= cpus
         && taskUtils.getAggregateMemory(profile) <= mem
-        && SchedulerUtils.isMatchSlaveAttributes(offer, requestAttributes)
         && NMPorts.expectedNumPorts() <= ports) {
       return true;
     } else {
-      LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}",
-          taskUtils.getAggregateCpus(profile), taskUtils.getAggregateMemory(profile), ports);
+      LOGGER.info("Offer not sufficient for launching task. Task requires cpu: {}, memory: {}, # of ports: {}. " +
+          "Offer has cpu: {}, memory: {}, # of ports: {}", taskUtils.getAggregateCpus(profile),
+          taskUtils.getAggregateMemory(profile), NMPorts.expectedNumPorts(), cpus, mem, ports);
       return false;
     }
   }

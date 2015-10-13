@@ -19,41 +19,17 @@ import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Attribute;
-import org.apache.mesos.Protos.Offer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Provides utilities for scheduling with the mesos offers
  */
 public class SchedulerUtils {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerUtils.class);
-
-    public static boolean isMatchSlaveAttributes(Offer offer, Map<String, String> requestAttributes) {
-        boolean match = true;
-
-        Map<String, String> offerAttributes = new HashMap<>();
-        for (Attribute attribute : offer.getAttributesList()) {
-            offerAttributes.put(attribute.getName(), attribute.getText().getValue());
-        }
-
-        // Match with offer attributes only if request has attributes.
-        if (!MapUtils.isEmpty(requestAttributes)) {
-            match = offerAttributes.equals(requestAttributes);
-        }
-
-        LOGGER.debug("Match status: {} for offer: {} and requestAttributes: {}",
-                match, offer, requestAttributes);
-
-        return match;
-    }
 
     public static boolean isUniqueHostname(Protos.OfferOrBuilder offer,
                                            Collection<NodeTask> tasks) {

@@ -50,6 +50,18 @@ class LikeConstraintSpec extends Specification {
         getTextAttribute("random", "random value"))                | true
   }
 
+  def "equals"() {
+    given:
+    def constraint1 = new LikeConstraint("hostname", "perfnode13[3-4].perf.lab")
+    def constraint2 = new LikeConstraint("hostname", "perfnode13[3-4].perf.lab")
+    def constraint3 = new LikeConstraint("hostname", "perfnode133.perf.lab")
+
+    expect:
+    constraint1.equals(constraint2)
+    !constraint1.equals(constraint3)
+    !constraint2.equals(constraint3)
+  }
+
   private static Protos.Attribute getTextAttribute(String name, String value) {
     Protos.Attribute.newBuilder()
         .setName(name)

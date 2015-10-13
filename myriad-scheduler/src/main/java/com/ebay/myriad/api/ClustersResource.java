@@ -19,6 +19,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.ebay.myriad.api.model.FlexDownClusterRequest;
 import com.ebay.myriad.api.model.FlexUpClusterRequest;
 import com.ebay.myriad.scheduler.MyriadOperations;
+import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.scheduler.constraints.ConstraintFactory;
 import com.ebay.myriad.state.SchedulerState;
@@ -108,11 +109,11 @@ public class ClustersResource {
         isValidRequest = isValidRequest && validateInstances(instances, response);
         isValidRequest = isValidRequest && validateConstraints(constraints, response);
 
-        Integer numFlexedUp = this.getNumFlexedupNMs();
+        Integer numFlexedUp = this.getNumFlexedupNMs(profile);
         if (isValidRequest && numFlexedUp < instances)  {
             String message = String.format("Number of requested instances for flexdown is greater than the number of " +
-                "Node Managers previously flexed up. Requested: %d, Previously flexed Up: %d. " +
-                "Only %d Node Managers will be flexed down", instances, numFlexedUp, numFlexedUp);
+                "Node Managers previously flexed up for profile '%s'. Requested: %d, Previously flexed Up: %d. " +
+                "Only %d Node Managers will be flexed down.", profile, instances, numFlexedUp, numFlexedUp);
             response.entity(message);
             LOGGER.warn(message);
         }
@@ -203,10 +204,11 @@ public class ClustersResource {
     }
 
 
-    private Integer getNumFlexedupNMs() {
-        return this.schedulerState.getActiveTaskIds().size()
-                + this.schedulerState.getStagingTaskIds().size()
-                + this.schedulerState.getPendingTaskIds().size();
+    private Integer getNumFlexedupNMs(String profile) {
+      NMProfile nmProfile = profileManager.get(profile);
+      return this.schedulerState.getActiveTaskIDsForProfile(nmProfile).size()
+                + this.schedulerState.getStagingTaskIDsForProfile(nmProfile).size()
+                + this.schedulerState.getPendingTaskIDsForProfile(nmProfile).size();
     }
 
 }

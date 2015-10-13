@@ -80,7 +80,7 @@ public class LikeConstraint implements Constraint {
     if (lhs != null ? !lhs.equals(that.lhs) : that.lhs != null) {
       return false;
     }
-    if (pattern != null ? !pattern.equals(that.pattern) : that.pattern != null) {
+    if (pattern != null ? !pattern.pattern().equals(that.pattern.pattern()) : that.pattern != null) {
       return false;
     }
 
@@ -90,7 +90,7 @@ public class LikeConstraint implements Constraint {
   @Override
   public int hashCode() {
     int result = lhs != null ? lhs.hashCode() : 0;
-    result = 31 * result + (pattern != null ? pattern.hashCode() : 0);
+    result = 31 * result + (pattern != null ? pattern.pattern().hashCode() : 0);
     return result;
   }
 }

@@ -2,7 +2,7 @@ package com.ebay.myriad.policy;
 
 import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
-import com.google.common.collect.Lists;
+import com.ebay.myriad.state.SchedulerState;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
@@ -10,11 +10,11 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeRemovedSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -28,6 +28,7 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
     private static final Logger LOGGER = LoggerFactory.getLogger(LeastAMNodesFirstPolicy.class);
 
     private final AbstractYarnScheduler yarnScheduler;
+    private final SchedulerState schedulerState;
 
     //TODO(Santosh): Should figure out the right values for the hashmap properties.
     // currently it's tuned for 200 nodes and 50 RM RPC threads (Yarn's default).
@@ -35,20 +36,26 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
     private static final int EXPECTED_CONCURRENT_ACCCESS_COUNT = 50;
     private static final float LOAD_FACTOR_DEFAULT = 0.75f;
 
-    private Map<String, SchedulerNode> schedulerNodes = new ConcurrentHashMap<>(INITIAL_NODE_SIZE, LOAD_FACTOR_DEFAULT, EXPECTED_CONCURRENT_ACCCESS_COUNT);
+    private Map<String, SchedulerNode> schedulerNodes =
+        new ConcurrentHashMap<>(INITIAL_NODE_SIZE, LOAD_FACTOR_DEFAULT, EXPECTED_CONCURRENT_ACCCESS_COUNT);
 
     @Inject
-    public LeastAMNodesFirstPolicy(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler) {
+    public LeastAMNodesFirstPolicy(InterceptorRegistry registry,
+                                   AbstractYarnScheduler yarnScheduler,
+                                   SchedulerState schedulerState) {
         registry.register(this);
         this.yarnScheduler = yarnScheduler;
+        this.schedulerState = schedulerState;
     }
 
+    /**
+     *  Sort the given list of tasks by the number of App Master containers running on the corresponding NM node.
+     * @param taskIDs
+     */
     @Override
-    public List<String> getNodesToScaleDown() {
-        List<SchedulerNode> nodes = Lists.newArrayList(this.schedulerNodes.values());
-
+    public void apply(List<Protos.TaskID> taskIDs) {
         if (LOGGER.isDebugEnabled()) {
-            for (SchedulerNode node : nodes) {
+            for (SchedulerNode node : schedulerNodes.values()) {
                 LOGGER.debug("Host {} is running {} containers including {} App Masters",
                         node.getNodeID().getHost(), node.getRunningContainers().size(),
                         getNumAMContainers(node.getRunningContainers()));
@@ -58,9 +65,22 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
         // process HBs from NodeManagers and the state of SchedulerNode objects might change while we
         // are in the middle of sorting them based on the least number of AM containers.
         synchronized (yarnScheduler) {
-            Collections.sort(nodes, new Comparator<SchedulerNode>() {
+            Collections.sort(taskIDs, new Comparator<Protos.TaskID>() {
                 @Override
-                public int compare(SchedulerNode o1, SchedulerNode o2) {
+                public int compare(Protos.TaskID t1, Protos.TaskID t2) {
+                    SchedulerNode o1 = schedulerNodes.get(schedulerState.getTask(t1).getHostname());
+                    SchedulerNode o2 = schedulerNodes.get(schedulerState.getTask(t2).getHostname());
+
+                    if (o1 == null) { // a NM was launched by Myriad, but it hasn't yet registered with RM
+                      if (o2 == null) {
+                        return 0;
+                      } else {
+                        return -1;
+                      }
+                    } else if (o2 == null) {
+                      return 1;
+                    } // else, both the NMs have registered with RM
+
                     List<RMContainer> runningContainers1 = o1.getRunningContainers();
                     List<RMContainer> runningContainers2 = o2.getRunningContainers();
 
@@ -78,13 +98,6 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
                 }
             });
         }
-
-        List<String> hosts = new ArrayList<>(nodes.size());
-        for (SchedulerNode node : nodes) {
-            hosts.add(node.getNodeID().getHost());
-        }
-
-        return hosts;
     }
 
     @Override
