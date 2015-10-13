@@ -30,6 +30,7 @@ import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
 import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
+import com.google.common.collect.Sets;
 import com.lmax.disruptor.EventHandler;
 
 import java.util.Iterator;
@@ -105,11 +106,20 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
         for (NodeTask nodeTask : nodeTasks) {
           nodeTask.setSlaveAttributes(offer.getAttributesList());
         }
+        // keep this in case SchedulerState gets out of sync. This should not happen with 
+        // synchronizing addNodes method in SchedulerState
+        // but to keep it safe
+        final Set<Protos.TaskID> blacklistedTasks = Sets.newHashSet();
         Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
         if (CollectionUtils.isNotEmpty(pendingTasks)) {
           for (Protos.TaskID pendingTaskId : pendingTasks) {
             NodeTask taskToLaunch = schedulerState
                 .getTask(pendingTaskId);
+            if (taskToLaunch == null) {
+              blacklistedTasks.add(pendingTaskId);
+              LOGGER.warn("Node task for TaskID: {} does not exist", pendingTaskId);
+              continue;
+            }
             String taskPrefix = taskToLaunch.getTaskPrefix();
             ServiceResourceProfile profile = taskToLaunch.getProfile();
             Constraint constraint = taskToLaunch.getConstraint();
@@ -147,6 +157,9 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
                 LOGGER.error("Exception thrown while trying to create a task for {}", taskPrefix, t);
               }
             }
+          }
+          for (Protos.TaskID taskId : blacklistedTasks) {
+            schedulerState.removeTask(taskId);
           }
         }
       }

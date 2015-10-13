@@ -20,9 +20,12 @@ package com.ebay.myriad.scheduler.event.handlers;
 
 import com.ebay.myriad.scheduler.event.StatusUpdateEvent;
 import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
+import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
+
 import javax.inject.Inject;
+
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
@@ -52,7 +55,8 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
         TaskStatus status = event.getStatus();
         this.schedulerState.updateTask(status);
         TaskID taskId = status.getTaskId();
-        if (!schedulerState.hasTask(taskId)) {
+        NodeTask task = schedulerState.getTask(taskId);
+        if (task == null) {
             LOGGER.warn("Task: {} not found, status: {}", taskId.getValue(), status.getState());
             return;
         }
@@ -70,20 +74,20 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
                 schedulerState.makeTaskActive(taskId);
                 break;
             case TASK_FINISHED:
-                offerLifecycleManager.declineOutstandingOffers(schedulerState.getTask(taskId).getHostname());
+                offerLifecycleManager.declineOutstandingOffers(task.getHostname());
                 schedulerState.removeTask(taskId);
                 break;
             case TASK_FAILED:
                 // Add to pending tasks
-              offerLifecycleManager.declineOutstandingOffers(schedulerState.getTask(taskId).getHostname());
+              offerLifecycleManager.declineOutstandingOffers(task.getHostname());
               schedulerState.makeTaskPending(taskId);
                 break;
             case TASK_KILLED:
-              offerLifecycleManager.declineOutstandingOffers(schedulerState.getTask(taskId).getHostname());
+              offerLifecycleManager.declineOutstandingOffers(task.getHostname());
                 schedulerState.removeTask(taskId);
                 break;
             case TASK_LOST:
-              offerLifecycleManager.declineOutstandingOffers(schedulerState.getTask(taskId).getHostname());
+              offerLifecycleManager.declineOutstandingOffers(task.getHostname());
                 schedulerState.makeTaskPending(taskId);
                 break;
             default:
