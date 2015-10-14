@@ -32,7 +32,7 @@
     <!-- Configure Myriad Scheduler here -->
     <property>
         <name>yarn.resourcemanager.scheduler.class</name>
-        <value>com.ebay.myriad.scheduler.yarn.MyriadFairScheduler</value>
+        <value>org.apache.myriad.scheduler.yarn.MyriadFairScheduler</value>
     </property>
 
     <!-- Cgroups specific configuration -->

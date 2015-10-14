@@ -15,7 +15,7 @@
 
     <Match>
         <!-- generated packages-->
-        <Package name="com.ebay.myriad.scheduler.event"/>
+        <Package name="org.apache.myriad.scheduler.event"/>
     </Match>
 
     <Match>
