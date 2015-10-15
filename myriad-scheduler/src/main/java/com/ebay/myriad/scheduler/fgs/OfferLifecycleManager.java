@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.inject.Inject;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,5 +83,18 @@ public class OfferLifecycleManager {
 
   public ConsumedOffer drainConsumedOffer(String hostname) {
     return consumedOfferMap.remove(hostname);
+  }
+
+  public void declineOutstandingOffers(String hostname) {
+    int numOutStandingOffers = 0;
+    OfferFeed offerFeed = getOfferFeed(hostname);
+    Offer offer;
+    while (offerFeed != null && (offer = offerFeed.poll()) != null) {
+      declineOffer(offer);
+      numOutStandingOffers++;
+    }
+    if (numOutStandingOffers > 0) {
+      LOGGER.info("Declined {} outstanding offers for host {}", numOutStandingOffers, hostname);
+    }
   }
 }
