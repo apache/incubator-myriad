@@ -11,7 +11,7 @@ echo "Installing Yarn...."
 HADOOP_VER="2.7.1"
 
 HADOOP_TARBALL_URL=http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
-HADOOP_TARBALL_URL=http://192.168.99.100/files/hadoop-2.7.1.tar.gz
+#HADOOP_TARBALL_URL=http://192.168.99.100/files/hadoop-2.7.1.tar.gz
 
 if [ ! -z "$1" ];then
   echo "I FOUND THE ARGUMENT"
@@ -40,13 +40,15 @@ HADOOP_BASENAME=`basename ${HADOOP_TARBALL_URL} .tar.gz`
 
 # Put in env defaults if they are missing
 export HADOOP_GROUP=${HADOOP_GROUP:='hadoop'}
-export HADOOP_USER=${HADOOP_USER:='hduser'}
+export HADOOP_USER=${HADOOP_USER:='yarn'}
 export HADOOP_HOME=${HADOOP_HOME:='/usr/local/hadoop'}
+export USER_UID=${USER_UID:='110'}
+export GROUP_UID=${GROUP_GID:='115'}
 
 
 # Add hduser user
-groupadd $HADOOP_GROUP
-useradd $HADOOP_USER -g $HADOOP_GROUP
+groupadd $HADOOP_GROUP -g ${GROUP_UID}
+useradd $HADOOP_USER -g $HADOOP_GROUP -u ${USER_UID}
 #mkdir /home/${HADOOP_USER}
 chown -R $HADOOP_USER:$HADOOP_GROUP /home/${HADOOP_USER}
 

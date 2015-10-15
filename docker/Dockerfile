@@ -6,7 +6,7 @@ FROM debian
 MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
 
 ENV HADOOP_VER="2.7.1"
-ENV HADOOP_TARBALL_URL="http://192.168.99.100/files/hadoop-2.7.1.tar.gz"
+ENV HADOOP_TARBALL_URL="http://172.31.1.11/hadoop-2.7.1.tar.gz"
 
 # Setup mesosphere repositories
 RUN apt-get -y update
