@@ -122,7 +122,7 @@ export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so
 <property>
     <name>yarn.resourcemanager.scheduler.class</name>
     <value>com.ebay.myriad.scheduler.yarn.MyriadFairScheduler</value>
-    <description>One can configure other scehdulers as well from following list: com.ebay.myriad.scheduler.yarn.MyriadCapacityScheduler, com.ebay.myriad.scheduler.yarn.MyriadFifoScheduler</description>
+    <description>One can configure other schedulers as well from following list: com.ebay.myriad.scheduler.yarn.MyriadCapacityScheduler, com.ebay.myriad.scheduler.yarn.MyriadFifoScheduler</description>
 </property>
 <property>
     <description>A comma separated list of services where service name should only contain a-zA-Z0-9_ and can not start with numbers</description>
