@@ -43,9 +43,9 @@ services:
      jvmMaxMemoryMB: 1024
      cpus: 1
      ports:
-       myriad.mapreduce.jobhistory.admin.address: -1
-       myriad.mapreduce.jobhistory.address: -1
-       myriad.mapreduce.jobhistory.webapp.address: -1
+       myriad.mapreduce.jobhistory.admin.address: 0
+       myriad.mapreduce.jobhistory.address: 0
+       myriad.mapreduce.jobhistory.webapp.address: 0
      envSettings: -Dcluster.name.prefix=/mycluster
      taskName: jobhistory
    timelineserver:
