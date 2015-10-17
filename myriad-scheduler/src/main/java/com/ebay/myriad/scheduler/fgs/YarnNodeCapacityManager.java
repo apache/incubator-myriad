@@ -21,12 +21,11 @@ package com.ebay.myriad.scheduler.fgs;
 import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.executor.ContainerTaskStatusRequest;
 import com.ebay.myriad.scheduler.MyriadDriver;
-import com.ebay.myriad.scheduler.NMTaskFactoryAnnotation;
 import com.ebay.myriad.scheduler.SchedulerUtils;
-import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.SchedulerState;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -74,15 +73,13 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     private final MyriadDriver myriadDriver;
     private final OfferLifecycleManager offerLifecycleMgr;
     private final NodeStore nodeStore;
-    private final TaskFactory taskFactory;
-    private final SchedulerState state;
+  private final SchedulerState state;
 
     @Inject
     public YarnNodeCapacityManager(InterceptorRegistry registry,
                                    AbstractYarnScheduler yarnScheduler,
                                    RMContext rmContext,
                                    MyriadDriver myriadDriver,
-                                   @NMTaskFactoryAnnotation TaskFactory taskFactory,
                                    OfferLifecycleManager offerLifecycleMgr,
                                    NodeStore nodeStore,
                                    SchedulerState state) {
@@ -92,7 +89,6 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         this.yarnScheduler = yarnScheduler;
         this.rmContext = rmContext;
         this.myriadDriver = myriadDriver;
-        this.taskFactory = taskFactory;
         this.offerLifecycleMgr = offerLifecycleMgr;
         this.nodeStore = nodeStore;
         this.state = state;
@@ -152,7 +148,8 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
      * capacity depending on what portion of the consumed offers were actually
      * used.
      */
-    private void handleContainerAllocation(RMNode rmNode) {
+    @VisibleForTesting
+    protected void handleContainerAllocation(RMNode rmNode) {
       String host = rmNode.getNodeID().getHost();
 
       ConsumedOffer consumedOffer = offerLifecycleMgr.drainConsumedOffer(host);
