@@ -16,14 +16,14 @@ profiles:
     cpu: 0
     mem: 0
   small:
-    cpu: 1
-    mem: 1100
-  medium:
     cpu: 2
     mem: 2048
-  large:
+  medium:
     cpu: 4
     mem: 4096
+  large:
+    cpu: 10
+    mem: 12288
 nmInstances: # NMs to start with. Requires at least 1 NM with a non-zero profile.
   medium: 1 # <profile_name : instances>
 rebalancer: false
