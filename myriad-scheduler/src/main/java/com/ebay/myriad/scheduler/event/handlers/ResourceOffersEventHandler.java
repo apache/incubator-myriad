@@ -49,6 +49,7 @@ import javax.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -113,9 +114,12 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
             ServiceResourceProfile profile = taskToLaunch.getProfile();
             Constraint constraint = taskToLaunch.getConstraint();
 
+            Set<NodeTask> launchedTasks = new HashSet<>();
+            launchedTasks.addAll(schedulerState.getActiveTasksByType(taskPrefix));
+            launchedTasks.addAll(schedulerState.getStagingTasksByType(taskPrefix));
+
             if (matches(offer, taskToLaunch, constraint)
-                && SchedulerUtils.isUniqueHostname(offer, taskToLaunch,
-                schedulerState.getActiveTasks())) {
+                && SchedulerUtils.isUniqueHostname(offer, taskToLaunch, launchedTasks)) {
               try {
                 final TaskInfo task = 
                       taskFactoryMap.get(taskPrefix).createTask(offer, schedulerState.getFrameworkID(), pendingTaskId,

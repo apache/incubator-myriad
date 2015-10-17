@@ -209,7 +209,7 @@ public class SchedulerState {
       SchedulerStateForType stateTask = statesForTaskType.get(taskPrefix);
       return (stateTask == null ? new HashSet<Protos.TaskID>() : stateTask.getPendingTaskIds());  
     }
-    
+
     public synchronized Set<Protos.TaskID> getActiveTaskIds() {
       Set<Protos.TaskID> returnSet = new HashSet<>();
       for (Map.Entry<String, SchedulerStateForType> entry : statesForTaskType.entrySet()) {
@@ -217,24 +217,43 @@ public class SchedulerState {
       }
       return returnSet;
     }
-    
+
     public synchronized Set<Protos.TaskID> getActiveTaskIds(String taskPrefix) {
       SchedulerStateForType stateTask = statesForTaskType.get(taskPrefix);
       return (stateTask == null ? new HashSet<Protos.TaskID>() : stateTask.getActiveTaskIds());
     }
 
-    public synchronized Collection<NodeTask> getActiveTasks() {
-      List<NodeTask> activeNodeTasks = new ArrayList<>();
-      Set<Protos.TaskID> activeTaskIds = getActiveTaskIds();
-      if (activeTaskIds.isEmpty()) {
-        return activeNodeTasks;
-      }
-      for (Map.Entry<Protos.TaskID, NodeTask> entry : tasks.entrySet()) {
-        if (activeTaskIds.contains(entry.getKey())) {
-          activeNodeTasks.add(entry.getValue());
+    public synchronized Set<NodeTask> getActiveTasks() {
+        return getTasks(getActiveTaskIds());
+    }
+
+    public Set<NodeTask> getActiveTasksByType(String taskPrefix) {
+        return getTasks(getActiveTaskIds(taskPrefix));
+    }
+
+    public Set<NodeTask> getStagingTasks() {
+        return getTasks(getStagingTaskIds());
+    }
+
+    public Set<NodeTask> getStagingTasksByType(String taskPrefix) {
+        return getTasks(getStagingTaskIds(taskPrefix));
+    }
+
+    public Set<NodeTask> getPendingTasksByType(String taskPrefix) {
+        return getTasks(getPendingTaskIds(taskPrefix));
+    }
+
+    public synchronized Set<NodeTask> getTasks(Set<Protos.TaskID> taskIds) {
+        Set<NodeTask> nodeTasks = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(taskIds)
+            && CollectionUtils.isNotEmpty(tasks.values())) {
+            for (Map.Entry<Protos.TaskID, NodeTask> entry : tasks.entrySet()) {
+                if (taskIds.contains(entry.getKey())) {
+                    nodeTasks.add(entry.getValue());
+                }
+            }
         }
-      }
-      return activeNodeTasks;
+            return Collections.unmodifiableSet(nodeTasks);
     }
 
     public synchronized Collection<Protos.TaskID> getActiveTaskIDsForProfile(ServiceResourceProfile serviceProfile) {
@@ -251,21 +270,6 @@ public class SchedulerState {
       }
       return Collections.unmodifiableCollection(activeTaskIDs);
     }
-
-    public Collection<NodeTask> getActiveTasksByType(String taskPrefix) {
-      List<NodeTask> activeNodeTasks = new ArrayList<>();
-      Set<Protos.TaskID> activeTaskIds = getActiveTaskIds(taskPrefix);
-      if (activeTaskIds.isEmpty()) {
-        return activeNodeTasks;
-      }
-
-      for (Map.Entry<Protos.TaskID, NodeTask> entry : tasks.entrySet()) {
-        if (activeTaskIds.contains(entry.getKey())) {
-          activeNodeTasks.add(entry.getValue());
-        }
-      }
-      return activeNodeTasks;
-   }
 
    // TODO (sdaingade) Clone NodeTask
     public synchronized NodeTask getNodeTask(SlaveID slaveId, String taskPrefix) {
