@@ -41,19 +41,16 @@ public class SchedulerUtils {
         Preconditions.checkArgument(offer != null);
         String offerHostname = offer.getHostname();
 
-        if (CollectionUtils.isEmpty(tasks)) {
-            return true;
-        }
-        boolean uniqueHostname = true;
-        for (NodeTask task : tasks) {
-            if (offerHostname.equalsIgnoreCase(task.getHostname()) &&
-                task.getTaskPrefix().equalsIgnoreCase(taskToLaunch.getTaskPrefix())) {
-                uniqueHostname = false;
-                break;
+        if (!CollectionUtils.isEmpty(tasks)) {
+            for (NodeTask task : tasks) {
+                if (offerHostname.equalsIgnoreCase(task.getHostname())) {
+                    LOGGER.debug("Offer's hostname {} is not unique", offerHostname);
+                    return false;
+                }
             }
         }
-        LOGGER.debug("Offer's hostname {} is unique: {}", offerHostname, uniqueHostname);
-        return uniqueHostname;
+        LOGGER.debug("Offer's hostname {} is unique", offerHostname);
+        return true;        
     }
 
   /**

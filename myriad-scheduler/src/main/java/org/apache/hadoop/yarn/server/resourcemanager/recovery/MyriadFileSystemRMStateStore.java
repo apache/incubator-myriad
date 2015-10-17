@@ -76,7 +76,7 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore
       in.close();
     } catch (IOException e) {
       LOGGER.error("State information for Myriad could not be loaded from: "
-        + myriadStatePath, e);
+        + myriadStatePath);
     }
     return rmState;
   }
