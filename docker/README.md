@@ -21,7 +21,6 @@ docker run --net=host --name='myriad-resourcemanager' -t \
   mesos/myriad-resourcemanager
   ```
 
-***NOTE***
 #Environment Variables#
 
 * *HADOOP_NAMENODE* : *Required*
