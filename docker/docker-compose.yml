@@ -4,4 +4,5 @@ myriad:
   - ./config:/myriad-conf  
 #	  environment:
 #    - "ALTERNATE_HADOOP_URL=http://192.168.99.100/files/hadoop-2.7.0.tar.gz"
-
+  ports:
+    - "8192:8192/tcp"
