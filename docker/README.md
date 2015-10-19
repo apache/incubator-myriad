@@ -11,6 +11,7 @@ In order for the ResourceManager to operate correctly, you will need to provide 
 * [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml)
 * modified [yarn-site.xml](https://github.com/mesos/myriad/blob/phase1/docs/myriad-dev.md)
 
+
 ## Running the Resource Manager Docker
 
 ```bash
@@ -19,6 +20,13 @@ docker run --net=host --name='myriad-resourcemanager' -t \
   -e HADOOP_NAMENODE="10.100.3.237:9000" \
   mesos/myriad-resourcemanager
   ```
+
+***NOTE***
+#Environment Variables#
+
+* *HADOOP_NAMENODE* : *Required*
+* *HADOOP_TARBALL_URL* : Optional - Allows user to override the hadoop distribution used by Myriad.
+
 
 If you already had a working Vagrant instance, you will need to run `vagrant reload` in order to allow zookeeper and hdfs port-forwarding.
 
