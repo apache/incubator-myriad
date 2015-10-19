@@ -1,14 +1,14 @@
-mesosMaster: 172.31.45.229:5050
+mesosMaster: 10.0.2.15:5050
 checkpoint: false
 frameworkFailoverTimeout: 43200000
-frameworkName: Myriad
+frameworkName: MyriadAlpha
 frameworkRole: 
 frameworkUser: hduser     # User the Node Manager runs as, required if nodeManagerURI set, otherwise defaults to the user
                           # running the resource manager.
 frameworkSuperUser: root  # To be depricated, currently permissions need set by a superuser due to Mesos-1790.  Must be
                           # root or have passwordless sudo. Required if nodeManagerURI set, ignored otherwise.
 nativeLibrary: /usr/local/lib/libmesos.so
-zkServers: 172.31.20.165:2181
+zkServers: localhost:2181
 zkTimeout: 20000
 restApiPort: 8192
 profiles:
