@@ -4,13 +4,9 @@
 
 FROM debian
 MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
-#USER yarn
 
 ENV HADOOP_USER="yarn"
 ENV HADOOP_VER="2.7.1"
-ENV HADOOP_TARBALL_URL="http://172.31.1.11/hadoop-2.7.1.tar.gz"
-
-#RUN useradd yarn -g 112 -u 113 -s /bin/bash
 
 # Setup mesosphere repositories
 RUN apt-get -y update
@@ -19,9 +15,9 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv E56151BF
 RUN DISTRO=$(lsb_release -is | tr '[:upper:]' '[:lower:]') CODENAME=$(lsb_release -cs) && echo "deb http://repos.mesosphere.com/${DISTRO} ${CODENAME} main" | tee /etc/apt/sources.list.d/mesosphere.list
 RUN apt-get -y update
 
+# Create the yarn user
 ADD myriad-bin/create-user.sh /create-user.sh
 RUN sh /create-user.sh
-
 
 # Install Mesos
 RUN apt-get install -y mesos curl tar
@@ -33,7 +29,6 @@ RUN sh /install-yarn.sh
 # Copy over myriad libraries
 ADD /libs/myriad-executor-runnable-0.0.1.jar /usr/local/libexec/mesos/
 ADD /libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
-
 
 # Initialize hadoop confs with env vars
 ADD myriad-bin/run-myriad.sh /run-myriad.sh
