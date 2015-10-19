@@ -25,7 +25,7 @@ docker run --net=host --name='myriad-resourcemanager' -t \
 #Environment Variables#
 
 * *HADOOP_NAMENODE* : *Required*
-* *HADOOP_TARBALL_URL* : Optional - Allows user to override the hadoop distribution used by Myriad.
+* *ALTERNATE_HADOOP_URL* : Optional - Allows user to override the hadoop distribution used by Myriad.
 
 
 If you already had a working Vagrant instance, you will need to run `vagrant reload` in order to allow zookeeper and hdfs port-forwarding.

@@ -25,13 +25,9 @@ HADOOP_TARBALL_URL=http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/h
 
 echo "Installing Yarn...."
 if [ ! -z "$1" ];then
-  echo "I FOUND THE ARGUMENT"
   HADOOP_TARBALL_URL=$1
   echo "Deleting previous hadoop home"
   rm -rf ${HADOOP_HOME}
-  else
-    echo "DIDNT FIND THE ARGUMENT. BAILING"
-    #exit 1
 fi
 
 # Download the tarball
