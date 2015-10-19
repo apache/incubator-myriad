@@ -1,33 +1,45 @@
 /**
- * Copyright 2015 PayPal
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package com.ebay.myriad;
 
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
+import com.ebay.myriad.configuration.NodeManagerConfiguration;
+import com.ebay.myriad.configuration.ServiceConfiguration;
+import com.ebay.myriad.configuration.MyriadBadConfigurationException;
 import com.ebay.myriad.configuration.MyriadConfiguration;
 import com.ebay.myriad.health.MesosDriverHealthCheck;
 import com.ebay.myriad.health.MesosMasterHealthCheck;
 import com.ebay.myriad.health.ZookeeperHealthCheck;
+import com.ebay.myriad.scheduler.ExtendedResourceProfile;
 import com.ebay.myriad.scheduler.MyriadDriverManager;
 import com.ebay.myriad.scheduler.MyriadOperations;
 import com.ebay.myriad.scheduler.NMProfile;
-import com.ebay.myriad.scheduler.NMProfileManager;
 import com.ebay.myriad.scheduler.Rebalancer;
+import com.ebay.myriad.scheduler.ServiceProfileManager;
+import com.ebay.myriad.scheduler.ServiceResourceProfile;
+import com.ebay.myriad.scheduler.ServiceTaskConstraints;
+import com.ebay.myriad.scheduler.TaskConstraintsManager;
+import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskTerminator;
+import com.ebay.myriad.scheduler.TaskUtils;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.webapp.MyriadWebServer;
 import com.ebay.myriad.webapp.WebAppGuiceModule;
@@ -35,6 +47,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
@@ -96,13 +109,16 @@ public class Main {
         initHealthChecks(injector);
         initProfiles(injector);
         validateNMInstances(injector);
+        initServiceConfigurations(cfg, injector);
         initDisruptors(injector);
 
         initRebalancerService(cfg, injector);
         initTerminatorService(injector);
         startMesosDriver(injector);
         startNMInstances(injector);
+        startJavaBasedTaskInstance(injector);
     }
+
 
     private void startMesosDriver(Injector injector) {
         LOGGER.info("starting mesosDriver..");
@@ -138,8 +154,11 @@ public class Main {
 
     private void initProfiles(Injector injector) {
         LOGGER.info("Initializing Profiles");
-        NMProfileManager profileManager = injector.getInstance(NMProfileManager.class);
+        ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
+        TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
+        taskConstraintsManager.addTaskConstraints(NodeManagerConfiguration.NM_TASK_PREFIX, new TaskFactory.NMTaskConstraints());
         Map<String, Map<String, String>> profiles = injector.getInstance(MyriadConfiguration.class).getProfiles();
+        TaskUtils taskUtils = injector.getInstance(TaskUtils.class);
         if (MapUtils.isNotEmpty(profiles)) {
             for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {
                 Map<String, String> profileResourceMap = profile.getValue();
@@ -149,7 +168,12 @@ public class Main {
                     Long cpu = Long.parseLong(profileResourceMap.get("cpu"));
                     Long mem = Long.parseLong(profileResourceMap.get("mem"));
 
-                    profileManager.add(new NMProfile(profile.getKey(), cpu, mem));
+                    ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(), cpu, mem), 
+                        taskUtils.getNodeManagerCpus(), taskUtils.getNodeManagerMemory());
+                    serviceProfile.setExecutorCpu(taskUtils.getExecutorCpus());
+                    serviceProfile.setExecutorMemory(taskUtils.getExecutorMemory());
+                    
+                    profileManager.add(serviceProfile);
                 } else {
                     LOGGER.error("Invalid definition for profile: " + profile.getKey());
                 }
@@ -160,19 +184,20 @@ public class Main {
     private void validateNMInstances(Injector injector) {
         LOGGER.info("Validating nmInstances..");
         Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
-        NMProfileManager profileManager = injector.getInstance(NMProfileManager.class);
+        ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
+
         long maxCpu = Long.MIN_VALUE;
         long maxMem = Long.MIN_VALUE;
         for (Map.Entry<String, Integer> entry : nmInstances.entrySet()) {
           String profile = entry.getKey();
-          NMProfile nmProfile = profileManager.get(profile);
-          if (nmProfile == null) {
+          ServiceResourceProfile nodeManager = profileManager.get(profile);
+          if (nodeManager == null) {
             throw new RuntimeException("Invalid profile name '" + profile + "' specified in 'nmInstances'");
           }
           if (entry.getValue() > 0) {
-            if (nmProfile.getCpus() > maxCpu) { // find the profile with largest number of cpus
-              maxCpu = nmProfile.getCpus();
-              maxMem = nmProfile.getMemory(); // use the memory from the same profile
+            if (nodeManager.getCpus() > maxCpu) { // find the profile with largest number of cpus
+              maxCpu = nodeManager.getCpus().longValue();
+              maxMem = nodeManager.getMemory().longValue(); // use the memory from the same profile
             }
           }
         }
@@ -185,8 +210,34 @@ public class Main {
     private void startNMInstances(Injector injector) {
       Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
       MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
+      ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
       for (Map.Entry<String, Integer> entry : nmInstances.entrySet()) {
-        myriadOperations.flexUpCluster(entry.getValue(), entry.getKey());
+        myriadOperations.flexUpCluster(profileManager.get(entry.getKey()), entry.getValue(), null);
+      }
+    }
+
+    /**
+     * Create ServiceProfile for any configured service
+     * @param cfg 
+     * @param injector
+     */
+    private void initServiceConfigurations(MyriadConfiguration cfg, Injector injector) {
+      LOGGER.info("Initializing initServiceConfigurations");
+      ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
+      TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
+
+      Map<String, ServiceConfiguration> servicesConfigs = 
+          injector.getInstance(MyriadConfiguration.class).getServiceConfigurations();
+      if (servicesConfigs != null) {
+        for (Map.Entry<String, ServiceConfiguration> entry : servicesConfigs.entrySet()) {
+          final String taskPrefix = entry.getKey();
+          ServiceConfiguration config = entry.getValue();
+          final Double cpu = config.getCpus().or(ServiceConfiguration.DEFAULT_CPU);
+          final Double mem = config.getJvmMaxMemoryMB().or(ServiceConfiguration.DEFAULT_MEMORY);
+          
+          profileManager.add(new ServiceResourceProfile(taskPrefix, cpu, mem));
+          taskConstraintsManager.addTaskConstraints(taskPrefix, new ServiceTaskConstraints(cfg, taskPrefix));
+        }
       }
     }
 
@@ -220,4 +271,22 @@ public class Main {
         disruptorManager.init(injector);
     }
 
+    /**
+     * Start tasks for configured services 
+     * @param injector
+     */
+    private void startJavaBasedTaskInstance(Injector injector) {
+      Map<String, ServiceConfiguration> auxServicesConfigs = 
+          injector.getInstance(MyriadConfiguration.class).getServiceConfigurations();
+      if (auxServicesConfigs != null) {
+        MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
+        for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {
+          try {
+            myriadOperations.flexUpAService(entry.getValue().getMaxInstances().or(1), entry.getKey());
+          } catch (MyriadBadConfigurationException e) {
+            LOGGER.warn("Exception while trying to flexup service: {}", entry.getKey(), e);
+          }
+        } 
+      }
+    }
 }

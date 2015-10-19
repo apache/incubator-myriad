@@ -1,4 +1,24 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.ebay.myriad.policy;
+
+import org.apache.mesos.Protos;
 
 import java.util.List;
 
@@ -8,11 +28,9 @@ import java.util.List;
 public interface NodeScaleDownPolicy {
 
     /**
-     * Get a list of host names of the nodes that needs to be scaled down.
-     * The implementation of the policy should populate this list in a way that
-     * the most preferred nodes to be scaled down should occur first in the list.
-     * @return
+     * Apply a scale down policy to the given list of taskIDs.
+     * @param taskIDs
      */
-    public List<String> getNodesToScaleDown();
+    public void apply(List<Protos.TaskID> taskIDs);
 
 }

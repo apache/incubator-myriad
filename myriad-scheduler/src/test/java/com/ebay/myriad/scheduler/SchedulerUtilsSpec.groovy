@@ -1,6 +1,8 @@
 package com.ebay.myriad.scheduler
 
+import com.ebay.myriad.configuration.NodeManagerConfiguration
 import com.ebay.myriad.state.NodeTask
+import com.ebay.myriad.state.SchedulerState
 import org.apache.mesos.Protos
 import spock.lang.Specification
 
@@ -16,17 +18,40 @@ class SchedulerUtilsSpec extends Specification {
         offer.getHostname() >> "hostname"
 
         expect:
-        returnValue == SchedulerUtils.isUniqueHostname(offer, tasks)
+        returnValue == SchedulerUtils.isUniqueHostname(offer, launchTask, tasks)
 
         where:
-        tasks                                              | returnValue
-        []                                                 | true
-        null                                               | true
-        createNodeTaskList("hostname")                     | false
-        createNodeTaskList("missinghost")                  | true
-        createNodeTaskList("missinghost1", "missinghost2") | true
-        createNodeTaskList("missinghost1", "hostname")     | false
+        tasks                                              | launchTask 					| returnValue
+        []                                                 | null							| true
+        null                                               | null							| true
+        createNodeTaskList("hostname")                     | createNodeTask("hostname") 	| false
+        createNodeTaskList("missinghost")                  | createNodeTask("hostname") 	| true
+        createNodeTaskList("missinghost1", "missinghost2") | createNodeTask("missinghost3")	| true
+        createNodeTaskList("missinghost1", "hostname")     | createNodeTask("hostname")		| false
 
+    }
+
+    def "is eligible for Fine Grained Scaling"() {
+        given:
+        def state = Mock(SchedulerState)
+        def tasks = []
+        def fgsNMTask = new NodeTask(new ExtendedResourceProfile(new NMProfile("zero", 0, 0), 1.0, 2.0), null)
+        def cgsNMTask = new NodeTask(new ExtendedResourceProfile(new NMProfile("low", 2, 4096), 1.0, 2.0), null)
+        fgsNMTask.setHostname("test_fgs_hostname")
+        cgsNMTask.setHostname("test_cgs_hostname")
+        tasks << fgsNMTask << cgsNMTask
+        state.getActiveTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX) >> tasks
+
+        expect:
+        returnValue == SchedulerUtils.isEligibleForFineGrainedScaling(hostName, state)
+
+        where:
+        hostName            | returnValue
+        "test_fgs_hostname" | true
+        "test_cgs_hostname" | false
+        "blah"              | false
+        ""                  | false
+        null                | false
     }
 
     ArrayList<NodeTask> createNodeTaskList(String... hostnames) {
@@ -39,8 +64,9 @@ class SchedulerUtilsSpec extends Specification {
 
 
     NodeTask createNodeTask(String hostname) {
-        def node = new NodeTask(new NMProfile("", 1, 1))
+        def node = new NodeTask(new ExtendedResourceProfile(new NMProfile("", 1, 1), 1.0,1.0), null)
         node.hostname = hostname
+        node.taskPrefix = "nm"
         node
     }
 }

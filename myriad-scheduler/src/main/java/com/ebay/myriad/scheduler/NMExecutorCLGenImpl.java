@@ -6,14 +6,15 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package com.ebay.myriad.scheduler;
@@ -21,6 +22,7 @@ package com.ebay.myriad.scheduler;
 import java.util.Map;
 import java.util.HashMap;
 
+import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,10 +101,10 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   }
 
   @Override
-  public String generateCommandLine(NMProfile profile, NMPorts ports) {
+  public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
     StringBuilder cmdLine = new StringBuilder();
 
-    generateEnvironment(profile, ports);
+    generateEnvironment(profile, (NMPorts) ports);
     appendCgroupsCmds(cmdLine);
     appendYarnHomeExport(cmdLine);
     appendEnvForNM(cmdLine);
@@ -110,7 +112,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     return cmdLine.toString();
   }
 
-  protected void generateEnvironment(NMProfile profile, NMPorts ports) {
+  protected void generateEnvironment(ServiceResourceProfile profile, NMPorts ports) {
     //yarnEnvironemnt configuration from yaml file
     Map<String, String> yarnEnvironmentMap = cfg.getYarnEnvironment();
     if (yarnEnvironmentMap != null) {
@@ -188,4 +190,22 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
       }
   }
 
+  @Override
+  public String getConfigurationUrl() {
+    YarnConfiguration conf = new YarnConfiguration();
+    String httpPolicy = conf.get(TaskFactory.YARN_HTTP_POLICY);
+    if (httpPolicy != null && httpPolicy.equals(TaskFactory.YARN_HTTP_POLICY_HTTPS_ONLY)) {
+      String address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS);
+      if (address == null || address.isEmpty()) {
+        address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + ":8090";
+      }
+      return "https://" + address + "/conf";
+    } else {
+      String address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_ADDRESS);
+      if (address == null || address.isEmpty()) {
+        address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + ":8088";
+      }
+      return "http://" + address + "/conf";
+    }
+  }
 }

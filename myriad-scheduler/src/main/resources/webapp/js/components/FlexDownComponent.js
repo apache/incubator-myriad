@@ -14,12 +14,14 @@ var request = require('superagent');
 var FlexDownModal = React.createClass({
 
   render: function() {
+
     return (
       <Modal {...this.props} bsStyle="primary" title='Flex Down Confirmation' animation>
       <Row>
         <Col mdOffset={3}>
           <div className="modal-body">
-            Flex Down <Badge>{this.props.instances}</Badge> instance(s)?
+            Flex Down <Badge>{this.props.instances}</Badge> instance(s)
+            Profile: <Badge>{this.props.profile}</Badge> ?
           </div>
         </Col>
       </Row>
@@ -28,7 +30,7 @@ var FlexDownModal = React.createClass({
           <Button bsStyle="success" onClick={
             function(){
               this.props.onRequestHide();
-              this.props.onFlexDown(this.props.instances);
+              this.props.onFlexDown(this.props.instances, this.props.profile);
               }.bind(this) }
           >Flex Down</Button>
         </div>
@@ -44,7 +46,8 @@ var FlexDownComponent = React.createClass({
 
 
   getInitialState: function () {
-    return( {numInstances:0});
+    return( {selectedProfile: null,
+                 numInstances:0});
   },
 
   handleInstanceChange: function() {
@@ -52,15 +55,21 @@ var FlexDownComponent = React.createClass({
     this.setState({numInstances: instances});
   },
 
+  handleProfileChange: function() {
+      var profile = this.refs.profile.getValue();
+      this.setState({selectedProfile: profile});
+   },
+
   componentDidMount: function() {
+    this.handleProfileChange();
     this.handleInstanceChange();
   },
 
-  onRequestFlexDown: function(instances, size) {
-    console.log( "flexing down: " + instances);
+  onRequestFlexDown: function(instances, profile, constraint) {
+    console.log( "flexing down: " + instances + " profile: " +  profile);
     request.put('/api/cluster/flexdown')
     .set('Content-Type', 'application/json')
-    .send({ "instances": instances})
+    .send({ "profile": profile, "instances": instances})
     .end(function(err, res){
            console.log("Result from api/cluster/flexdown");
            console.log(res);
@@ -77,11 +86,29 @@ var FlexDownComponent = React.createClass({
 
   render: function () {
 
+   var options = [];
+   var keys = [];
+   for( var key in this.props.profiles ) {
+       if( this.props.profiles.hasOwnProperty(key) ) {
+       keys.push(key);
+       }
+   }
+   for( var ii = 0; ii < keys.length; ii++) {
+       var key = keys[ii];
+       var txt = key;
+       options.push( <option key={key} value={key}>{txt}</option> );
+   }
+
     //TODO: get current number of instances available to flex down from the status to set max flex down value
     return(
       <div>
         <Row>
-          <Col md={4} mdOffset={1} >
+        <Col md={6}>
+                    <Input type="select" label='Profile' ref="profile" onChange={this.handleProfileChange} >
+                      { options }
+                    </Input>
+         </Col>
+          <Col md={4} >
             <Input label="Instances" help="Enter the number of instances to flex down." wrapperClassName="wrapper">
                   <input type="number" size="3" defaultValue="1" min="1" max="999" step="1"
                           ref="instances"
@@ -92,6 +119,7 @@ var FlexDownComponent = React.createClass({
         <Row>
           <Col md={2} mdOffset={5} >
             <ModalTrigger modal={<FlexDownModal
+                                    profile={this.state.selectedProfile}
                                     instances={this.state.numInstances}
                                     onFlexDown={this.onRequestFlexDown} />} >
               <Button bsStyle="primary" bsSize="large">Flex Down</Button>

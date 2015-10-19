@@ -1,19 +1,40 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.ebay.myriad.scheduler.fgs;
 
+import com.ebay.myriad.configuration.NodeManagerConfiguration;
 import com.ebay.myriad.executor.ContainerTaskStatusRequest;
 import com.ebay.myriad.scheduler.MyriadDriver;
 import com.ebay.myriad.scheduler.SchedulerUtils;
-import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.SchedulerState;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.inject.Inject;
+
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -52,15 +73,13 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     private final MyriadDriver myriadDriver;
     private final OfferLifecycleManager offerLifecycleMgr;
     private final NodeStore nodeStore;
-    private final TaskFactory taskFactory;
-    private final SchedulerState state;
+  private final SchedulerState state;
 
     @Inject
     public YarnNodeCapacityManager(InterceptorRegistry registry,
                                    AbstractYarnScheduler yarnScheduler,
                                    RMContext rmContext,
                                    MyriadDriver myriadDriver,
-                                   TaskFactory taskFactory,
                                    OfferLifecycleManager offerLifecycleMgr,
                                    NodeStore nodeStore,
                                    SchedulerState state) {
@@ -70,7 +89,6 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         this.yarnScheduler = yarnScheduler;
         this.rmContext = rmContext;
         this.myriadDriver = myriadDriver;
-        this.taskFactory = taskFactory;
         this.offerLifecycleMgr = offerLifecycleMgr;
         this.nodeStore = nodeStore;
         this.state = state;
@@ -130,7 +148,8 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
      * capacity depending on what portion of the consumed offers were actually
      * used.
      */
-    private void handleContainerAllocation(RMNode rmNode) {
+    @VisibleForTesting
+    protected void handleContainerAllocation(RMNode rmNode) {
       String host = rmNode.getNodeID().getHost();
 
       ConsumedOffer consumedOffer = offerLifecycleMgr.drainConsumedOffer(host);
@@ -215,7 +234,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         Protos.ExecutorInfo executorInfo = node.getExecInfo();
         if (executorInfo == null) {
             executorInfo = Protos.ExecutorInfo.newBuilder(
-                 state.getNodeTask(offer.getSlaveId()).getExecutorInfo())
+                 state.getNodeTask(offer.getSlaveId(), NodeManagerConfiguration.NM_TASK_PREFIX).getExecutorInfo())
                 .setFrameworkId(offer.getFrameworkId()).build();
             node.setExecInfo(executorInfo);
         }

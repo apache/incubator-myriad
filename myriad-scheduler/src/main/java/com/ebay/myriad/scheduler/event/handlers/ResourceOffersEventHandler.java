@@ -1,25 +1,31 @@
 /**
- * Copyright 2015 PayPal
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License. You may obtain a copy of
- * the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and limitations under
- * the License.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package com.ebay.myriad.scheduler.event.handlers;
 
-import com.ebay.myriad.scheduler.NMPorts;
-import com.ebay.myriad.scheduler.NMProfile;
 import com.ebay.myriad.scheduler.SchedulerUtils;
+import com.ebay.myriad.scheduler.ServiceResourceProfile;
+import com.ebay.myriad.scheduler.TaskConstraints;
+import com.ebay.myriad.scheduler.TaskConstraintsManager;
 import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskUtils;
+import com.ebay.myriad.scheduler.constraints.Constraint;
+import com.ebay.myriad.scheduler.constraints.LikeConstraint;
 import com.ebay.myriad.scheduler.event.ResourceOffersEvent;
 import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
 import com.ebay.myriad.state.NodeTask;
@@ -27,6 +33,7 @@ import com.ebay.myriad.state.SchedulerState;
 import com.lmax.disruptor.EventHandler;
 
 import java.util.Iterator;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -42,6 +49,7 @@ import javax.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -60,13 +68,16 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
   private SchedulerState schedulerState;
 
   @Inject
-  private TaskFactory taskFactory;
-
-  @Inject
   private TaskUtils taskUtils;
 
   @Inject
+  private Map<String, TaskFactory> taskFactoryMap;
+
+  @Inject
   private OfferLifecycleManager offerLifecycleMgr;
+  
+  @Inject
+  private TaskConstraintsManager taskConstraintsManager;
 
   @Override
   public void onEvent(ResourceOffersEvent event, long sequence,
@@ -74,44 +85,67 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     SchedulerDriver driver = event.getDriver();
     List<Offer> offers = event.getOffers();
 
+    // Sometimes, we see that mesos sends resource offers before Myriad receives
+    // a notification for "framework registration". This is a simple defensive code
+    // to not process any offers unless Myriad receives a "framework registered" notification.
+    if (schedulerState.getFrameworkID() == null) {
+      LOGGER.warn("Received {} offers, but declining them since Framework ID is not yet set", offers.size());
+      for (Offer offer : offers) {
+        driver.declineOffer(offer.getId());
+      }
+      return;
+    }
     LOGGER.info("Received offers {}", offers.size());
     LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
     driverOperationLock.lock();
     try {
       for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext();) {
         Offer offer = iterator.next();
+        Set<NodeTask> nodeTasks = schedulerState.getNodeTasks(offer.getSlaveId());
+        for (NodeTask nodeTask : nodeTasks) {
+          nodeTask.setSlaveAttributes(offer.getAttributesList());
+        }
         Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
         if (CollectionUtils.isNotEmpty(pendingTasks)) {
           for (Protos.TaskID pendingTaskId : pendingTasks) {
             NodeTask taskToLaunch = schedulerState
                 .getTask(pendingTaskId);
-            NMProfile profile = taskToLaunch.getProfile();
+            String taskPrefix = taskToLaunch.getTaskPrefix();
+            ServiceResourceProfile profile = taskToLaunch.getProfile();
+            Constraint constraint = taskToLaunch.getConstraint();
 
-            if (matches(offer, profile)
-                && SchedulerUtils.isUniqueHostname(offer,
-                schedulerState.getActiveTasks())) {
-              TaskInfo task = taskFactory.createTask(offer, schedulerState.getFrameworkID(), pendingTaskId,
-                  taskToLaunch);
+            Set<NodeTask> launchedTasks = new HashSet<>();
+            launchedTasks.addAll(schedulerState.getActiveTasksByType(taskPrefix));
+            launchedTasks.addAll(schedulerState.getStagingTasksByType(taskPrefix));
 
-              List<OfferID> offerIds = new ArrayList<>();
-              offerIds.add(offer.getId());
-              List<TaskInfo> tasks = new ArrayList<>();
-              tasks.add(task);
-              LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
-              LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
-              driver.launchTasks(offerIds, tasks);
-              schedulerState.makeTaskStaging(pendingTaskId);
-
-              // For every NM Task that we launch, we currently
-              // need to backup the ExecutorInfo for that NM Task in the State Store.
-              // Without this, we will not be able to launch tasks corresponding to yarn
-              // containers. This is specially important in case the RM restarts.
-              taskToLaunch.setExecutorInfo(task.getExecutor());
-              taskToLaunch.setHostname(offer.getHostname());
-              taskToLaunch.setSlaveId(offer.getSlaveId());
-              schedulerState.addTask(pendingTaskId, taskToLaunch);
-              iterator.remove(); // remove the used offer from offers list
-              break;
+            if (matches(offer, taskToLaunch, constraint)
+                && SchedulerUtils.isUniqueHostname(offer, taskToLaunch, launchedTasks)) {
+              try {
+                final TaskInfo task = 
+                      taskFactoryMap.get(taskPrefix).createTask(offer, schedulerState.getFrameworkID(), pendingTaskId,
+                      taskToLaunch);
+                List<OfferID> offerIds = new ArrayList<>();
+                offerIds.add(offer.getId());
+                List<TaskInfo> tasks = new ArrayList<>();
+                tasks.add(task);
+                LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
+                LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
+                driver.launchTasks(offerIds, tasks);
+                schedulerState.makeTaskStaging(pendingTaskId);
+  
+                // For every NM Task that we launch, we currently
+                // need to backup the ExecutorInfo for that NM Task in the State Store.
+                // Without this, we will not be able to launch tasks corresponding to yarn
+                // containers. This is specially important in case the RM restarts.
+                taskToLaunch.setExecutorInfo(task.getExecutor());
+                taskToLaunch.setHostname(offer.getHostname());
+                taskToLaunch.setSlaveId(offer.getSlaveId());
+                schedulerState.addTask(pendingTaskId, taskToLaunch);
+                iterator.remove(); // remove the used offer from offers list
+                break;
+              } catch (Throwable t) {
+                LOGGER.error("Exception thrown while trying to create a task for {}", taskPrefix, t);
+              }
             }
           }
         }
@@ -136,7 +170,10 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     }
   }
 
-  private boolean matches(Offer offer, NMProfile profile) {
+  private boolean matches(Offer offer, NodeTask taskToLaunch, Constraint constraint) {
+    if (!meetsConstraint(offer, constraint)) {
+      return false;
+    }
     Map<String, Object> results = new HashMap<String, Object>(5);
 
     for (Resource resource : offer.getResourcesList()) {
@@ -155,27 +192,48 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     checkResource(mem < 0, "mem");
     checkResource(ports < 0, "port");
 
-    return checkAggregates(offer, profile, ports, cpus, mem);
+    return checkAggregates(offer, taskToLaunch, ports, cpus, mem);
+  }
+
+    private boolean checkAggregates(Offer offer, NodeTask taskToLaunch, int ports, double cpus, double mem) {
+        final ServiceResourceProfile profile = taskToLaunch.getProfile();
+        final String taskPrefix = taskToLaunch.getTaskPrefix();
+        final double aggrCpu = profile.getAggregateCpu() + profile.getExecutorCpu();
+        final double aggrMem = profile.getAggregateMemory() + profile.getExecutorMemory();
+        final TaskConstraints taskConstraints = taskConstraintsManager.getConstraints(taskPrefix);
+        if (aggrCpu <= cpus
+            && aggrMem <= mem
+            && taskConstraints.portsCount() <= ports) {
+            return true;
+        } else {
+            LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}",
+                aggrCpu, aggrMem, ports);
+            return false;
+        }
+    }
+
+  private boolean meetsConstraint(Offer offer, Constraint constraint) {
+    if (constraint != null) {
+      switch (constraint.getType()) {
+        case LIKE:
+        {
+          LikeConstraint likeConstraint = (LikeConstraint) constraint;
+          if (likeConstraint.isConstraintOnHostName()) {
+            return likeConstraint.matchesHostName(offer.getHostname());
+          } else {
+            return likeConstraint.matchesSlaveAttributes(offer.getAttributesList());
+          }
+        }
+      default:
+        return false;
+      }
+    }
+    return true;
   }
 
   private void checkResource(boolean fail, String resource) {
     if (fail) {
       LOGGER.info("No " + resource + " resources present");
-    }
-  }
-
-  private boolean checkAggregates(Offer offer, NMProfile profile, int ports, double cpus, double mem) {
-    Map<String, String> requestAttributes = new HashMap<>();
-
-    if (taskUtils.getAggregateCpus(profile) <= cpus
-        && taskUtils.getAggregateMemory(profile) <= mem
-        && SchedulerUtils.isMatchSlaveAttributes(offer, requestAttributes)
-        && NMPorts.expectedNumPorts() <= ports) {
-      return true;
-    } else {
-      LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}",
-          taskUtils.getAggregateCpus(profile), taskUtils.getAggregateMemory(profile), ports);
-      return false;
     }
   }
 

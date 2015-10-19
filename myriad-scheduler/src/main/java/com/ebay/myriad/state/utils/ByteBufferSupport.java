@@ -6,29 +6,36 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package com.ebay.myriad.state.utils;
 
+import com.ebay.myriad.scheduler.constraints.Constraint;
+import com.ebay.myriad.scheduler.constraints.Constraint.Type;
+import com.ebay.myriad.scheduler.constraints.LikeConstraint;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
-import com.ebay.myriad.scheduler.NMProfile;
+
+import com.ebay.myriad.scheduler.ServiceResourceProfile;
 import com.ebay.myriad.state.NodeTask;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.protobuf.GeneratedMessage;
 
 /**
@@ -40,7 +47,10 @@ public class ByteBufferSupport {
   public static final String UTF8 = "UTF-8";
   public static final byte[] ZERO_BYTES = new byte[0];
   private static Gson gson = new Gson();
-
+  private static Gson gsonCustom = new GsonBuilder().
+      registerTypeAdapter(ServiceResourceProfile.class, new ServiceResourceProfile.CustomDeserializer()).
+      create();
+  
   public static void addByteBuffers(List<ByteBuffer> list,
     ByteArrayOutputStream bytes) throws IOException {
     // If list, add the list size, then the size of each buffer followed by the buffer.
@@ -95,12 +105,25 @@ public class ByteBufferSupport {
     return bb.array();
   }
 
+
   public static ByteBuffer toByteBuffer(NodeTask nt) {
     // Determine the size of ByteBuffer to allocate
-    // The NMProfile toString() returns Json, if this ever changes then this
+    // The ServiceResourceProfile toString() returns Json, if this ever changes then this
     // will fail. Json is expected.
     byte[] profile = toBytes(nt.getProfile().toString());
     int size = profile.length + INT_SIZE;
+
+    Constraint constraint = nt.getConstraint();
+    Constraint.Type type = constraint == null ? Type.NULL : constraint.getType();
+    size += INT_SIZE;
+
+    byte[] constraintBytes = ZERO_BYTES;
+    if (constraint != null) {
+      constraintBytes = toBytes(constraint.toString());
+      size += constraintBytes.length + INT_SIZE;
+    } else {
+      size += INT_SIZE;
+    }
 
     byte[] hostname = toBytes(nt.getHostname());
     size += hostname.length + INT_SIZE;
@@ -123,13 +146,22 @@ public class ByteBufferSupport {
         size += INT_SIZE;
     }
 
+    byte[] taskPrefixBytes = ZERO_BYTES;
+    if (nt.getTaskPrefix() != null) {
+      taskPrefixBytes = toBytes(nt.getTaskPrefix());
+      size += taskPrefixBytes.length + INT_SIZE;
+    }
+    
     // Allocate and populate the buffer.
     ByteBuffer bb = createBuffer(size);
     putBytes(bb, profile);
+    bb.putInt(type.ordinal());
+    putBytes(bb, constraintBytes);
     putBytes(bb, hostname);
     putBytes(bb, getSlaveBytes(nt));
     putBytes(bb, getTaskBytes(nt));
     putBytes(bb, getExecutorInfoBytes(nt));
+    putBytes(bb, taskPrefixBytes);
     // Make sure the buffer is at the beginning
     bb.rewind();
     return bb;
@@ -173,7 +205,7 @@ public class ByteBufferSupport {
   public static NodeTask toNodeTask(ByteBuffer bb) {
     NodeTask nt = null;
     if (bb != null && bb.array().length > 0) {
-      nt = new NodeTask(getProfile(bb));
+      nt = new NodeTask(getServiceResourceProfile(bb), getConstraint(bb));
       nt.setHostname(toString(bb));
       nt.setSlaveId(toSlaveId(bb));
       nt.setTaskStatus(toTaskStatus(bb));
@@ -251,13 +283,29 @@ public class ByteBufferSupport {
     }
   }
 
-  public static NMProfile getProfile(ByteBuffer bb) {
+  public static ServiceResourceProfile getServiceResourceProfile(ByteBuffer bb) {
     String p = toString(bb);
     if (!StringUtils.isEmpty(p)) {
-      return gson.fromJson(p, NMProfile.class);
+      return gsonCustom.fromJson(p, ServiceResourceProfile.class);
     } else {
       return null;
     }
+  }
+
+  public static Constraint getConstraint(ByteBuffer bb) {
+    Constraint.Type type = Constraint.Type.values()[bb.getInt()];
+    String p = toString(bb);
+    switch (type) {
+      case NULL:
+        return null;
+
+      case LIKE:
+
+        if (!StringUtils.isEmpty(p)) {
+          return gson.fromJson(p, LikeConstraint.class);
+        }
+    }
+    return null;
   }
 
   public static Protos.SlaveID toSlaveId(ByteBuffer bb) {

@@ -6,14 +6,15 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * 
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 
 package com.ebay.myriad.scheduler;
@@ -42,12 +43,12 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
   }
 
 @Override
-  public String generateCommandLine(NMProfile profile, NMPorts ports) {
+  public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
     StringBuilder cmdLine = new StringBuilder();
     LOGGER.info("Using remote distribution");
 
-    generateEnvironment(profile, ports);
-    appendNMExtractionCommands(cmdLine);
+    generateEnvironment(profile, (NMPorts) ports);
+    appendDistroExtractionCommands(cmdLine);
     appendCgroupsCmds(cmdLine);
     appendYarnHomeExport(cmdLine);
     appendUser(cmdLine);
@@ -56,7 +57,7 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
     return cmdLine.toString();
   }
 
-  private void appendNMExtractionCommands(StringBuilder cmdLine) {
+  protected void appendDistroExtractionCommands(StringBuilder cmdLine) {
     /*
     TODO(darinj): Overall this is messier than I'd like. We can't let mesos untar the distribution, since
     it will change the permissions.  Instead we simply download the tarball and execute tar -xvpf. We also
@@ -81,7 +82,7 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
       .append("/etc/hadoop/yarn-site.xml;");
   }
 
-  private void appendUser(StringBuilder cmdLine) {
+  protected void appendUser(StringBuilder cmdLine) {
     cmdLine.append(" sudo -E -u ").append(cfg.getFrameworkUser().get()).append(" -H");
   }
 

@@ -1,11 +1,29 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package com.ebay.myriad.scheduler.fgs;
 
 import com.ebay.myriad.scheduler.MyriadDriver;
 import com.ebay.myriad.scheduler.SchedulerUtils;
-import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.SchedulerState;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -29,8 +47,8 @@ import org.slf4j.LoggerFactory;
  * Handles node manager heartbeat.
  */
 public class NMHeartBeatHandler extends BaseInterceptor {
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      NMHeartBeatHandler.class);
+  @VisibleForTesting
+  Logger logger = LoggerFactory.getLogger(NMHeartBeatHandler.class);
 
   private final AbstractYarnScheduler yarnScheduler;
   private final MyriadDriver myriadDriver;
@@ -79,10 +97,10 @@ public class NMHeartBeatHandler extends BaseInterceptor {
         Resource totalCapability = rmNode.getTotalCapability();
         if (totalCapability.getMemory() != 0 ||
             totalCapability.getVirtualCores() != 0) {
-          LOGGER.warn("FineGrainedScaling feature got invoked for a " +
-                  "NM with non-zero capacity. Host: {}, Mem: {}, CPU: {}. Setting the NM's capacity to (0G,0CPU)",
-              rmNode.getHostName(),
-              totalCapability.getMemory(), totalCapability.getVirtualCores());
+          logger.warn("FineGrainedScaling feature got invoked for a " +
+              "NM with non-zero capacity. Host: {}, Mem: {}, CPU: {}. Setting the NM's capacity to (0G,0CPU)",
+            rmNode.getHostName(),
+            totalCapability.getMemory(), totalCapability.getVirtualCores());
           totalCapability.setMemory(0);
           totalCapability.setVirtualCores(0);
         }
@@ -99,10 +117,11 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     }
   }
 
-  private void handleStatusUpdate(RMNodeEvent event, RMContext context) {
+  @VisibleForTesting
+  protected void handleStatusUpdate(RMNodeEvent event, RMContext context) {
     if (!(event instanceof RMNodeStatusEvent)) {
-      LOGGER.error("{} not an instance of {}", event.getClass().getName(),
-          RMNodeStatusEvent.class.getName());
+      logger.error("{} not an instance of {}", event.getClass().getName(),
+        RMNodeStatusEvent.class.getName());
       return;
     }
 
@@ -126,7 +145,7 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   private Resource getNewResourcesOfferedByMesos(String hostname) {
     OfferFeed feed = offerLifecycleMgr.getOfferFeed(hostname);
     if (feed == null) {
-      LOGGER.debug("No offer feed for: {}", hostname);
+      logger.debug("No offer feed for: {}", hostname);
       return Resource.newInstance(0, 0);
     }
     List<Offer> offers = new ArrayList<>();
@@ -137,8 +156,8 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     }
     Resource fromMesosOffers = OfferUtils.getYarnResourcesFromMesosOffers(offers);
 
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("NM on host {} got {} CPUs and {} memory from mesos",
+    if (logger.isDebugEnabled()) {
+      logger.debug("NM on host {} got {} CPUs and {} memory from mesos",
           hostname, fromMesosOffers.getVirtualCores(), fromMesosOffers.getMemory());
     }
 
@@ -158,10 +177,5 @@ public class NMHeartBeatHandler extends BaseInterceptor {
       }
     }
     return usedResources;
-  }
-
-  private Protos.ExecutorID getExecutorId(Protos.SlaveID slaveId) {
-    return Protos.ExecutorID.newBuilder().setValue(
-        TaskFactory.NMTaskFactoryImpl.EXECUTOR_PREFIX + slaveId.getValue()).build();
   }
 }

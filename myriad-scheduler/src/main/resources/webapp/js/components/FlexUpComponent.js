@@ -21,7 +21,7 @@ var FlexUpModal = React.createClass({
         <Col mdOffset={3}>
           <div className="modal-body">
             Flex up <Badge>{this.props.instances}</Badge> instance(s)
-             size: <Badge>{this.props.size}</Badge> ?
+             Profile: <Badge>{this.props.profile}</Badge> ?
           </div>
         </Col>
       </Row>
@@ -30,7 +30,7 @@ var FlexUpModal = React.createClass({
           <Button bsStyle="success" onClick={
             function(){
               this.props.onRequestHide();
-              this.props.onFlexUp(this.props.instances, this.props.size);
+              this.props.onFlexUp(this.props.instances, this.props.profile);
               }.bind(this) }
           >Flex Up</Button>
         </div>
@@ -46,7 +46,7 @@ var FlexUpComponent = React.createClass({
   displayName: "FlexUpComponent",
 
   getInitialState: function () {
-    return( {selectedSize: null,
+    return( {selectedSProfile: null,
              numInstances:0});
   },
 
@@ -55,21 +55,21 @@ var FlexUpComponent = React.createClass({
     this.setState({numInstances: instances});
   },
 
-  handleSizeChange: function() {
-    var size = this.refs.size.getValue();
-    this.setState({selectedSize: size});
+  handleProfileChange: function() {
+    var profile = this.refs.profile.getValue();
+    this.setState({selectedProfile: profile});
  },
 
   componentDidMount: function() {
-    this.handleSizeChange();
+    this.handleProfileChange();
     this.handleInstanceChange();
   },
 
-  onRequestFlexUp: function(instances, size) {
-    console.log( "flexing up: " + instances + " size " + size);
+  onRequestFlexUp: function(instances, profile) {
+    console.log( "flexing up: " + instances + " Profile " + profile);
     request.put('/api/cluster/flexup')
     .set('Content-Type', 'application/json')
-    .send({ "profile": size, "instances": instances})
+    .send({ "profile": profile, "instances": instances})
     .end(function(err, res){
            if (!err) {
              console.log("flexup successful!");
@@ -100,7 +100,7 @@ var FlexUpComponent = React.createClass({
       <div className="modal-container">
         <Row>
           <Col md={6}>
-            <Input type="select" label='Profile' ref="size" onChange={this.handleSizeChange} >
+            <Input type="select" label='Profile' ref="profile" onChange={this.handleProfileChange} >
               { options }
             </Input>
           </Col>
@@ -119,7 +119,7 @@ var FlexUpComponent = React.createClass({
         <Row>
           <Col md={2} mdOffset={5} >
             <ModalTrigger modal={<FlexUpModal
-                                    size={this.state.selectedSize}
+                                    profile={this.state.selectedProfile}
                                     instances={this.state.numInstances}
                                     onFlexUp={this.onRequestFlexUp} />} >
               <Button bsStyle="primary" bsSize="large">Flex Up</Button>
