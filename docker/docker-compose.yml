@@ -1,6 +1,6 @@
 myriad:
   build: .
-#    - dockerfile: ResourceManager.dockerfile
+  dockerfile: ResourceManager.dockerfile
   volumes:
     - ./config:/myriad-conf  
   environment:
