@@ -163,13 +163,15 @@ public class ClustersResource {
         isValidRequest = isValidRequest && validateInstances(instances, response);
         isValidRequest = isValidRequest && validateConstraints(constraints, response);
 
-        Integer numFlexedUp = this.getNumFlexedupNMs(profile);
-        if (isValidRequest && numFlexedUp < instances)  {
+        if (isValidRequest)  {
+          Integer numFlexedUp = this.getNumFlexedupNMs(profile);
+          if (numFlexedUp < instances) {
             String message = String.format("Number of requested instances for flexdown is greater than the number of " +
                 "Node Managers previously flexed up for profile '%s'. Requested: %d, Previously flexed Up: %d. " +
                 "Only %d Node Managers will be flexed down.", profile, instances, numFlexedUp, numFlexedUp);
             response.entity(message);
             LOGGER.warn(message);
+          }
         }
 
         Response returnResponse = response.build();
