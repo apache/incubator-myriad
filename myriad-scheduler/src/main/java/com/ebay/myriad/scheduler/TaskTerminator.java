@@ -19,11 +19,15 @@
 package com.ebay.myriad.scheduler;
 
 import com.ebay.myriad.scheduler.fgs.OfferLifecycleManager;
+import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+
 import java.util.Set;
+
 import javax.inject.Inject;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
@@ -71,8 +75,15 @@ public class TaskTerminator implements Runnable {
               this.schedulerState.removeTask(taskIdToKill);
             } else {
               Status status = this.driverManager.kill(taskIdToKill);
-              offerLifeCycleManager.declineOutstandingOffers(schedulerState.getTask(taskIdToKill).getHostname());
-              this.schedulerState.removeTask(taskIdToKill);
+              NodeTask task = schedulerState.getTask(taskIdToKill);
+              if (task != null) {
+                offerLifeCycleManager.declineOutstandingOffers(
+                    task.getHostname());
+                this.schedulerState.removeTask(taskIdToKill);
+              } else {
+                schedulerState.removeTask(taskIdToKill);
+                LOGGER.warn("NodeTask with taskId: {} does not exist", taskIdToKill);
+              }
               Preconditions.checkState(status == Status.DRIVER_RUNNING);
             }
         }

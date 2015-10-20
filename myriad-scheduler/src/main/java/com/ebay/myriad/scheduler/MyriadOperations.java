@@ -28,7 +28,6 @@ import com.ebay.myriad.scheduler.constraints.LikeConstraint;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 import org.apache.mesos.Protos;
@@ -141,7 +140,7 @@ public class MyriadOperations {
       
       // Flex down Pending tasks, if any
       if (numScaledDown < numInstancesToScaleDown) {
-        Set<Protos.TaskID> pendingTasks = Sets.newHashSet(this.schedulerState.getPendingTaskIds(serviceName));
+        Collection<Protos.TaskID> pendingTasks = this.schedulerState.getPendingTaskIds(serviceName);
 
         for (Protos.TaskID taskId : pendingTasks) {
             this.schedulerState.makeTaskKillable(taskId);
@@ -155,7 +154,7 @@ public class MyriadOperations {
       
       // Flex down Staging tasks, if any
       if (numScaledDown < numInstancesToScaleDown) {
-          Set<Protos.TaskID> stagingTasks = Sets.newHashSet(this.schedulerState.getStagingTaskIds(serviceName));
+          Collection<Protos.TaskID> stagingTasks = this.schedulerState.getStagingTaskIds(serviceName);
 
           for (Protos.TaskID taskId : stagingTasks) {
               this.schedulerState.makeTaskKillable(taskId);
@@ -167,7 +166,7 @@ public class MyriadOperations {
       }
       int numStagingTasksScaledDown = numScaledDown - numPendingTasksScaledDown;
 
-      Set<NodeTask> activeTasks = Sets.newHashSet(this.schedulerState.getActiveTasksByType(serviceName));
+      Set<NodeTask> activeTasks = this.schedulerState.getActiveTasksByType(serviceName);
       if (numScaledDown < numInstancesToScaleDown) {
         for (NodeTask nodeTask : activeTasks) {
           this.schedulerState.makeTaskKillable(nodeTask.getTaskStatus().getTaskId());
@@ -191,7 +190,7 @@ public class MyriadOperations {
           profile, constraint, numInstancesToScaleDown) : 0;
     }
 
-  private int flexDownStagingTasks(ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
+    private int flexDownStagingTasks(ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
       return numInstancesToScaleDown > 0 ? flexDownTasks(schedulerState.getStagingTaskIDsForProfile(profile),
           profile, constraint, numInstancesToScaleDown) : 0;
     }
@@ -220,7 +219,7 @@ public class MyriadOperations {
         }
       }
       return numInstancesScaledDown;
-    }
+  }
 
   private boolean meetsConstraint(NodeTask nodeTask, Constraint constraint) {
     if (constraint != null) {

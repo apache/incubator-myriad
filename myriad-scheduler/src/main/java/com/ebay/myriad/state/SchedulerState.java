@@ -60,7 +60,12 @@ public class SchedulerState {
         loadStateStore();
     }
 
-    public void addNodes(Collection<NodeTask> nodes) {
+    /**
+     * Making method synchronized, so if someone tries flexup/down at the same time
+     * addNodes and removeTask will not put data into an inconsistent state
+     * @param nodes
+     */
+    public synchronized void addNodes(Collection<NodeTask> nodes) {
         if (CollectionUtils.isEmpty(nodes)) {
             LOGGER.info("No nodes to add");
             return;
@@ -453,11 +458,13 @@ public class SchedulerState {
 
     public SchedulerStateForType(String taskPrefix) {
       this.taskPrefix = taskPrefix;
-      this.pendingTasks = new HashSet<>();
-      this.stagingTasks = new HashSet<>();
-      this.activeTasks = new HashSet<>();
-      this.lostTasks = new HashSet<>();
-      this.killableTasks = new HashSet<>();
+      // Since Sets.newConcurrentHashSet is available only starting form Guava version 15
+      // and so far (Hadoop 2.7) uses guava 13 we can not easily use it
+      this.pendingTasks = Collections.newSetFromMap(new ConcurrentHashMap<Protos.TaskID, Boolean>());
+      this.stagingTasks = Collections.newSetFromMap(new ConcurrentHashMap<Protos.TaskID, Boolean>());
+      this.activeTasks = Collections.newSetFromMap(new ConcurrentHashMap<Protos.TaskID, Boolean>());
+      this.lostTasks = Collections.newSetFromMap(new ConcurrentHashMap<Protos.TaskID, Boolean>());
+      this.killableTasks = Collections.newSetFromMap(new ConcurrentHashMap<Protos.TaskID, Boolean>());
 
     }
     @SuppressWarnings("unused")
