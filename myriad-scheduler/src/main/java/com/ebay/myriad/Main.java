@@ -41,6 +41,8 @@ import com.ebay.myriad.scheduler.TaskFactory;
 import com.ebay.myriad.scheduler.TaskTerminator;
 import com.ebay.myriad.scheduler.TaskUtils;
 import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import com.ebay.myriad.state.NodeTask;
+import com.ebay.myriad.state.SchedulerState;
 import com.ebay.myriad.webapp.MyriadWebServer;
 import com.ebay.myriad.webapp.WebAppGuiceModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,9 +58,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
 
 /**
  * Main entry point for myriad scheduler
@@ -211,7 +215,32 @@ public class Main {
       Map<String, Integer> nmInstances = injector.getInstance(MyriadConfiguration.class).getNmInstances();
       MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
       ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
+      SchedulerState schedulerState = injector.getInstance(SchedulerState.class);
+
+      Set<NodeTask> launchedNMTasks = new HashSet<>();
+      launchedNMTasks.addAll(
+        schedulerState.getPendingTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+      if (!launchedNMTasks.isEmpty()) {
+        LOGGER.info("{} NM(s) in pending state. Not launching additional NMs", launchedNMTasks.size());
+        return;
+      }
+
+      launchedNMTasks.addAll(
+        schedulerState.getStagingTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+      if (!launchedNMTasks.isEmpty()) {
+        LOGGER.info("{} NM(s) in staging state. Not launching additional NMs", launchedNMTasks.size());
+        return;
+      }
+
+      launchedNMTasks.addAll(
+        schedulerState.getActiveTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+      if (!launchedNMTasks.isEmpty()) {
+        LOGGER.info("{} NM(s) in active state. Not launching additional NMs", launchedNMTasks.size());
+        return;
+      }
+
       for (Map.Entry<String, Integer> entry : nmInstances.entrySet()) {
+        LOGGER.info("Launching {} NM(s) with profile {}", entry.getValue(), entry.getKey());
         myriadOperations.flexUpCluster(profileManager.get(entry.getKey()), entry.getValue(), null);
       }
     }
