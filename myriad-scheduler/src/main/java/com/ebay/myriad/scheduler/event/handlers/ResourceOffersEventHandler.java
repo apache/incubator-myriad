@@ -109,14 +109,14 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
         // keep this in case SchedulerState gets out of sync. This should not happen with 
         // synchronizing addNodes method in SchedulerState
         // but to keep it safe
-        final Set<Protos.TaskID> blacklistedTasks = Sets.newHashSet();
+        final Set<Protos.TaskID> missingTasks = Sets.newHashSet();
         Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
         if (CollectionUtils.isNotEmpty(pendingTasks)) {
           for (Protos.TaskID pendingTaskId : pendingTasks) {
             NodeTask taskToLaunch = schedulerState
                 .getTask(pendingTaskId);
             if (taskToLaunch == null) {
-              blacklistedTasks.add(pendingTaskId);
+              missingTasks.add(pendingTaskId);
               LOGGER.warn("Node task for TaskID: {} does not exist", pendingTaskId);
               continue;
             }
@@ -158,7 +158,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
               }
             }
           }
-          for (Protos.TaskID taskId : blacklistedTasks) {
+          for (Protos.TaskID taskId : missingTasks) {
             schedulerState.removeTask(taskId);
           }
         }

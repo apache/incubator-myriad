@@ -58,6 +58,7 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
         NodeTask task = schedulerState.getTask(taskId);
         if (task == null) {
             LOGGER.warn("Task: {} not found, status: {}", taskId.getValue(), status.getState());
+            schedulerState.removeTask(taskId);
             return;
         }
         LOGGER.info("Status Update for task: {} | state: {}", taskId.getValue(), status.getState());
