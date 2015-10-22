@@ -28,9 +28,9 @@ subprojects {
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
-    mainClassName = "com.ebay.myriad.Main"
+    mainClassName = "org.apache.myriad.Main"
 
-    group = "com.ebay.myriad"
+    group = "org.apache.myriad"
     version = "0.0.1"
 
     ext {
