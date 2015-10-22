@@ -87,8 +87,8 @@ To configure YARN to use Myriad, please update ```$YARN_HOME/etc/hadoop/yarn-sit
 <!-- Configure Myriad Scheduler here -->
 <property>
     <name>yarn.resourcemanager.scheduler.class</name>
-    <value>com.ebay.myriad.scheduler.yarn.MyriadFairScheduler</value>
-    <description>One can configure other schedulers as well from following list: com.ebay.myriad.scheduler.yarn.MyriadCapacityScheduler, com.ebay.myriad.scheduler.yarn.MyriadFifoScheduler</description>
+    <value>org.apache.myriad.scheduler.yarn.MyriadFairScheduler</value>
+    <description>One can configure other schedulers as well from following list: org.apache.myriad.scheduler.yarn.MyriadCapacityScheduler, org.apache.myriad.scheduler.yarn.MyriadFifoScheduler</description>
 </property>
 ```
 
