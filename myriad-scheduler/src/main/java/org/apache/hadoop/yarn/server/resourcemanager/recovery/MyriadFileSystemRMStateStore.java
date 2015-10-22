@@ -19,17 +19,16 @@
 
 package org.apache.hadoop.yarn.server.resourcemanager.recovery;
 
-import java.io.IOException;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.myriad.state.MyriadStateStore;
+import org.apache.myriad.state.utils.StoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ebay.myriad.state.MyriadStateStore;
-import com.ebay.myriad.state.utils.StoreContext;
+import java.io.IOException;
 
 /**
  * StateStore that stores Myriad state in addition to RM state to DFS. 
