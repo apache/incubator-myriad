@@ -9,7 +9,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class to keep all the ServiceResourceProfiles together
- *
  */
 public class ServiceProfileManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceProfileManager.class);
@@ -17,22 +16,22 @@ public class ServiceProfileManager {
   private Map<String, ServiceResourceProfile> profiles = new ConcurrentHashMap<>();
 
   public ServiceResourceProfile get(String name) {
-      return profiles.get(name);
+    return profiles.get(name);
   }
 
   public void add(ServiceResourceProfile profile) {
-      LOGGER.info("Adding profile {} with CPU: {} and Memory: {}",
-              profile.getName(), profile.getCpus(), profile.getMemory());
-      profiles.put(profile.getName(), profile);
+    LOGGER.info("Adding profile {} with CPU: {} and Memory: {}",
+      profile.getName(), profile.getCpus(), profile.getMemory());
+    profiles.put(profile.getName(), profile);
   }
 
   public boolean exists(String name) {
-      return this.profiles.containsKey(name);
+    return this.profiles.containsKey(name);
   }
 
   public String toString() {
-      Gson gson = new Gson();
-      return gson.toJson(this);
+    Gson gson = new Gson();
+    return gson.toJson(this);
   }
 
 }

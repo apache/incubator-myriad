@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * Auxillary service wrapper for MyriadExecutor 
  */
-public class MyriadExecutorAuxService  extends AuxiliaryService {
+public class MyriadExecutorAuxService extends AuxiliaryService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MyriadExecutor.class);
   private static final String SERVICE_NAME = "myriad_service";
@@ -60,7 +60,7 @@ public class MyriadExecutorAuxService  extends AuxiliaryService {
       public void run() {
         driver = new MesosExecutorDriver(new MyriadExecutor(containerIds));
         LOGGER.error("MyriadExecutor exit with status " +
-        Integer.toString(driver.run() == Status.DRIVER_STOPPED ? 0 : 1));
+          Integer.toString(driver.run() == Status.DRIVER_STOPPED ? 0 : 1));
       }
     });
     myriadExecutorThread.start();

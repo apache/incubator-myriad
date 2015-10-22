@@ -46,7 +46,7 @@ public class LikeConstraint implements Constraint {
 
             default:
               LOGGER.warn("LIKE constraint currently doesn't support Mesos slave attributes " +
-                  "of type {}. Attribute Name: {}", attr.getType(), attr.getName());
+                "of type {}. Attribute Name: {}", attr.getType(), attr.getName());
               return false;
 
           }

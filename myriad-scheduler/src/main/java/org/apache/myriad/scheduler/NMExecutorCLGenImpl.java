@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -80,7 +80,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   public static final String KEY_NM_RESOURCE_MEM_MB =
     "nodemanager.resource.memory-mb";
   public static final String YARN_NM_CMD =
-      " $YARN_HOME/bin/yarn nodemanager";
+    " $YARN_HOME/bin/yarn nodemanager";
   public static final String KEY_NM_ADDRESS = "myriad.yarn.nodemanager.address";
   public static final String KEY_NM_LOCALIZER_ADDRESS =
     "myriad.yarn.nodemanager.localizer.address";
@@ -89,7 +89,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   public static final String KEY_NM_SHUFFLE_PORT =
     "myriad.mapreduce.shuffle.port";
 
-  private static final String ALL_LOCAL_IPV4ADDR =  "0.0.0.0:";
+  private static final String ALL_LOCAL_IPV4ADDR = "0.0.0.0:";
   private static final String PROPERTY_FORMAT = "-D%s=%s";
 
   private Map<String, String> environment = new HashMap<>();
@@ -125,24 +125,24 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
     if (cfg.getNodeManagerConfiguration().getCgroups().or(Boolean.FALSE)) {
       addYarnNodemanagerOpt(KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS,
-          VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS);
+        VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS);
       addYarnNodemanagerOpt(KEY_YARN_NM_LCE_RH_CLASS, VAL_YARN_NM_LCE_RH_CLASS);
 
-        // TODO: Configure hierarchy
-        addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_HIERARCHY,
-          VAL_YARN_NM_LCE_CGROUPS_HIERARCHY);
-        addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_MOUNT, "true");
-        // TODO: Make it configurable
-        addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_MOUNT_PATH,
-          VAL_YARN_NM_LCE_CGROUPS_MOUNT_PATH);
-        addYarnNodemanagerOpt(KEY_YARN_NM_LCE_GROUP, "root");
-        if (environment.containsKey("YARN_HOME")) {
-          addYarnNodemanagerOpt(KEY_YARN_HOME, environment.get("YARN_HOME"));
-        }
+      // TODO: Configure hierarchy
+      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_HIERARCHY,
+        VAL_YARN_NM_LCE_CGROUPS_HIERARCHY);
+      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_MOUNT, "true");
+      // TODO: Make it configurable
+      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_MOUNT_PATH,
+        VAL_YARN_NM_LCE_CGROUPS_MOUNT_PATH);
+      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_GROUP, "root");
+      if (environment.containsKey("YARN_HOME")) {
+        addYarnNodemanagerOpt(KEY_YARN_HOME, environment.get("YARN_HOME"));
+      }
     } else {
-        // Otherwise configure to use Default
+      // Otherwise configure to use Default
       addYarnNodemanagerOpt(KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS,
-          DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS);
+        DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS);
     }
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_CPU_VCORES,
       Integer.toString(profile.getCpus().intValue()));
@@ -151,7 +151,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     addYarnNodemanagerOpt(KEY_NM_ADDRESS, ALL_LOCAL_IPV4ADDR +
       Long.valueOf(ports.getRpcPort()).toString());
     addYarnNodemanagerOpt(KEY_NM_LOCALIZER_ADDRESS,
-      ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getLocalizerPort()).toString()); 
+      ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getLocalizerPort()).toString());
     addYarnNodemanagerOpt(KEY_NM_WEBAPP_ADDRESS,
       ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getWebAppHttpPort()).toString());
     addYarnNodemanagerOpt(KEY_NM_SHUFFLE_PORT,
@@ -162,11 +162,11 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     cmdLine.append(" env ");
     for (Map.Entry<String, String> env : environment.entrySet()) {
       cmdLine.append(env.getKey()).append("=").append("\"")
-          .append(env.getValue()).append("\" ");
+        .append(env.getValue()).append("\" ");
     }
   }
 
-  protected void appendCgroupsCmds(StringBuilder cmdLine) { 
+  protected void appendCgroupsCmds(StringBuilder cmdLine) {
     if (cfg.getNodeManagerConfiguration().getCgroups().or(Boolean.FALSE)) {
       cmdLine.append(" export TASK_DIR=`basename $PWD`;");
       cmdLine.append(" chmod +x /sys/fs/cgroup/cpu/mesos/$TASK_DIR;");
@@ -181,12 +181,12 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
   protected void addYarnNodemanagerOpt(String propertyName, String propertyValue) {
     String envOpt = String.format(PROPERTY_FORMAT, propertyName, propertyValue);
-      if (environment.containsKey(ENV_YARN_NODEMANAGER_OPTS)) {
-          String existingOpts = environment.get(ENV_YARN_NODEMANAGER_OPTS);
-          environment.put(ENV_YARN_NODEMANAGER_OPTS, existingOpts + " " + envOpt);
-      } else {
-          environment.put(ENV_YARN_NODEMANAGER_OPTS, envOpt);
-      }
+    if (environment.containsKey(ENV_YARN_NODEMANAGER_OPTS)) {
+      String existingOpts = environment.get(ENV_YARN_NODEMANAGER_OPTS);
+      environment.put(ENV_YARN_NODEMANAGER_OPTS, existingOpts + " " + envOpt);
+    } else {
+      environment.put(ENV_YARN_NODEMANAGER_OPTS, envOpt);
+    }
   }
 
   @Override

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -33,41 +33,41 @@ import java.util.Collection;
  * Provides utilities for scheduling with the mesos offers
  */
 public class SchedulerUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerUtils.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerUtils.class);
 
-    public static boolean isUniqueHostname(Protos.OfferOrBuilder offer, NodeTask taskToLaunch, 
-        Collection<NodeTask> tasks) {
-        Preconditions.checkArgument(offer != null);
-        String offerHostname = offer.getHostname();
+  public static boolean isUniqueHostname(Protos.OfferOrBuilder offer, NodeTask taskToLaunch,
+                                         Collection<NodeTask> tasks) {
+    Preconditions.checkArgument(offer != null);
+    String offerHostname = offer.getHostname();
 
-        if (!CollectionUtils.isEmpty(tasks)) {
-            for (NodeTask task : tasks) {
-                if (offerHostname.equalsIgnoreCase(task.getHostname())) {
-                    LOGGER.debug("Offer's hostname {} is not unique", offerHostname);
-                    return false;
-                }
-            }
-        }
-        LOGGER.debug("Offer's hostname {} is unique", offerHostname);
-        return true;        
-    }
-
-  /**
-     * Determines if a given host has a nodemanager running with zero profile. Node Managers
-     * launched with zero profile (zero cpu & memory) are eligible for fine grained scaling.
-     * Node Managers launched with a non-zero profile size are not eligible for fine grained scaling.
-     *
-     * @param hostName
-     * @return
-     */
-    public static boolean isEligibleForFineGrainedScaling(String hostName, SchedulerState state) {
-      for (NodeTask activeNMTask : state.getActiveTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX)) {
-        if (activeNMTask.getProfile().getCpus() == 0 &&
-            activeNMTask.getProfile().getMemory() == 0 &&
-            activeNMTask.getHostname().equals(hostName)) {
-          return true;
+    if (!CollectionUtils.isEmpty(tasks)) {
+      for (NodeTask task : tasks) {
+        if (offerHostname.equalsIgnoreCase(task.getHostname())) {
+          LOGGER.debug("Offer's hostname {} is not unique", offerHostname);
+          return false;
         }
       }
-      return false;
     }
+    LOGGER.debug("Offer's hostname {} is unique", offerHostname);
+    return true;
+  }
+
+  /**
+   * Determines if a given host has a nodemanager running with zero profile. Node Managers
+   * launched with zero profile (zero cpu & memory) are eligible for fine grained scaling.
+   * Node Managers launched with a non-zero profile size are not eligible for fine grained scaling.
+   *
+   * @param hostName
+   * @return
+   */
+  public static boolean isEligibleForFineGrainedScaling(String hostName, SchedulerState state) {
+    for (NodeTask activeNMTask : state.getActiveTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX)) {
+      if (activeNMTask.getProfile().getCpus() == 0 &&
+        activeNMTask.getProfile().getMemory() == 0 &&
+        activeNMTask.getHostname().equals(hostName)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

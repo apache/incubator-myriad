@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -43,8 +43,8 @@ public class MyriadExecutor implements Executor {
 
   @Override
   public void registered(ExecutorDriver driver, ExecutorInfo executorInfo,
-    FrameworkInfo frameworkInfo, SlaveInfo slaveInfo) {
-      LOGGER.debug("Registered ", executorInfo, " for framework ", frameworkInfo, " on mesos slave ", slaveInfo);
+                         FrameworkInfo frameworkInfo, SlaveInfo slaveInfo) {
+    LOGGER.debug("Registered ", executorInfo, " for framework ", frameworkInfo, " on mesos slave ", slaveInfo);
   }
 
   @Override
@@ -64,7 +64,7 @@ public class MyriadExecutor implements Executor {
       .setTaskId(task.getTaskId())
       .setState(TaskState.TASK_RUNNING)
       .build();
-      driver.sendStatusUpdate(status);
+    driver.sendStatusUpdate(status);
   }
 
   @Override
@@ -81,10 +81,10 @@ public class MyriadExecutor implements Executor {
           Protos.TaskID containerTaskId = Protos.TaskID.newBuilder()
             .setValue(MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX
               + containerId).build();
-            status = TaskStatus.newBuilder().setTaskId(containerTaskId)
-              .setState(TaskState.TASK_KILLED)
-              .build();
-            driver.sendStatusUpdate(status);
+          status = TaskStatus.newBuilder().setTaskId(containerTaskId)
+            .setState(TaskState.TASK_KILLED)
+            .build();
+          driver.sendStatusUpdate(status);
         }
       }
 

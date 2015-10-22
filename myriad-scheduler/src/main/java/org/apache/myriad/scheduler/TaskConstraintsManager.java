@@ -5,7 +5,6 @@ import java.util.Map;
 
 /**
  * Factory class to keep map of the constraints
- *
  */
 public class TaskConstraintsManager {
 
@@ -14,17 +13,17 @@ public class TaskConstraintsManager {
    * if/when later on it will change we may need to change HashMap to Concurrent one
    */
   private Map<String, TaskConstraints> taskConstraintsMap = new HashMap<>();
-  
+
   public TaskConstraints getConstraints(String taskPrefix) {
     return taskConstraintsMap.get(taskPrefix);
   }
-  
+
   public void addTaskConstraints(final String taskPrefix, final TaskConstraints taskConstraints) {
     if (taskConstraints != null) {
       taskConstraintsMap.put(taskPrefix, taskConstraints);
     }
   }
-  
+
   public boolean exists(String taskPrefix) {
     return taskConstraintsMap.containsKey(taskPrefix);
   }

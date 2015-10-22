@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -30,20 +30,20 @@ import javax.inject.Inject;
  */
 public class HttpConnectorProvider implements Provider<Connector> {
 
-    private MyriadConfiguration myriadConf;
+  private MyriadConfiguration myriadConf;
 
-    @Inject
-    public HttpConnectorProvider(MyriadConfiguration myriadConf) {
-        this.myriadConf = myriadConf;
-    }
+  @Inject
+  public HttpConnectorProvider(MyriadConfiguration myriadConf) {
+    this.myriadConf = myriadConf;
+  }
 
-    @Override
-    public Connector get() {
-        SelectChannelConnector ret = new SelectChannelConnector();
-        ret.setName("Myriad");
-        ret.setHost("0.0.0.0");
-        ret.setPort(myriadConf.getRestApiPort());
+  @Override
+  public Connector get() {
+    SelectChannelConnector ret = new SelectChannelConnector();
+    ret.setName("Myriad");
+    ret.setHost("0.0.0.0");
+    ret.setPort(myriadConf.getRestApiPort());
 
-        return ret;
-    }
+    return ret;
+  }
 }

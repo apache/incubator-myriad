@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -40,33 +40,33 @@ import java.util.Collections;
 @Path("/state")
 @Produces(MediaType.APPLICATION_JSON)
 public class SchedulerStateResource {
-    private MyriadConfiguration cfg;
-    private SchedulerState state;
+  private MyriadConfiguration cfg;
+  private SchedulerState state;
 
-    @Inject
-    public SchedulerStateResource(final MyriadConfiguration cfg,
-                                  final SchedulerState state) {
-        this.cfg = cfg;
-        this.state = state;
+  @Inject
+  public SchedulerStateResource(final MyriadConfiguration cfg,
+                                final SchedulerState state) {
+    this.cfg = cfg;
+    this.state = state;
+  }
+
+  @Timed
+  @GET
+  public GetSchedulerStateResponse getState() {
+    return new GetSchedulerStateResponse(toStringCollection(state.getPendingTaskIds()),
+      toStringCollection(state.getStagingTaskIds()), toStringCollection(state.getActiveTaskIds()),
+      toStringCollection(state.getKillableTasks()));
+  }
+
+  private Collection<String> toStringCollection(Collection<Protos.TaskID> collection) {
+    if (CollectionUtils.isEmpty(collection)) {
+      return Collections.emptyList();
+    }
+    Collection<String> returnCollection = new ArrayList<>();
+    for (Protos.TaskID task : collection) {
+      returnCollection.add(task.getValue());
     }
 
-    @Timed
-    @GET
-    public GetSchedulerStateResponse getState() {
-        return new GetSchedulerStateResponse(toStringCollection(state.getPendingTaskIds()),
-                toStringCollection(state.getStagingTaskIds()), toStringCollection(state.getActiveTaskIds()),
-                toStringCollection(state.getKillableTasks()));
-    }
-
-    private Collection<String> toStringCollection(Collection<Protos.TaskID> collection) {
-        if (CollectionUtils.isEmpty(collection)) {
-            return Collections.emptyList();
-        }
-        Collection<String> returnCollection = new ArrayList<>();
-        for (Protos.TaskID task : collection) {
-            returnCollection.add(task.getValue());
-        }
-
-        return returnCollection;
-    }
+    return returnCollection;
+  }
 }

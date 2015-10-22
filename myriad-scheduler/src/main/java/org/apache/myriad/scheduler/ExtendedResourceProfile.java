@@ -5,18 +5,15 @@ import com.google.gson.Gson;
 /**
  * Extended ServiceResourceProfile for services that need to pass set of resources downstream
  * currently the only such service is NodeManager
- *
  */
 public class ExtendedResourceProfile extends ServiceResourceProfile {
 
   private NMProfile childProfile;
 
   /**
-   * 
    * @param childProfile - should be null
    * @param cpu
-   * @param mem
-   * will throw NullPoiterException if childProfile is null
+   * @param mem          will throw NullPoiterException if childProfile is null
    */
   public ExtendedResourceProfile(NMProfile childProfile, Double cpu, Double mem) {
     super(childProfile.getName(), cpu, mem);
@@ -31,7 +28,7 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
   public void setChildProfile(NMProfile nmProfile) {
     this.childProfile = nmProfile;
   }
-  
+
   @Override
   public String getName() {
     return childProfile.getName();
@@ -51,7 +48,7 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
   public Double getAggregateMemory() {
     return memory + childProfile.getMemory();
   }
-  
+
   @Override
   public Double getAggregateCpu() {
     return cpus + childProfile.getCpus();
@@ -59,7 +56,7 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
 
   @Override
   public String toString() {
-      Gson gson = new Gson();
-      return gson.toJson(this);
+    Gson gson = new Gson();
+    return gson.toJson(this);
   }
 }

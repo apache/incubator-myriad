@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -31,10 +31,10 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 /**
-* The purpose of this container/utility is to create a mechanism to serialize the SchedulerState
-* to RMStateStore and back. Json did not seem to handle the Protos fields very well so this was an
-* alternative approach.
-*/
+ * The purpose of this container/utility is to create a mechanism to serialize the SchedulerState
+ * to RMStateStore and back. Json did not seem to handle the Protos fields very well so this was an
+ * alternative approach.
+ */
 public final class StoreContext {
   private static Pattern taskIdPattern = Pattern.compile("\\.");
   private ByteBuffer frameworkId;
@@ -59,10 +59,10 @@ public final class StoreContext {
    * @param killableTasks
    */
   public StoreContext(Protos.FrameworkID frameworkId,
-    Map<Protos.TaskID, NodeTask> tasks,
-    Set<Protos.TaskID> pendingTasks, Set<Protos.TaskID> stagingTasks,
-    Set<Protos.TaskID> activeTasks, Set<Protos.TaskID> lostTasks,
-    Set<Protos.TaskID> killableTasks) {
+                      Map<Protos.TaskID, NodeTask> tasks,
+                      Set<Protos.TaskID> pendingTasks, Set<Protos.TaskID> stagingTasks,
+                      Set<Protos.TaskID> activeTasks, Set<Protos.TaskID> lostTasks,
+                      Set<Protos.TaskID> killableTasks) {
     setFrameworkId(frameworkId);
     setTasks(tasks);
     setPendingTasks(pendingTasks);
@@ -84,10 +84,10 @@ public final class StoreContext {
    * @param killableTasks
    */
   public StoreContext(ByteBuffer frameworkId,
-    List<ByteBuffer> taskIds, List<ByteBuffer> taskNodes,
-    List<ByteBuffer> pendingTasks, List<ByteBuffer> stagingTasks,
-    List<ByteBuffer> activeTasks, List<ByteBuffer> lostTasks,
-    List<ByteBuffer> killableTasks) {
+                      List<ByteBuffer> taskIds, List<ByteBuffer> taskNodes,
+                      List<ByteBuffer> pendingTasks, List<ByteBuffer> stagingTasks,
+                      List<ByteBuffer> activeTasks, List<ByteBuffer> lostTasks,
+                      List<ByteBuffer> killableTasks) {
     this.frameworkId = frameworkId;
     this.taskIds = taskIds;
     this.taskNodes = taskNodes;
@@ -125,7 +125,7 @@ public final class StoreContext {
   @SuppressWarnings("unchecked")
   public static StoreContext fromSerializedBytes(byte bytes[]) {
     StoreContext ctx;
-    if (bytes != null && bytes.length > 0){
+    if (bytes != null && bytes.length > 0) {
       ByteBuffer bb = ByteBufferSupport.fillBuffer(bytes);
       ByteBuffer frameworkId = ByteBufferSupport.createBuffer(bb);
       List<ByteBuffer> taskIds = ByteBufferSupport.createBufferList(bb, bb.getInt());
@@ -207,7 +207,7 @@ public final class StoreContext {
     }
   }
 
-  public Set<Protos.TaskID> getPendingTasks () {
+  public Set<Protos.TaskID> getPendingTasks() {
     return toTaskSet(pendingTasks);
   }
 
@@ -257,7 +257,7 @@ public final class StoreContext {
 
   private void toTaskBuffer(Set<Protos.TaskID> src, List<ByteBuffer> tgt) {
     for (Protos.TaskID id : src) {
-       tgt.add(ByteBufferSupport.toByteBuffer(id));
+      tgt.add(ByteBufferSupport.toByteBuffer(id));
     }
   }
 

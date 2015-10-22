@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,49 +27,49 @@ import java.util.List;
  * Flex up an auxtask/service
  */
 public class FlexUpClusterRequest {
-    @NotEmpty
-    public Integer instances;
+  @NotEmpty
+  public Integer instances;
 
-    @NotEmpty
-    public String profile;
+  @NotEmpty
+  public String profile;
 
-    public List<String> constraints;
+  public List<String> constraints;
 
-    public FlexUpClusterRequest() {
-    }
-    
-    public FlexUpClusterRequest(Integer instances, String profile, List<String> constraints) {
-        this.instances = instances;
-        this.profile = profile;
-        this.constraints = constraints;
-    }
+  public FlexUpClusterRequest() {
+  }
 
-    public Integer getInstances() {
-        return instances;
-    }
+  public FlexUpClusterRequest(Integer instances, String profile, List<String> constraints) {
+    this.instances = instances;
+    this.profile = profile;
+    this.constraints = constraints;
+  }
 
-    public void setInstances(Integer instances) {
-        this.instances = instances;
-    }
+  public Integer getInstances() {
+    return instances;
+  }
 
-    public String getProfile() {
-        return profile;
-    }
+  public void setInstances(Integer instances) {
+    this.instances = instances;
+  }
 
-    public void setProfile(String profile) {
-        this.profile = profile;
-    }
+  public String getProfile() {
+    return profile;
+  }
 
-    public List<String> getConstraints() {
-      return constraints;
-    }
+  public void setProfile(String profile) {
+    this.profile = profile;
+  }
 
-    public void setConstraints(List<String> constraints) {
-      this.constraints = constraints;
-    }
+  public List<String> getConstraints() {
+    return constraints;
+  }
 
-    public String toString() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
-    }
+  public void setConstraints(List<String> constraints) {
+    this.constraints = constraints;
+  }
+
+  public String toString() {
+    Gson gson = new Gson();
+    return gson.toJson(this);
+  }
 }

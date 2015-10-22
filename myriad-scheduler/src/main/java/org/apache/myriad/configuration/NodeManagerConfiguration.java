@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,61 +25,61 @@ import com.google.common.base.Optional;
  * Node Manager Configuration
  */
 public class NodeManagerConfiguration {
-    /**
-     * Allot 10% more memory to account for JVM overhead.
-     */
-    public static final double JVM_OVERHEAD = 0.1;
+  /**
+   * Allot 10% more memory to account for JVM overhead.
+   */
+  public static final double JVM_OVERHEAD = 0.1;
 
-    /**
-     * Default -Xmx for NodeManager JVM.
-     */
-    public static final double DEFAULT_JVM_MAX_MEMORY_MB = 2048;
+  /**
+   * Default -Xmx for NodeManager JVM.
+   */
+  public static final double DEFAULT_JVM_MAX_MEMORY_MB = 2048;
 
-    /**
-     * Default cpu for NodeManager JVM.
-     */
-    public static final double DEFAULT_NM_CPUS = 1;
-    
-    public static final String NM_TASK_PREFIX = "nm";
+  /**
+   * Default cpu for NodeManager JVM.
+   */
+  public static final double DEFAULT_NM_CPUS = 1;
 
-    /**
-     * Translates to -Xmx for the NodeManager JVM.
-     */
-    @JsonProperty
-    private Double jvmMaxMemoryMB;
+  public static final String NM_TASK_PREFIX = "nm";
 
-    /**
-     * Amount of CPU share given to NodeManger JVM. This is critical specially
-     * for NodeManager auxiliary services.
-     */
-    @JsonProperty
-    private Double cpus;
+  /**
+   * Translates to -Xmx for the NodeManager JVM.
+   */
+  @JsonProperty
+  private Double jvmMaxMemoryMB;
 
-    /**
-     * Translates to JAVA_OPTS for the NodeManager JVM.
-     */
-    @JsonProperty
-    private String jvmOpts;
+  /**
+   * Amount of CPU share given to NodeManger JVM. This is critical specially
+   * for NodeManager auxiliary services.
+   */
+  @JsonProperty
+  private Double cpus;
 
-    /**
-     * Determines if cgroups are enabled for NM or not.
-     */
-    @JsonProperty
-    private Boolean cgroups;
+  /**
+   * Translates to JAVA_OPTS for the NodeManager JVM.
+   */
+  @JsonProperty
+  private String jvmOpts;
 
-    public Optional<Double> getJvmMaxMemoryMB() {
-        return Optional.fromNullable(jvmMaxMemoryMB);
-    }
+  /**
+   * Determines if cgroups are enabled for NM or not.
+   */
+  @JsonProperty
+  private Boolean cgroups;
 
-    public Optional<String> getJvmOpts() {
-        return Optional.fromNullable(jvmOpts);
-    }
+  public Optional<Double> getJvmMaxMemoryMB() {
+    return Optional.fromNullable(jvmMaxMemoryMB);
+  }
 
-    public Optional<Double> getCpus() {
-        return Optional.fromNullable(cpus);
-    }
+  public Optional<String> getJvmOpts() {
+    return Optional.fromNullable(jvmOpts);
+  }
 
-    public Optional<Boolean> getCgroups() {
-        return Optional.fromNullable(cgroups);
-    }
+  public Optional<Double> getCpus() {
+    return Optional.fromNullable(cpus);
+  }
+
+  public Optional<Boolean> getCgroups() {
+    return Optional.fromNullable(cgroups);
+  }
 }

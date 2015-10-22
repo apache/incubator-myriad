@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -36,12 +36,12 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
   private final String nodeManagerUri;
 
   public DownloadNMExecutorCLGenImpl(MyriadConfiguration cfg,
-    String nodeManagerUri) {
+                                     String nodeManagerUri) {
     super(cfg);
     this.nodeManagerUri = nodeManagerUri;
   }
 
-@Override
+  @Override
   public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
     StringBuilder cmdLine = new StringBuilder();
     LOGGER.info("Using remote distribution");
@@ -71,7 +71,7 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
     //We need the current directory to be writable by frameworkUser for capsuleExecutor to create directories.
     //Best to simply give owenership to the user running the executor but we don't want to use -R as this
     //will silently remove the suid bit on container executor.
-   cmdLine.append(" && sudo chown ").append(cfg.getFrameworkUser().get()).append(" .");
+    cmdLine.append(" && sudo chown ").append(cfg.getFrameworkUser().get()).append(" .");
 
     //Place the hadoop config where in the HADOOP_CONF_DIR where it will be read by the NodeManager
     //The url for the resource manager config is: http(s)://hostname:port/conf so fetcher.cpp downloads the
@@ -88,12 +88,12 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
   private static String getFileName(String uri) {
     int lastSlash = uri.lastIndexOf('/');
     if (lastSlash == -1) {
-        return uri;
+      return uri;
     } else {
-        String fileName = uri.substring(lastSlash + 1);
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName),
-          "URI should not have a slash at the end");
-        return fileName;
+      String fileName = uri.substring(lastSlash + 1);
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName),
+        "URI should not have a slash at the end");
+      return fileName;
     }
   }
 

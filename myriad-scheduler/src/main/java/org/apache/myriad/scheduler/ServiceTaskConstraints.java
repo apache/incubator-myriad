@@ -9,12 +9,11 @@ import java.util.Map;
  * ServiceTaskConstraints is an implementation of TaskConstraints for a service
  * at this point constraints are on ports
  * Later on there may be other types of constraints added
- *
  */
 public class ServiceTaskConstraints implements TaskConstraints {
 
   private int portsCount;
-  
+
   public ServiceTaskConstraints(MyriadConfiguration cfg, String taskPrefix) {
     this.portsCount = 0;
     Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
@@ -28,7 +27,7 @@ public class ServiceTaskConstraints implements TaskConstraints {
       }
     }
   }
-  
+
   @Override
   public int portsCount() {
     return portsCount;

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -30,44 +30,43 @@ import javax.inject.Inject;
  * The myriad web server configuration for jetty
  */
 public class MyriadWebServer {
-    private final Server jetty;
-    private final Connector connector;
-    private final GuiceFilter filter;
+  private final Server jetty;
+  private final Connector connector;
+  private final GuiceFilter filter;
 
-    @Inject
-    public MyriadWebServer(Server jetty, Connector connector, GuiceFilter filter) {
-        this.jetty = jetty;
-        this.connector = connector;
-        this.filter = filter;
-    }
+  @Inject
+  public MyriadWebServer(Server jetty, Connector connector, GuiceFilter filter) {
+    this.jetty = jetty;
+    this.connector = connector;
+    this.filter = filter;
+  }
 
-    public void start() throws Exception {
-        this.jetty.addConnector(connector);
+  public void start() throws Exception {
+    this.jetty.addConnector(connector);
 
-        ServletHandler servletHandler = new ServletHandler();
+    ServletHandler servletHandler = new ServletHandler();
 
-        String filterName = "MyriadGuiceFilter";
-        FilterHolder holder = new FilterHolder(filter);
-        holder.setName(filterName);
+    String filterName = "MyriadGuiceFilter";
+    FilterHolder holder = new FilterHolder(filter);
+    holder.setName(filterName);
 
-        FilterMapping filterMapping = new FilterMapping();
-        filterMapping.setPathSpec("/*");
-        filterMapping.setDispatches(Handler.ALL);
-        filterMapping.setFilterName(filterName);
+    FilterMapping filterMapping = new FilterMapping();
+    filterMapping.setPathSpec("/*");
+    filterMapping.setDispatches(Handler.ALL);
+    filterMapping.setFilterName(filterName);
 
-        servletHandler.addFilter(holder, filterMapping);
+    servletHandler.addFilter(holder, filterMapping);
 
-        Context context = new Context();
-        context.setServletHandler(servletHandler);
-        context.addServlet(DefaultServlet.class, "/");
+    Context context = new Context();
+    context.setServletHandler(servletHandler);
+    context.addServlet(DefaultServlet.class, "/");
 
-        String staticDir = this.getClass().getClassLoader().getResource("webapp/public").toExternalForm();
-        context.setResourceBase(staticDir);
+    String staticDir = this.getClass().getClassLoader().getResource("webapp/public").toExternalForm();
+    context.setResourceBase(staticDir);
 
-        this.jetty.addHandler(context);
-        this.jetty.start();
-    }
-
+    this.jetty.addHandler(context);
+    this.jetty.start();
+  }
 
 
 }

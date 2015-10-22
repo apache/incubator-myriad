@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -25,22 +25,22 @@ import org.apache.mesos.SchedulerDriver;
  * mesos slave lost event
  */
 public class SlaveLostEvent {
-    private SchedulerDriver driver;
-    private Protos.SlaveID slaveId;
+  private SchedulerDriver driver;
+  private Protos.SlaveID slaveId;
 
-    public SchedulerDriver getDriver() {
-        return driver;
-    }
+  public SchedulerDriver getDriver() {
+    return driver;
+  }
 
-    public void setDriver(SchedulerDriver driver) {
-        this.driver = driver;
-    }
+  public void setDriver(SchedulerDriver driver) {
+    this.driver = driver;
+  }
 
-    public Protos.SlaveID getSlaveId() {
-        return slaveId;
-    }
+  public Protos.SlaveID getSlaveId() {
+    return slaveId;
+  }
 
-    public void setSlaveId(Protos.SlaveID slaveId) {
-        this.slaveId = slaveId;
-    }
+  public void setSlaveId(Protos.SlaveID slaveId) {
+    this.slaveId = slaveId;
+  }
 }
