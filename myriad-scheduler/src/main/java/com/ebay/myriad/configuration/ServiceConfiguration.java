@@ -18,18 +18,17 @@
 
 package com.ebay.myriad.configuration;
 
-import java.io.IOException;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.map.JsonSerializer;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializerProvider;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerDouble;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerInt;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerMap;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
@@ -63,7 +62,7 @@ public class ServiceConfiguration {
    * Translates to jvm opts for the JVM.
    */
   @JsonProperty
-  @JsonSerialize(using = OptionalSerializerStr.class)
+  @JsonSerialize(using = OptionalSerializerString.class)
   protected String jvmOpts;
 
   @JsonProperty
@@ -76,7 +75,7 @@ public class ServiceConfiguration {
    * we can use this one to have a specific implementation
    */
   @JsonProperty
-  @JsonSerialize(using = OptionalSerializerStr.class)
+  @JsonSerialize(using = OptionalSerializerString.class)
   protected String taskFactoryImplName;
   
   @JsonProperty
@@ -91,7 +90,7 @@ public class ServiceConfiguration {
   protected Integer maxInstances;
   
   @JsonProperty
-  @JsonSerialize(using = OptionalSerializerStr.class)
+  @JsonSerialize(using = OptionalSerializerString.class)
   protected String command;
   
   @JsonProperty
@@ -141,97 +140,4 @@ public class ServiceConfiguration {
   public String getServiceOpts() {
     return serviceOptsName;
   }
-
-  /**
-   * Custom Serializer
-   * @param <T>
-   */
-  public static class OptionalSerializer<T> extends JsonSerializer<Optional<T>> {
-
-    private static final JsonFactory jsonFactory = new ObjectMapper().getJsonFactory();
-
-    protected ObjectMapper objMapper;
-    
-    public OptionalSerializer() {
-      objMapper = new ObjectMapper(jsonFactory);
-    }
-    
-    @Override
-    public void serialize(Optional<T> value,
-        org.codehaus.jackson.JsonGenerator jgen, SerializerProvider provider)
-        throws IOException, org.codehaus.jackson.JsonProcessingException {
-      if (value.isPresent()) {
-        objMapper.writeValue(jgen, value.get());
-      } else {
-        objMapper.writeValue(jgen, "value is absent");
-      }
-    }
-  }
-  
-  /**
-   * Custom String serializer
-   *
-   */
-  public static class OptionalSerializerStr extends OptionalSerializer<String> {
-    @Override
-    public void serialize(Optional<String> value, 
-        org.codehaus.jackson.JsonGenerator jgen, SerializerProvider provider) throws IOException,
-        org.codehaus.jackson.JsonProcessingException {
-      super.serialize(value, jgen, provider);
-    }
-  }
-  
-  /**
-   * Custom Double serializer
-   *
-   */
-  public static class OptionalSerializerDouble extends OptionalSerializer<Double> {
-    @Override
-    public void serialize(Optional<Double> value, 
-        org.codehaus.jackson.JsonGenerator jgen, SerializerProvider provider) throws IOException,
-        org.codehaus.jackson.JsonProcessingException {
-      super.serialize(value, jgen, provider);
-    }
-  }
-  
-  /**
-   * Custom Integer serializer
-   *
-   */
-  public static class OptionalSerializerInt extends OptionalSerializer<Integer> {
-    @Override
-    public void serialize(Optional<Integer> value, 
-        org.codehaus.jackson.JsonGenerator jgen, SerializerProvider provider) throws IOException,
-        org.codehaus.jackson.JsonProcessingException {
-      super.serialize(value, jgen, provider);
-    }
-  }
-
-  /**
-   * Custom Boolean serializer
-   *
-   */
-  public static class OptionalSerializerBoolean extends OptionalSerializer<Boolean> {
-    @Override
-    public void serialize(Optional<Boolean> value, 
-        org.codehaus.jackson.JsonGenerator jgen, SerializerProvider provider) throws IOException,
-        org.codehaus.jackson.JsonProcessingException {
-      super.serialize(value, jgen, provider);
-    }
-  }
-
-  /**
-   * Custom Map serializer
-   *
-   */
-  public static class OptionalSerializerMap extends OptionalSerializer<Map<?, ?>> {
-    @Override
-    public void serialize(Optional<Map<?, ?>> value, 
-        org.codehaus.jackson.JsonGenerator jgen, SerializerProvider provider) throws IOException,
-        org.codehaus.jackson.JsonProcessingException {
-      super.serialize(value, jgen, provider);
-    }
-
-  }
-
 }

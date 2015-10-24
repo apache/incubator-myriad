@@ -18,8 +18,8 @@
  */
 package com.ebay.myriad.configuration;
 
-import com.ebay.myriad.configuration.ServiceConfiguration.OptionalSerializerDouble;
-import com.ebay.myriad.configuration.ServiceConfiguration.OptionalSerializerStr;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerDouble;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
@@ -42,7 +42,7 @@ public class MyriadExecutorConfiguration {
     private String path;
 
     @JsonProperty
-    @JsonSerialize(using = OptionalSerializerStr.class)
+    @JsonSerialize(using = OptionalSerializerString.class)
     private String nodeManagerUri;
 
     public Optional<Double> getJvmMaxMemoryMB() {

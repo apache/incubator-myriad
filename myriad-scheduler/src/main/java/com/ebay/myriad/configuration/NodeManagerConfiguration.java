@@ -20,9 +20,9 @@ package com.ebay.myriad.configuration;
 
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-import com.ebay.myriad.configuration.ServiceConfiguration.OptionalSerializerBoolean;
-import com.ebay.myriad.configuration.ServiceConfiguration.OptionalSerializerDouble;
-import com.ebay.myriad.configuration.ServiceConfiguration.OptionalSerializerStr;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerBoolean;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerDouble;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
@@ -66,7 +66,7 @@ public class NodeManagerConfiguration {
      * Translates to JAVA_OPTS for the NodeManager JVM.
      */
     @JsonProperty
-    @JsonSerialize(using = OptionalSerializerStr.class)
+    @JsonSerialize(using = OptionalSerializerString.class)
     private String jvmOpts;
 
     /**
