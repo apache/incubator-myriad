@@ -18,14 +18,17 @@
  */
 package org.apache.myriad.scheduler;
 
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 import javax.inject.Inject;
 
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.MyriadExecutorConfiguration;
+import org.apache.myriad.state.NodeTask;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
@@ -39,6 +42,7 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.Value;
+import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Scalar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +58,7 @@ public interface TaskFactory {
   static final String YARN_HTTP_POLICY = "yarn.http.policy";
   static final String YARN_HTTP_POLICY_HTTPS_ONLY = "HTTPS_ONLY";
 
-  TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, org.apache.myriad.state.NodeTask nodeTask);
+  TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, NodeTask nodeTask);
 
   // TODO(Santosh): This is needed because the ExecutorInfo constructed
   // to launch NM needs to be specified to launch placeholder tasks for
@@ -72,6 +76,7 @@ public interface TaskFactory {
     public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
+    private static final Random rand = new Random();
     private MyriadConfiguration cfg;
     private TaskUtils taskUtils;
     private ExecutorCommandLineGenerator clGenerator;
@@ -85,32 +90,47 @@ public interface TaskFactory {
       this.constraints = new NMTaskConstraints();
     }
 
-    //Utility function to get the first NMPorts.expectedNumPorts number of ports of an offer
-    private static NMPorts getPorts(Offer offer) {
+    @VisibleForTesting
+    protected static HashSet<Long> getNMPorts(Resource resource) {
       HashSet<Long> ports = new HashSet<>();
-      for (Resource resource : offer.getResourcesList()) {
-        if (resource.getName().equals("ports")) {
-          /*
-          ranges.getRangeList() returns a list of ranges, each range specifies a begin and end only.
-          so must loop though each range until we get all ports needed.  We exit each loop as soon as all
-          ports are found so bounded by NMPorts.expectedNumPorts.
-          */
-          Iterator<Value.Range> itr = resource.getRanges().getRangeList().iterator();
-          while (itr.hasNext() && ports.size() < NMPorts.expectedNumPorts()) {
-            Value.Range range = itr.next();
-            if (range.getBegin() <= range.getEnd()) {
-              long i = range.getBegin();
-              while (i <= range.getEnd() && ports.size() < NMPorts.expectedNumPorts()) {
-                ports.add(i);
-                i++;
-              }
+      if (resource.getName().equals("ports")){
+        /*
+        ranges.getRangeList() returns a list of ranges, each range specifies a begin and end only.
+        so must loop though each range until we get all ports needed.  We exit each loop as soon as all
+        ports are found so bounded by NMPorts.expectedNumPorts.
+        */
+        final List<Range> ranges = resource.getRanges().getRangeList();
+        final List<Long> allAvailablePorts = new ArrayList<>();
+        for (Range range : ranges) {
+          if (range.hasBegin() && range.hasEnd()) {
+            for (long i = range.getBegin(); i <= range.getEnd(); i++) {
+              allAvailablePorts.add(i);
             }
           }
         }
+        final int allAvailablePortsSize = allAvailablePorts.size();
+        Preconditions.checkState(allAvailablePorts.size() >= NMPorts.expectedNumPorts(), "Not enough ports in offer");
+        
+        while (ports.size() < NMPorts.expectedNumPorts()) {
+          int portIndex = rand.nextInt(allAvailablePortsSize);
+          ports.add(allAvailablePorts.get(portIndex));
+        }        
+      }
+      return ports;
+    }
+    
+    //Utility function to get the first NMPorts.expectedNumPorts number of ports of an offer
+    @VisibleForTesting
+    protected static NMPorts getPorts(Offer offer) {
+      HashSet<Long> ports = new HashSet<>();
+      for (Resource resource : offer.getResourcesList()) {
+        if (resource.getName().equals("ports")) {
+          ports = getNMPorts(resource);
+          break;
+        }
       }
 
-      Preconditions.checkState(ports.size() == NMPorts.expectedNumPorts(), "Not enough ports in offer");
-      Long[] portArray = ports.toArray(new Long[ports.size()]);
+      Long [] portArray = ports.toArray(new Long [ports.size()]);
       return new NMPorts(portArray);
     }
 
@@ -123,7 +143,8 @@ public interface TaskFactory {
       if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
         //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
         if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
-          throw new RuntimeException("Trying to use remote distribution, but frameworkUser" + "and/or frameworkSuperUser not set!");
+          throw new RuntimeException("Trying to use remote distribution, but frameworkUser" +
+            "and/or frameworkSuperUser not set!");
         }
         String nodeManagerUri = myriadExecutorConfiguration.getNodeManagerUri().get();
         cmd = clGenerator.generateCommandLine(profile, ports);
@@ -153,7 +174,7 @@ public interface TaskFactory {
     }
 
     @Override
-    public TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, org.apache.myriad.state.NodeTask nodeTask) {
+    public TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, NodeTask nodeTask) {
       Objects.requireNonNull(offer, "Offer should be non-null");
       Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
