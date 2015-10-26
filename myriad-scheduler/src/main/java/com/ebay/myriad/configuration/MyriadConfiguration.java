@@ -19,11 +19,15 @@
 package com.ebay.myriad.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
 import java.util.Map;
+
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 
 /**
  * Myriad Configuration commonly defined in the YML file
@@ -102,9 +106,11 @@ public class MyriadConfiguration {
   private String frameworkRole;
 
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
   private String frameworkUser;
 
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
   private String frameworkSuperUser;
 
   @JsonProperty

@@ -18,6 +18,11 @@
  */
 package com.ebay.myriad.configuration;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerBoolean;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerDouble;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
@@ -46,6 +51,7 @@ public class NodeManagerConfiguration {
      * Translates to -Xmx for the NodeManager JVM.
      */
     @JsonProperty
+    @JsonSerialize(using = OptionalSerializerDouble.class)
     private Double jvmMaxMemoryMB;
 
     /**
@@ -53,18 +59,21 @@ public class NodeManagerConfiguration {
      * for NodeManager auxiliary services.
      */
     @JsonProperty
+    @JsonSerialize(using = OptionalSerializerDouble.class)
     private Double cpus;
 
     /**
      * Translates to JAVA_OPTS for the NodeManager JVM.
      */
     @JsonProperty
+    @JsonSerialize(using = OptionalSerializerString.class)
     private String jvmOpts;
 
     /**
      * Determines if cgroups are enabled for NM or not.
      */
     @JsonProperty
+    @JsonSerialize(using = OptionalSerializerBoolean.class)
     private Boolean cgroups;
 
     public Optional<Double> getJvmMaxMemoryMB() {

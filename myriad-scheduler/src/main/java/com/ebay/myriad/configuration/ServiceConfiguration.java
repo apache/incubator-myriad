@@ -20,10 +20,15 @@ package com.ebay.myriad.configuration;
 
 import java.util.Map;
 
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerDouble;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerInt;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerMap;
+import com.ebay.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 
@@ -43,21 +48,25 @@ public class ServiceConfiguration {
    * Translates to -Xmx for the JVM.
    */
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerDouble.class)
   protected Double jvmMaxMemoryMB;
 
   /**
    * Amount of CPU share given to  JVM. 
    */
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerDouble.class)
   protected Double cpus;
 
   /**
    * Translates to jvm opts for the JVM.
    */
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
   protected String jvmOpts;
 
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerMap.class)
   protected Map<String, Long> ports;
   
   /**
@@ -66,6 +75,7 @@ public class ServiceConfiguration {
    * we can use this one to have a specific implementation
    */
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
   protected String taskFactoryImplName;
   
   @JsonProperty
@@ -76,9 +86,11 @@ public class ServiceConfiguration {
   protected String taskName;
   
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerInt.class)
   protected Integer maxInstances;
   
   @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
   protected String command;
   
   @JsonProperty
@@ -128,5 +140,4 @@ public class ServiceConfiguration {
   public String getServiceOpts() {
     return serviceOptsName;
   }
-
 }
