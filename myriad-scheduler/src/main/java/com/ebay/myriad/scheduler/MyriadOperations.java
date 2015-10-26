@@ -27,6 +27,7 @@ import com.ebay.myriad.scheduler.constraints.Constraint;
 import com.ebay.myriad.scheduler.constraints.LikeConstraint;
 import com.ebay.myriad.state.NodeTask;
 import com.ebay.myriad.state.SchedulerState;
+import com.ebay.myriad.webapp.MyriadWebServer;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
@@ -50,16 +51,19 @@ public class MyriadOperations {
     private MyriadConfiguration cfg;
     private NodeScaleDownPolicy nodeScaleDownPolicy;
     private MyriadDriverManager driverManager;
+    private MyriadWebServer myriadWebServer;
 
     @Inject
     public MyriadOperations(MyriadConfiguration cfg,
                             SchedulerState schedulerState,
                             NodeScaleDownPolicy nodeScaleDownPolicy,
-                            MyriadDriverManager driverManager) {
+                            MyriadDriverManager driverManager,
+                            MyriadWebServer myriadWebServer) {
         this.cfg = cfg;
         this.schedulerState = schedulerState;
         this.nodeScaleDownPolicy = nodeScaleDownPolicy;
         this.driverManager = driverManager;
+        this.myriadWebServer = myriadWebServer;
     }
 
     public void flexUpCluster(ServiceResourceProfile serviceResourceProfile, int instances, Constraint constraint) {
@@ -256,14 +260,21 @@ public class MyriadOperations {
      * Shutdown framework means the Mesos driver is stopped taking down the executors and associated tasks
      */    
     public void shutdownFramework() {
-       Status driverStatus = driverManager.getDriverStatus();
-        
+        Status driverStatus = driverManager.getDriverStatus();
+
         if (Status.DRIVER_RUNNING != driverStatus) {
             LOGGER.warn("Driver is not running. Status: " + driverStatus);
         } else {
             // Stop the driver, tasks, and executor. 
             driverStatus = driverManager.stopDriver(false);
-            LOGGER.info("shutdown....driver status " + driverStatus);
-        }  
-    }   
+            LOGGER.info("Myriad driver was shutdown with status " + driverStatus);
+            try {
+                myriadWebServer.stop();
+            } catch (Exception e) {
+                LOGGER.info("Failed to shutdown Myriad webserver: " + e.getMessage());
+                return;
+            }
+            LOGGER.info("Myriad webserver was shutdown successfully");
+        }
+    }
 }

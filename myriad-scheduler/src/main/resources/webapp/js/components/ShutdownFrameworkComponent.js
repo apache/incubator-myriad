@@ -10,13 +10,13 @@ var request = require('superagent');
 var XModal = React.createClass({
   	mixins: [OverlayMixin],
 
-  	getInitialState() {
+  	getInitialState: function () {
     		return {
       			isModalOpen: false
     		};
   	},
 
-  	handleToggle() {
+  	handleToggle: function () {
 		// For whatever reason this toggle does not work as claimed on line....so cheat.
 		if (!this.state.isModalOpen)
     	    		document.getElementById('shutdownModal').style.visibility = "hidden";
@@ -24,7 +24,7 @@ var XModal = React.createClass({
             		isModalOpen: !this.state.isModalOpen
         	});
   	},
-  	render() {
+  	render: function () {
     		return ( <Modal {...this.props} bsStyle='primary'   id="shutdownModal" title='Shutdown Myriad Framework ?' animation={false}  					onRequestHide={this.handleToggle}>
 	 			<div className='modal-body' >
 					<p> This will stop the driver in failover mode, which will stop the executor and tasks, but not stop the ResourceManager.</p>
@@ -42,7 +42,7 @@ var XModal = React.createClass({
      			</Modal>);
   	},
 
- 	renderOverlay() {
+ 	renderOverlay: function () {
       	   		return <span/>;
   	}
 });
@@ -52,12 +52,12 @@ var ShutdownFrameworkComponent = React.createClass({
 
   	displayName: "ShutdownFrameworkComponent",
 
-  	render() {
+  	render: function() {
    		return (
   			<XModal onShutdown={this.onRequestShutdown} onCancel={this.onCancel}/>
     		);
   	},
- 	onCancel : function() {
+ 	onCancel: function() {
         	this.transitionTo("tasks");
 	},
   	onRequestShutdown: function() {

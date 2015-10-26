@@ -68,6 +68,8 @@ public class MyriadWebServer {
         this.jetty.start();
     }
 
-
-
+    public void stop() throws Exception {
+        this.jetty.stop();
+        this.connector.close();
+    }
 }
