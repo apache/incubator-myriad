@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 import org.apache.mesos.Protos;
+import org.apache.myriad.webapp.MyriadWebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,13 +51,15 @@ public class MyriadOperations {
   private MyriadConfiguration cfg;
   private NodeScaleDownPolicy nodeScaleDownPolicy;
   private MyriadDriverManager driverManager;
+  private MyriadWebServer myriadWebServer;
 
   @Inject
-  public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState, NodeScaleDownPolicy nodeScaleDownPolicy, MyriadDriverManager driverManager) {
+  public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState, NodeScaleDownPolicy nodeScaleDownPolicy, MyriadDriverManager driverManager, MyriadWebServer myriadWebServer) {
     this.cfg = cfg;
     this.schedulerState = schedulerState;
     this.nodeScaleDownPolicy = nodeScaleDownPolicy;
     this.driverManager = driverManager;
+    this.myriadWebServer = myriadWebServer;
   }
 
   public void flexUpCluster(ServiceResourceProfile serviceResourceProfile, int instances, Constraint constraint) {
@@ -247,7 +250,14 @@ public class MyriadOperations {
     } else {
       // Stop the driver, tasks, and executor.
       driverStatus = driverManager.stopDriver(false);
-      LOGGER.info("shutdown....driver status " + driverStatus);
+      LOGGER.info("Myriad driver was shutdown with status " + driverStatus);
+      try {
+        myriadWebServer.stop();
+      } catch (Exception e) {
+        LOGGER.info("Failed to shutdown Myriad webserver: " + e.getMessage());
+        return;
+      }
+      LOGGER.info("Myriad webserver was shutdown successfully");
     }
   }
 }

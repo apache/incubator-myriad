@@ -52,6 +52,7 @@ import com.google.inject.multibindings.MapBinder;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
+import org.apache.myriad.webapp.MyriadWebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,6 +92,7 @@ public class MyriadModule extends AbstractModule {
     bind(DisruptorManager.class).in(Scopes.SINGLETON);
     bind(ReconcileService.class).in(Scopes.SINGLETON);
     bind(HttpConnectorProvider.class).in(Scopes.SINGLETON);
+    bind(MyriadWebServer.class).in(Scopes.SINGLETON);
     bind(TaskConstraintsManager.class).in(Scopes.SINGLETON);
     // add special binding between TaskFactory and NMTaskFactoryImpl to ease up
     // usage of TaskFactory
