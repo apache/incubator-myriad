@@ -21,6 +21,7 @@ package com.ebay.myriad.webapp;
 import com.ebay.myriad.api.ClustersResource;
 import com.ebay.myriad.api.ConfigurationResource;
 import com.ebay.myriad.api.SchedulerStateResource;
+import com.ebay.myriad.api.ControllerResource;
 import com.google.inject.Scopes;
 import com.google.inject.servlet.ServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
@@ -36,6 +37,7 @@ public class MyriadServletModule extends ServletModule {
         bind(ClustersResource.class);
         bind(ConfigurationResource.class);
         bind(SchedulerStateResource.class);
+        bind(ControllerResource.class);
 
         bind(GuiceContainer.class);
         bind(JacksonJaxbJsonProvider.class).in(Scopes.SINGLETON);

@@ -3,6 +3,8 @@ var React = require('react');
 var ReactBootstrap = require('react-bootstrap')
   , Nav = ReactBootstrap.Nav
   , Navbar = ReactBootstrap.Navbar
+  , DropdownButton = ReactBootstrap.DropdownButton
+  , MenuItem = ReactBootstrap.MenuItem
   , Label = ReactBootstrap.Label;
 
 var ReactRouterBootstrap = require('react-router-bootstrap')
@@ -21,10 +23,22 @@ var NavbarComponent = React.createClass({
           <img src="/img/navbar_logo.png"></img>
       </a>
       </Nav>
+      <Nav bsStyle='tabs'   >
+      		<DropdownButton  title='Myriad' naveItem={true} >
+      			<NavItemLink  to="frameworkDown">Shutdown Framework</NavItemLink>
+ 	   		</DropdownButton>
+ 	  </Nav>
       <Nav>
         <NavItemLink to="flex">Flex</NavItemLink>
         <NavItemLink to="tasks">Tasks</NavItemLink>
       </Nav>
+      <Nav bsStyle='tabs'   >
+      	<DropdownButton  title='Help' naveItem={true} >
+      		<NavItemLink  to="help">Menu Options</NavItemLink>
+      		<NavItemLink  to="about">About Myriad</NavItemLink>
+      	</DropdownButton>
+      </Nav>
+
       <Nav right>
         <NavItemLink to="config">Config</NavItemLink>
         <span className="navbar-text">

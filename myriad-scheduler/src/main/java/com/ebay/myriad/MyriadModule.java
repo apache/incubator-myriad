@@ -44,6 +44,7 @@ import com.ebay.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import com.ebay.myriad.state.MyriadStateStore;
 import com.ebay.myriad.state.SchedulerState;
 import com.ebay.myriad.webapp.HttpConnectorProvider;
+import com.ebay.myriad.webapp.MyriadWebServer;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
@@ -96,6 +97,7 @@ public class MyriadModule extends AbstractModule {
         bind(DisruptorManager.class).in(Scopes.SINGLETON);
         bind(ReconcileService.class).in(Scopes.SINGLETON);
         bind(HttpConnectorProvider.class).in(Scopes.SINGLETON);
+        bind(MyriadWebServer.class).in(Scopes.SINGLETON);
         bind(TaskConstraintsManager.class).in(Scopes.SINGLETON);
         // add special binding between TaskFactory and NMTaskFactoryImpl to ease up 
         // usage of TaskFactory
