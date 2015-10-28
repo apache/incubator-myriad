@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -28,7 +28,6 @@ import com.google.gson.Gson;
 
 /**
  * Class to keep all the ServiceResourceProfiles together
- *
  */
 public class ServiceProfileManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceProfileManager.class);
@@ -36,22 +35,21 @@ public class ServiceProfileManager {
   private Map<String, ServiceResourceProfile> profiles = new ConcurrentHashMap<>();
 
   public ServiceResourceProfile get(String name) {
-      return profiles.get(name);
+    return profiles.get(name);
   }
 
   public void add(ServiceResourceProfile profile) {
-      LOGGER.info("Adding profile {} with CPU: {} and Memory: {}",
-              profile.getName(), profile.getCpus(), profile.getMemory());
-      profiles.put(profile.getName(), profile);
+    LOGGER.info("Adding profile {} with CPU: {} and Memory: {}", profile.getName(), profile.getCpus(), profile.getMemory());
+    profiles.put(profile.getName(), profile);
   }
 
   public boolean exists(String name) {
-      return this.profiles.containsKey(name);
+    return this.profiles.containsKey(name);
   }
 
   public String toString() {
-      Gson gson = new Gson();
-      return gson.toJson(this);
+    Gson gson = new Gson();
+    return gson.toJson(this);
   }
 
 }

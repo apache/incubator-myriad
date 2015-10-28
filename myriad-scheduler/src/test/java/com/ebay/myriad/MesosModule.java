@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -51,10 +51,7 @@ public class MesosModule extends AbstractModule {
 
   @Provides
   @Singleton
-  SchedulerDriver providesSchedulerDriver(
-      MyriadScheduler scheduler,
-      MyriadConfiguration cfg,
-      SchedulerState schedulerState) {
+  SchedulerDriver providesSchedulerDriver(MyriadScheduler scheduler, MyriadConfiguration cfg, SchedulerState schedulerState) {
 
     SchedulerDriver driver = Mockito.mock(SchedulerDriver.class);
     Mockito.when(driver.start()).thenReturn(Status.DRIVER_RUNNING);
@@ -74,14 +71,12 @@ public class MesosModule extends AbstractModule {
     };
 
     Variable var = Mockito.mock(Variable.class);
-    Protos.FrameworkID id = Protos.FrameworkID.newBuilder()
-      .setValue("1").build();
+    Protos.FrameworkID id = Protos.FrameworkID.newBuilder().setValue("1").build();
 
     Mockito.when(var.value()).thenReturn(id.toByteArray());
     FutureTask<Variable> futureTask = new FutureTask<Variable>(dummyTask, var);
     futureTask.run();
-    Mockito.when(stateStore.fetch(MyriadState.KEY_FRAMEWORK_ID))
-      .thenReturn(futureTask);
+    Mockito.when(stateStore.fetch(MyriadState.KEY_FRAMEWORK_ID)).thenReturn(futureTask);
 
     return stateStore;
   }

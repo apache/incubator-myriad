@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -30,37 +30,37 @@ import org.slf4j.LoggerFactory;
  * Driver for Myriad scheduler.
  */
 public class MyriadDriver {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MyriadDriver.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MyriadDriver.class);
 
-    private final SchedulerDriver driver;
+  private final SchedulerDriver driver;
 
-    @Inject
-    public MyriadDriver(SchedulerDriver driver) {
-      this.driver = driver;
-    }
+  @Inject
+  public MyriadDriver(SchedulerDriver driver) {
+    this.driver = driver;
+  }
 
-    public Status start() {
-        LOGGER.info("Starting driver");
-        Status status = driver.start();
-        LOGGER.info("Driver started with status: {}", status);
-        return status;
-    }
+  public Status start() {
+    LOGGER.info("Starting driver");
+    Status status = driver.start();
+    LOGGER.info("Driver started with status: {}", status);
+    return status;
+  }
 
-    public Status kill(final TaskID taskId) {
-        LOGGER.info("Killing task {}", taskId);
-        Status status = driver.killTask(taskId);
-        LOGGER.info("Task {} killed with status: {}", taskId, status);
-        return status;
-    }
+  public Status kill(final TaskID taskId) {
+    LOGGER.info("Killing task {}", taskId);
+    Status status = driver.killTask(taskId);
+    LOGGER.info("Task {} killed with status: {}", taskId, status);
+    return status;
+  }
 
-    public Status abort() {
-        LOGGER.info("Aborting driver");
-        Status status = driver.abort();
-        LOGGER.info("Driver aborted with status: {}", status);
-        return status;
-    }
+  public Status abort() {
+    LOGGER.info("Aborting driver");
+    Status status = driver.abort();
+    LOGGER.info("Driver aborted with status: {}", status);
+    return status;
+  }
 
-    public SchedulerDriver getDriver() {
-        return driver;
-    }
+  public SchedulerDriver getDriver() {
+    return driver;
+  }
 }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,11 +27,11 @@ import org.slf4j.LoggerFactory;
  * handles and logs disconnected events
  */
 public class DisconnectedEventHandler implements EventHandler<DisconnectedEvent> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DisconnectedEventHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(DisconnectedEventHandler.class);
 
-    @Override
-    public void onEvent(DisconnectedEvent event, long sequence, boolean endOfBatch) throws Exception {
-        LOGGER.info("Framework disconnected!");
-    }
+  @Override
+  public void onEvent(DisconnectedEvent event, long sequence, boolean endOfBatch) throws Exception {
+    LOGGER.info("Framework disconnected!");
+  }
 
 }

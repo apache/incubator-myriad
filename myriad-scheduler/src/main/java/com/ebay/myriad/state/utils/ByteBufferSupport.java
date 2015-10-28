@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -39,20 +39,17 @@ import com.google.gson.GsonBuilder;
 import com.google.protobuf.GeneratedMessage;
 
 /**
-* ByteBuffer support for the Serialization of the StoreContext
-*/
+ * ByteBuffer support for the Serialization of the StoreContext
+ */
 public class ByteBufferSupport {
 
   public static final int INT_SIZE = Integer.SIZE / Byte.SIZE;
   public static final String UTF8 = "UTF-8";
   public static final byte[] ZERO_BYTES = new byte[0];
   private static Gson gson = new Gson();
-  private static Gson gsonCustom = new GsonBuilder().
-      registerTypeAdapter(ServiceResourceProfile.class, new ServiceResourceProfile.CustomDeserializer()).
-      create();
-  
-  public static void addByteBuffers(List<ByteBuffer> list,
-    ByteArrayOutputStream bytes) throws IOException {
+  private static Gson gsonCustom = new GsonBuilder().registerTypeAdapter(ServiceResourceProfile.class, new ServiceResourceProfile.CustomDeserializer()).create();
+
+  public static void addByteBuffers(List<ByteBuffer> list, ByteArrayOutputStream bytes) throws IOException {
     // If list, add the list size, then the size of each buffer followed by the buffer.
     if (list != null) {
       bytes.write(toIntBytes(list.size()));
@@ -64,8 +61,7 @@ public class ByteBufferSupport {
     }
   }
 
-  public static void addByteBuffer(ByteBuffer bb,
-    ByteArrayOutputStream bytes) throws IOException {
+  public static void addByteBuffer(ByteBuffer bb, ByteArrayOutputStream bytes) throws IOException {
     if (bb != null && bytes != null) {
       bytes.write(toIntBytes(bb.array().length));
       bytes.write(bb.array());
@@ -139,11 +135,11 @@ public class ByteBufferSupport {
     } else {
       size += INT_SIZE;
     }
-    
+
     if (nt.getExecutorInfo() != null) {
-        size += nt.getExecutorInfo().getSerializedSize() + INT_SIZE;
+      size += nt.getExecutorInfo().getSerializedSize() + INT_SIZE;
     } else {
-        size += INT_SIZE;
+      size += INT_SIZE;
     }
 
     byte[] taskPrefixBytes = ZERO_BYTES;
@@ -151,7 +147,7 @@ public class ByteBufferSupport {
       taskPrefixBytes = toBytes(nt.getTaskPrefix());
       size += taskPrefixBytes.length + INT_SIZE;
     }
-    
+
     // Allocate and populate the buffer.
     ByteBuffer bb = createBuffer(size);
     putBytes(bb, profile);
@@ -197,11 +193,11 @@ public class ByteBufferSupport {
 
   /**
    * ByteBuffer is expected to have a NodeTask at its next position.
-  *
-  * @param bb
-  * @return NodeTask or null if buffer is empty. Can throw a RuntimeException
-  * if the buffer is not formatted correctly.
-  */
+   *
+   * @param bb
+   * @return NodeTask or null if buffer is empty. Can throw a RuntimeException
+   * if the buffer is not formatted correctly.
+   */
   public static NodeTask toNodeTask(ByteBuffer bb) {
     NodeTask nt = null;
     if (bb != null && bb.array().length > 0) {
@@ -261,7 +257,7 @@ public class ByteBufferSupport {
    * @return string from the next position, or "" if the size is zero
    */
   public static String toString(ByteBuffer bb) {
-    byte [] bytes = new byte[bb.getInt()];
+    byte[] bytes = new byte[bb.getInt()];
     String s = "";
     try {
       if (bytes.length > 0) {
@@ -269,8 +265,7 @@ public class ByteBufferSupport {
         s = new String(bytes, UTF8);
       }
     } catch (Exception e) {
-      throw new RuntimeException("ByteBuffer not in expected format," +
-        " failed to parse string bytes", e);
+      throw new RuntimeException("ByteBuffer not in expected format," + " failed to parse string bytes", e);
     }
     return s;
   }
@@ -314,8 +309,7 @@ public class ByteBufferSupport {
       try {
         return Protos.SlaveID.parseFrom(getBytes(bb, size));
       } catch (Exception e) {
-        throw new RuntimeException("ByteBuffer not in expected format," +
-          " failed to parse SlaveId bytes", e);
+        throw new RuntimeException("ByteBuffer not in expected format," + " failed to parse SlaveId bytes", e);
       }
     } else {
       return null;
@@ -328,8 +322,7 @@ public class ByteBufferSupport {
       try {
         return Protos.TaskStatus.parseFrom(getBytes(bb, size));
       } catch (Exception e) {
-        throw new RuntimeException("ByteBuffer not in expected format," +
-          " failed to parse TaskStatus bytes", e);
+        throw new RuntimeException("ByteBuffer not in expected format," + " failed to parse TaskStatus bytes", e);
       }
     } else {
       return null;
@@ -342,8 +335,7 @@ public class ByteBufferSupport {
       try {
         return Protos.ExecutorInfo.parseFrom(getBytes(bb, size));
       } catch (Exception e) {
-        throw new RuntimeException("ByteBuffer not in expected format," +
-          " failed to parse ExecutorInfo bytes", e);
+        throw new RuntimeException("ByteBuffer not in expected format," + " failed to parse ExecutorInfo bytes", e);
       }
     } else {
       return null;

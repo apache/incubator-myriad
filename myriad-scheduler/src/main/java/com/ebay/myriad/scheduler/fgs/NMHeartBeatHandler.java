@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -58,14 +58,8 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   private final SchedulerState state;
 
   @Inject
-  public NMHeartBeatHandler(
-      InterceptorRegistry registry,
-      AbstractYarnScheduler yarnScheduler,
-      MyriadDriver myriadDriver,
-      YarnNodeCapacityManager yarnNodeCapacityMgr,
-      OfferLifecycleManager offerLifecycleMgr,
-      NodeStore nodeStore,
-      SchedulerState state) {
+  public NMHeartBeatHandler(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, MyriadDriver myriadDriver, YarnNodeCapacityManager yarnNodeCapacityMgr, OfferLifecycleManager offerLifecycleMgr, NodeStore nodeStore, SchedulerState
+      state) {
 
     if (registry != null) {
       registry.register(this);
@@ -95,22 +89,19 @@ public class NMHeartBeatHandler extends BaseInterceptor {
       case STARTED: {
         RMNode rmNode = context.getRMNodes().get(event.getNodeId());
         Resource totalCapability = rmNode.getTotalCapability();
-        if (totalCapability.getMemory() != 0 ||
-            totalCapability.getVirtualCores() != 0) {
-          logger.warn("FineGrainedScaling feature got invoked for a " +
-              "NM with non-zero capacity. Host: {}, Mem: {}, CPU: {}. Setting the NM's capacity to (0G,0CPU)",
-            rmNode.getHostName(),
-            totalCapability.getMemory(), totalCapability.getVirtualCores());
+        if (totalCapability.getMemory() != 0 || totalCapability.getVirtualCores() != 0) {
+          logger.warn("FineGrainedScaling feature got invoked for a " + "NM with non-zero capacity. Host: {}, Mem: {}, CPU: {}. Setting the NM's capacity to (0G,0CPU)", rmNode.getHostName(), totalCapability.getMemory(), totalCapability
+              .getVirtualCores());
           totalCapability.setMemory(0);
           totalCapability.setVirtualCores(0);
         }
       }
-      break;
+        break;
 
       case STATUS_UPDATE: {
         handleStatusUpdate(event, context);
       }
-      break;
+        break;
 
       default:
         break;
@@ -120,8 +111,7 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   @VisibleForTesting
   protected void handleStatusUpdate(RMNodeEvent event, RMContext context) {
     if (!(event instanceof RMNodeStatusEvent)) {
-      logger.error("{} not an instance of {}", event.getClass().getName(),
-        RMNodeStatusEvent.class.getName());
+      logger.error("{} not an instance of {}", event.getClass().getName(), RMNodeStatusEvent.class.getName());
       return;
     }
 
@@ -137,9 +127,7 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     // New capacity of the node =
     // resources under use on the node (due to previous offers) +
     // new resources offered by mesos for the node
-    yarnNodeCapacityMgr.setNodeCapacity(rmNode,
-            Resources.add(getResourcesUnderUse(statusEvent),
-                getNewResourcesOfferedByMesos(hostName)));
+    yarnNodeCapacityMgr.setNodeCapacity(rmNode, Resources.add(getResourcesUnderUse(statusEvent), getNewResourcesOfferedByMesos(hostName)));
   }
 
   private Resource getNewResourcesOfferedByMesos(String hostname) {
@@ -157,8 +145,7 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     Resource fromMesosOffers = OfferUtils.getYarnResourcesFromMesosOffers(offers);
 
     if (logger.isDebugEnabled()) {
-      logger.debug("NM on host {} got {} CPUs and {} memory from mesos",
-          hostname, fromMesosOffers.getVirtualCores(), fromMesosOffers.getMemory());
+      logger.debug("NM on host {} got {} CPUs and {} memory from mesos", hostname, fromMesosOffers.getVirtualCores(), fromMesosOffers.getMemory());
     }
 
     return fromMesosOffers;

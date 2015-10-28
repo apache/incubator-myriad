@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -30,8 +30,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 
 /**
- * Resource Profile for any service 
- *
+ * Resource Profile for any service
  */
 public class ServiceResourceProfile {
 
@@ -48,11 +47,11 @@ public class ServiceResourceProfile {
   protected final Double memory;
 
   protected Double executorCpu = 0.0;
-  
+
   protected Double executorMemory = 0.0;
-  
+
   protected String className;
-    
+
   public ServiceResourceProfile(String name, Double cpu, Double mem) {
     this.name = name;
     this.cpus = cpu;
@@ -72,15 +71,15 @@ public class ServiceResourceProfile {
   public Double getMemory() {
     return memory;
   }
-  
+
   public Double getAggregateMemory() {
     return memory;
   }
-  
+
   public Double getAggregateCpu() {
     return cpus;
   }
-  
+
   public Double getExecutorCpu() {
     return executorCpu;
   }
@@ -100,26 +99,23 @@ public class ServiceResourceProfile {
 
   @Override
   public String toString() {
-      Gson gson = new Gson();
-      return gson.toJson(this);
+    Gson gson = new Gson();
+    return gson.toJson(this);
   }
-  
+
   /**
    * Custom serializer to help with deserialization of class hierarchy
-   * since at the point of deserialization we don't know class of the data 
+   * since at the point of deserialization we don't know class of the data
    * that is being deserialized
-   *
    */
   public static class CustomDeserializer implements JsonDeserializer<ServiceResourceProfile> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomDeserializer.class);
-    
+
     @Override
-    public ServiceResourceProfile deserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) throws JsonParseException {
+    public ServiceResourceProfile deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
       String type = json.getAsJsonObject().get("className").getAsString();
       try {
-        @SuppressWarnings("rawtypes")
-        Class c = Class.forName(type);
+        @SuppressWarnings("rawtypes") Class c = Class.forName(type);
         if (ServiceResourceProfile.class.equals(c)) {
           return new Gson().fromJson(json, typeOfT);
         }
@@ -130,6 +126,6 @@ public class ServiceResourceProfile {
       }
       return null;
     }
-    
+
   }
 }
