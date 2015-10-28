@@ -108,7 +108,7 @@ public class MyriadModule extends AbstractModule {
         String taskFactoryClass = entry.getValue().getTaskFactoryImplName().orNull();
         if (taskFactoryClass != null) {
           try {
-            Class<? extends TaskFactory> implClass = (Class<? extends TaskFactory>) Class.forName(taskFactoryClass);
+            Class<? extends TaskFactory> implClass = getTaskFactoryClass(taskFactoryClass);
             mapBinder.addBinding(entry.getKey()).to(implClass).in(Scopes.SINGLETON);
           } catch (ClassNotFoundException e) {
             LOGGER.error("ClassNotFoundException", e);
@@ -120,6 +120,11 @@ public class MyriadModule extends AbstractModule {
     }
     //TODO(Santosh): Should be configurable as well
     bind(NodeScaleDownPolicy.class).to(LeastAMNodesFirstPolicy.class).in(Scopes.SINGLETON);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Class<? extends TaskFactory> getTaskFactoryClass(String taskFactoryClass) throws ClassNotFoundException {
+    return (Class<? extends TaskFactory>) Class.forName(taskFactoryClass);
   }
 
   @Provides
