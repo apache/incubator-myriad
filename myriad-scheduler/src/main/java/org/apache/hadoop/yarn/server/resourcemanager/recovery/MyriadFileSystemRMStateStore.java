@@ -28,8 +28,8 @@ import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ebay.myriad.state.MyriadStateStore;
-import com.ebay.myriad.state.utils.StoreContext;
+import org.apache.myriad.state.MyriadStateStore;
+import org.apache.myriad.state.utils.StoreContext;
 
 /**
  * StateStore that stores Myriad state in addition to RM state to DFS.
