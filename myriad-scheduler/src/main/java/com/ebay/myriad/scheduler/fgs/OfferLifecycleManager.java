@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -34,8 +34,7 @@ import org.slf4j.LoggerFactory;
  * Manages the Mesos offers tracked by Myriad.
  */
 public class OfferLifecycleManager {
-  private static final Logger LOGGER = LoggerFactory.getLogger(
-      OfferLifecycleManager.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(OfferLifecycleManager.class);
 
   private Map<String, OfferFeed> offerFeedMap;
 
@@ -48,8 +47,7 @@ public class OfferLifecycleManager {
   private final MyriadDriver myriadDriver;
 
   @Inject
-  public OfferLifecycleManager(NodeStore nodeStore,
-      MyriadDriver myriadDriver) {
+  public OfferLifecycleManager(NodeStore nodeStore, MyriadDriver myriadDriver) {
 
     this.offerFeedMap = new ConcurrentHashMap<>(200, 0.75f, 50);
     this.consumedOfferMap = new HashMap<>(200, 0.75f);
@@ -80,8 +78,7 @@ public class OfferLifecycleManager {
 
         node.setSlaveId(offer.getSlaveId());
 
-        LOGGER.debug("addResourceOffers: caching offer for host {}, offer id {}",
-            hostname, offer.getId().getValue());
+        LOGGER.debug("addResourceOffers: caching offer for host {}, offer id {}", hostname, offer.getId().getValue());
       } else {
         myriadDriver.getDriver().declineOffer(offer.getId());
         LOGGER.debug("Declined offer for unregistered host {}", hostname);

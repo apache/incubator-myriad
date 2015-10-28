@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,22 +27,21 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 /**
- * Implementation assumes NM binaries will be downloaded 
+ * Implementation assumes NM binaries will be downloaded
  */
 public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
 
   private static final Logger LOGGER = LoggerFactory.
-    getLogger(DownloadNMExecutorCLGenImpl.class);
+      getLogger(DownloadNMExecutorCLGenImpl.class);
 
   private final String nodeManagerUri;
 
-  public DownloadNMExecutorCLGenImpl(MyriadConfiguration cfg,
-    String nodeManagerUri) {
+  public DownloadNMExecutorCLGenImpl(MyriadConfiguration cfg, String nodeManagerUri) {
     super(cfg);
     this.nodeManagerUri = nodeManagerUri;
   }
 
-@Override
+  @Override
   public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
     StringBuilder cmdLine = new StringBuilder();
     LOGGER.info("Using remote distribution");
@@ -72,14 +71,12 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
     //We need the current directory to be writable by frameworkUser for capsuleExecutor to create directories.
     //Best to simply give owenership to the user running the executor but we don't want to use -R as this
     //will silently remove the suid bit on container executor.
-   cmdLine.append(" && sudo chown ").append(cfg.getFrameworkUser().get()).append(" .");
+    cmdLine.append(" && sudo chown ").append(cfg.getFrameworkUser().get()).append(" .");
 
     //Place the hadoop config where in the HADOOP_CONF_DIR where it will be read by the NodeManager
     //The url for the resource manager config is: http(s)://hostname:port/conf so fetcher.cpp downloads the
     //config file to conf, It's an xml file with the parameters of yarn-site.xml, core-site.xml and hdfs.xml.
-    cmdLine.append(" && cp conf ")
-      .append(cfg.getYarnEnvironment().get("YARN_HOME"))
-      .append("/etc/hadoop/yarn-site.xml;");
+    cmdLine.append(" && cp conf ").append(cfg.getYarnEnvironment().get("YARN_HOME")).append("/etc/hadoop/yarn-site.xml;");
   }
 
   protected void appendUser(StringBuilder cmdLine) {
@@ -89,12 +86,11 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
   private static String getFileName(String uri) {
     int lastSlash = uri.lastIndexOf('/');
     if (lastSlash == -1) {
-        return uri;
+      return uri;
     } else {
-        String fileName = uri.substring(lastSlash + 1);
-        Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName),
-          "URI should not have a slash at the end");
-        return fileName;
+      String fileName = uri.substring(lastSlash + 1);
+      Preconditions.checkArgument(!Strings.isNullOrEmpty(fileName), "URI should not have a slash at the end");
+      return fileName;
     }
   }
 

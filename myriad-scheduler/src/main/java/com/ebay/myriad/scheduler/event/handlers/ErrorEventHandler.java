@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -27,12 +27,12 @@ import org.slf4j.LoggerFactory;
  * handles and logs error events
  */
 public class ErrorEventHandler implements EventHandler<ErrorEvent> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ErrorEventHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ErrorEventHandler.class);
 
-    @Override
-    public void onEvent(ErrorEvent event, long sequence, boolean endOfBatch) throws Exception {
-        String message = event.getMessage();
-        LOGGER.error(message);
-    }
+  @Override
+  public void onEvent(ErrorEvent event, long sequence, boolean endOfBatch) throws Exception {
+    String message = event.getMessage();
+    LOGGER.error(message);
+  }
 
 }

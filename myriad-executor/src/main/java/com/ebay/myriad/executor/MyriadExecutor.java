@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -49,9 +49,8 @@ public class MyriadExecutor implements Executor {
   }
 
   @Override
-  public void registered(ExecutorDriver driver, ExecutorInfo executorInfo,
-    FrameworkInfo frameworkInfo, SlaveInfo slaveInfo) {
-      LOGGER.debug("Registered ", executorInfo, " for framework ", frameworkInfo, " on mesos slave ", slaveInfo);
+  public void registered(ExecutorDriver driver, ExecutorInfo executorInfo, FrameworkInfo frameworkInfo, SlaveInfo slaveInfo) {
+    LOGGER.debug("Registered ", executorInfo, " for framework ", frameworkInfo, " on mesos slave ", slaveInfo);
   }
 
   @Override
@@ -67,11 +66,8 @@ public class MyriadExecutor implements Executor {
   @Override
   public void launchTask(final ExecutorDriver driver, final TaskInfo task) {
     LOGGER.debug("launchTask received for taskId: " + task.getTaskId());
-    TaskStatus status = TaskStatus.newBuilder()
-      .setTaskId(task.getTaskId())
-      .setState(TaskState.TASK_RUNNING)
-      .build();
-      driver.sendStatusUpdate(status);
+    TaskStatus status = TaskStatus.newBuilder().setTaskId(task.getTaskId()).setState(TaskState.TASK_RUNNING).build();
+    driver.sendStatusUpdate(status);
   }
 
   @Override
@@ -79,30 +75,22 @@ public class MyriadExecutor implements Executor {
     LOGGER.debug("killTask received for taskId: " + taskId.getValue());
     TaskStatus status;
 
-    if (!taskId.toString().contains(
-      MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX)) {
+    if (!taskId.toString().contains(MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX)) {
       // Inform mesos of killing all tasks corresponding to yarn containers that are
       // currently running 
       synchronized (containerIds) {
         for (String containerId : containerIds) {
-          Protos.TaskID containerTaskId = Protos.TaskID.newBuilder()
-            .setValue(MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX
-              + containerId).build();
-            status = TaskStatus.newBuilder().setTaskId(containerTaskId)
-              .setState(TaskState.TASK_KILLED)
-              .build();
-            driver.sendStatusUpdate(status);
+          Protos.TaskID containerTaskId = Protos.TaskID.newBuilder().setValue(MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX + containerId).build();
+          status = TaskStatus.newBuilder().setTaskId(containerTaskId).setState(TaskState.TASK_KILLED).build();
+          driver.sendStatusUpdate(status);
         }
       }
 
       // Now kill the node manager task
-      status = TaskStatus.newBuilder()
-        .setTaskId(taskId)
-        .setState(TaskState.TASK_KILLED)
-        .build();
+      status = TaskStatus.newBuilder().setTaskId(taskId).setState(TaskState.TASK_KILLED).build();
       driver.sendStatusUpdate(status);
       LOGGER.info("NodeManager shutdown after receiving" +
-        " KillTask for taskId " + taskId.getValue());
+          " KillTask for taskId " + taskId.getValue());
       Runtime.getRuntime().exit(0);
 
     } else {

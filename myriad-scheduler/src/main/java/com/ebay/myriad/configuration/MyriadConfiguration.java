@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -129,7 +129,7 @@ public class MyriadConfiguration {
 
   @JsonProperty
   private NodeManagerConfiguration nodemanager;
-  
+
   @JsonProperty
   private Map<String, ServiceConfiguration> services;
 
@@ -174,13 +174,11 @@ public class MyriadConfiguration {
   }
 
   public Double getFrameworkFailoverTimeout() {
-    return this.frameworkFailoverTimeout != null ? this.frameworkFailoverTimeout
-        : DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS;
+    return this.frameworkFailoverTimeout != null ? this.frameworkFailoverTimeout : DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS;
   }
 
   public String getFrameworkName() {
-    return Strings.isNullOrEmpty(this.frameworkName) ? DEFAULT_FRAMEWORK_NAME
-        : this.frameworkName;
+    return Strings.isNullOrEmpty(this.frameworkName) ? DEFAULT_FRAMEWORK_NAME : this.frameworkName;
   }
 
   public String getFrameworkRole() {
@@ -214,7 +212,7 @@ public class MyriadConfiguration {
   public NodeManagerConfiguration getNodeManagerConfiguration() {
     return this.nodemanager;
   }
-  
+
   public Map<String, ServiceConfiguration> getServiceConfigurations() {
     return this.services;
   }
@@ -225,7 +223,7 @@ public class MyriadConfiguration {
     }
     return this.services.get(taskName);
   }
-  
+
   public MyriadExecutorConfiguration getMyriadExecutorConfiguration() {
     return this.executor;
   }

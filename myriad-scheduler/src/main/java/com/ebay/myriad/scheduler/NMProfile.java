@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -24,40 +24,40 @@ import com.google.gson.Gson;
  * Node Manager Profile
  */
 public class NMProfile {
-    private String name;
+  private String name;
 
-    /**
-     * Number of CPU advertised to YARN Resource Manager.
-     */
-    private Long cpus;
+  /**
+   * Number of CPU advertised to YARN Resource Manager.
+   */
+  private Long cpus;
 
-    /**
-     * Memory in MB advertised to YARN Resource Manager.
-     */
-    private Long memory;
+  /**
+   * Memory in MB advertised to YARN Resource Manager.
+   */
+  private Long memory;
 
-    public NMProfile(String name, Long cpus, Long memory) {
-        this.name = name;
-        this.cpus = cpus;
-        this.memory = memory;
-    }
+  public NMProfile(String name, Long cpus, Long memory) {
+    this.name = name;
+    this.cpus = cpus;
+    this.memory = memory;
+  }
 
-    public String getName() {
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 
-    public Long getCpus() {
-        return cpus;
-    }
+  public Long getCpus() {
+    return cpus;
+  }
 
-    public Long getMemory() {
-        return memory;
-    }
+  public Long getMemory() {
+    return memory;
+  }
 
-    @Override
-    public String toString() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
-    }
+  @Override
+  public String toString() {
+    Gson gson = new Gson();
+    return gson.toJson(this);
+  }
 
 }

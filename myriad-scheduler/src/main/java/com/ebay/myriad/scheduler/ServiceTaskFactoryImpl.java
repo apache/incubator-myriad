@@ -1,20 +1,20 @@
 /**
-* Licensed to the Apache Software Foundation (ASF) under one
-* or more contributor license agreements.  See the NOTICE file
-* distributed with this work for additional information
-* regarding copyright ownership.  The ASF licenses this file
-* to you under the Apache License, Version 2.0 (the
-* "License"); you may not use this file except in compliance
-* with the License.  You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.ebay.myriad.scheduler;
 
 import java.util.ArrayList;
@@ -50,14 +50,13 @@ import com.google.common.annotations.VisibleForTesting;
  * 1. command to run
  * 2. Additional env. variables to set (serviceOpts)
  * 3. ports to use with names of the properties
- * 4. TODO (yufeldman) executor info 
- *
+ * 4. TODO (yufeldman) executor info
  */
 public class ServiceTaskFactoryImpl implements TaskFactory {
   private static final Logger LOGGER = LoggerFactory.getLogger(ServiceTaskFactoryImpl.class);
-    
+
   public static final long DEFAULT_PORT_NUMBER = 0;
-  
+
   private MyriadConfiguration cfg;
   @SuppressWarnings("unused")
   private TaskUtils taskUtils;
@@ -71,31 +70,29 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
   }
 
   @Override
-  public TaskInfo createTask(Offer offer, FrameworkID frameworkId,
-    TaskID taskId, NodeTask nodeTask) {
+  public TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, NodeTask nodeTask) {
     Objects.requireNonNull(offer, "Offer should be non-null");
     Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
-    ServiceConfiguration serviceConfig = 
-        cfg.getServiceConfiguration(nodeTask.getTaskPrefix());
-    
+    ServiceConfiguration serviceConfig = cfg.getServiceConfiguration(nodeTask.getTaskPrefix());
+
     Objects.requireNonNull(serviceConfig, "ServiceConfig should be non-null");
     Objects.requireNonNull(serviceConfig.getCommand().orNull(), "command for ServiceConfig should be non-null");
-    
+
     final String serviceHostName = "0.0.0.0";
     final String serviceEnv = serviceConfig.getEnvSettings();
     final String rmHostName = System.getProperty(YARN_RESOURCEMANAGER_HOSTNAME);
     List<Long> additionalPortsNumbers = null;
-    
+
     final StringBuilder strB = new StringBuilder("env ");
     if (serviceConfig.getServiceOpts() != null) {
       strB.append(serviceConfig.getServiceOpts()).append("=");
-      
+
       strB.append("\"");
       if (rmHostName != null && !rmHostName.isEmpty()) {
         strB.append("-D" + YARN_RESOURCEMANAGER_HOSTNAME + "=" + rmHostName + " ");
       }
-      
+
       Map<String, Long> ports = serviceConfig.getPorts().orNull();
       if (ports != null && !ports.isEmpty()) {
         int neededPortsCount = 0;
@@ -117,53 +114,34 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
           }
           strB.append("-D" + portProperty + "=" + serviceHostName + ":" + port + " ");
         }
-      }     
+      }
       strB.append(serviceEnv);
       strB.append("\"");
     }
 
     strB.append(" ");
     strB.append(serviceConfig.getCommand().get());
-    
+
     CommandInfo commandInfo = createCommandInfo(nodeTask.getProfile(), strB.toString());
 
     LOGGER.info("Command line for service: {} is: {}", nodeTask.getTaskPrefix(), strB.toString());
-    
-    Scalar taskMemory = Scalar.newBuilder()
-        .setValue(nodeTask.getProfile().getMemory())
-        .build();
-    Scalar taskCpus = Scalar.newBuilder()
-        .setValue(nodeTask.getProfile().getCpus())
-        .build();
+
+    Scalar taskMemory = Scalar.newBuilder().setValue(nodeTask.getProfile().getMemory()).build();
+    Scalar taskCpus = Scalar.newBuilder().setValue(nodeTask.getProfile().getCpus()).build();
 
     TaskInfo.Builder taskBuilder = TaskInfo.newBuilder();
-    
-    taskBuilder.setName(nodeTask.getTaskPrefix())
-        .setTaskId(taskId)
-        .setSlaveId(offer.getSlaveId())
-        .addResources(
-            Resource.newBuilder().setName("cpus")
-            .setType(Value.Type.SCALAR)
-            .setScalar(taskCpus)
-            .build())
-        .addResources(
-            Resource.newBuilder().setName("mem")
-            .setType(Value.Type.SCALAR)
-            .setScalar(taskMemory)
-            .build());
-    
+
+    taskBuilder.setName(nodeTask.getTaskPrefix()).setTaskId(taskId).setSlaveId(offer.getSlaveId()).addResources(Resource.newBuilder().setName("cpus").setType(Value.Type.SCALAR).setScalar(taskCpus).build()).addResources(Resource.newBuilder()
+        .setName("mem").setType(Value.Type.SCALAR).setScalar(taskMemory).build());
+
     if (additionalPortsNumbers != null && !additionalPortsNumbers.isEmpty()) {
       // set ports
       Value.Ranges.Builder valueRanger = Value.Ranges.newBuilder();
       for (Long port : additionalPortsNumbers) {
-        valueRanger.addRange(Value.Range.newBuilder()
-                .setBegin(port)
-                .setEnd(port));
+        valueRanger.addRange(Value.Range.newBuilder().setBegin(port).setEnd(port));
       }
-      
-      taskBuilder.addResources(Resource.newBuilder().setName("ports")
-          .setType(Value.Type.RANGES)
-          .setRanges(valueRanger.build()));
+
+      taskBuilder.addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(valueRanger.build()));
     }
     taskBuilder.setCommand(commandInfo);
     return taskBuilder.build();
@@ -175,11 +153,9 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
     Map<String, String> envVars = cfg.getYarnEnvironment();
     if (envVars != null && !envVars.isEmpty()) {
-      org.apache.mesos.Protos.Environment.Builder yarnHomeB = 
-          org.apache.mesos.Protos.Environment.newBuilder();
+      org.apache.mesos.Protos.Environment.Builder yarnHomeB = org.apache.mesos.Protos.Environment.newBuilder();
       for (Map.Entry<String, String> envEntry : envVars.entrySet()) {
-        org.apache.mesos.Protos.Environment.Variable.Builder yarnEnvB = 
-            org.apache.mesos.Protos.Environment.Variable.newBuilder();
+        org.apache.mesos.Protos.Environment.Variable.Builder yarnEnvB = org.apache.mesos.Protos.Environment.Variable.newBuilder();
         yarnEnvB.setName(envEntry.getKey()).setValue(envEntry.getValue());
         yarnHomeB.addVariables(yarnEnvB.build());
       }
@@ -189,13 +165,12 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
       //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
       if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
-        throw new RuntimeException("Trying to use remote distribution, but frameworkUser" +
-            "and/or frameworkSuperUser not set!");
+        throw new RuntimeException("Trying to use remote distribution, but frameworkUser" + "and/or frameworkSuperUser not set!");
       }
 
       LOGGER.info("Using remote distribution");
       String clGeneratedCommand = clGenerator.generateCommandLine(profile, null);
-      
+
       String nmURIString = myriadExecutorConfiguration.getNodeManagerUri().get();
 
       //Concatenate all the subcommands
@@ -204,14 +179,12 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
       //get the nodemanagerURI
       //We're going to extract ourselves, so setExtract is false
       LOGGER.info("Getting Hadoop distribution from:" + nmURIString);
-      URI nmUri = URI.newBuilder().setValue(nmURIString).setExtract(false)
-          .build();
+      URI nmUri = URI.newBuilder().setValue(nmURIString).setExtract(false).build();
 
       //get configs directly from resource manager
       String configUrlString = clGenerator.getConfigurationUrl();
       LOGGER.info("Getting config from:" + configUrlString);
-      URI configUri = URI.newBuilder().setValue(configUrlString)
-          .build();
+      URI configUri = URI.newBuilder().setValue(configUrlString).build();
 
       LOGGER.info("Slave will execute command:" + cmd);
       commandInfo.addUris(nmUri).addUris(configUri).setValue("echo \"" + cmd + "\";" + cmd);
@@ -224,8 +197,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
   }
 
   @Override
-  public ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId,
-      Offer offer, CommandInfo commandInfo) {
+  public ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId, Offer offer, CommandInfo commandInfo) {
     // TODO (yufeldman) if executor specified use it , otherwise return null
     // nothing to implement here, since we are using default slave executor
     return null;
@@ -233,6 +205,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
 
   /**
    * Helper method to reserve ports
+   *
    * @param offer
    * @param requestedPorts
    * @return
@@ -242,8 +215,8 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
       return null;
     }
     final List<Long> returnedPorts = new ArrayList<>();
-    for (Resource resource : offer.getResourcesList()){
-      if (resource.getName().equals("ports")){
+    for (Resource resource : offer.getResourcesList()) {
+      if (resource.getName().equals("ports")) {
         Iterator<Value.Range> itr = resource.getRanges().getRangeList().iterator();
         while (itr.hasNext()) {
           Value.Range range = itr.next();
@@ -253,7 +226,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
               returnedPorts.add(i);
               i++;
             }
-            if (returnedPorts.size() >= requestedPorts) { 
+            if (returnedPorts.size() >= requestedPorts) {
               return returnedPorts;
             }
           }

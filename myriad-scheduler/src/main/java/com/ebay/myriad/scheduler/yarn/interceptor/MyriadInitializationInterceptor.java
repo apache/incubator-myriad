@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -32,27 +32,27 @@ import java.io.IOException;
  * Responsible for intializing myriad.
  */
 public class MyriadInitializationInterceptor extends BaseInterceptor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MyriadInitializationInterceptor.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(MyriadInitializationInterceptor.class);
 
-    private final InterceptorRegistry registry;
+  private final InterceptorRegistry registry;
 
-    public MyriadInitializationInterceptor(InterceptorRegistry registry) {
-        this.registry = registry;
+  public MyriadInitializationInterceptor(InterceptorRegistry registry) {
+    this.registry = registry;
+  }
+
+  /**
+   * Initialize Myriad plugin before RM's scheduler is initialized.
+   * This includes registration with Mesos master, initialization of
+   * the myriad web application, initializing guice modules etc.
+   */
+  @Override
+  public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException {
+    try {
+      Main.initialize(conf, yarnScheduler, rmContext, registry);
+    } catch (Exception e) {
+      // Abort bringing up RM
+      throw new RuntimeException("Failed to initialize myriad", e);
     }
-
-    /**
-     * Initialize Myriad plugin before RM's scheduler is initialized.
-     * This includes registration with Mesos master, initialization of
-     * the myriad web application, initializing guice modules etc.
-     */
-    @Override
-    public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException {
-        try {
-            Main.initialize(conf, yarnScheduler, rmContext, registry);
-        } catch (Exception e) {
-            // Abort bringing up RM
-            throw new RuntimeException("Failed to initialize myriad", e);
-        }
-        LOGGER.info("Initialized myriad.");
-    }
+    LOGGER.info("Initialized myriad.");
+  }
 }

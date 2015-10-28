@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
- *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -37,63 +37,61 @@ import org.slf4j.LoggerFactory;
  */
 public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StatusUpdateEventHandler.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(StatusUpdateEventHandler.class);
 
-    private final SchedulerState schedulerState;
-    private final OfferLifecycleManager offerLifecycleManager;
+  private final SchedulerState schedulerState;
+  private final OfferLifecycleManager offerLifecycleManager;
 
-    @Inject
-    public StatusUpdateEventHandler(SchedulerState schedulerState, OfferLifecycleManager offerLifecycleManager) {
-      this.schedulerState = schedulerState;
-      this.offerLifecycleManager = offerLifecycleManager;
+  @Inject
+  public StatusUpdateEventHandler(SchedulerState schedulerState, OfferLifecycleManager offerLifecycleManager) {
+    this.schedulerState = schedulerState;
+    this.offerLifecycleManager = offerLifecycleManager;
+  }
+
+  @Override
+  public void onEvent(StatusUpdateEvent event, long sequence, boolean endOfBatch) throws Exception {
+    TaskStatus status = event.getStatus();
+    this.schedulerState.updateTask(status);
+    TaskID taskId = status.getTaskId();
+    NodeTask task = schedulerState.getTask(taskId);
+    if (task == null) {
+      LOGGER.warn("Task: {} not found, status: {}", taskId.getValue(), status.getState());
+      schedulerState.removeTask(taskId);
+      return;
     }
+    LOGGER.info("Status Update for task: {} | state: {}", taskId.getValue(), status.getState());
+    TaskState state = status.getState();
 
-    @Override
-    public void onEvent(StatusUpdateEvent event,
-                        long sequence,
-                        boolean endOfBatch) throws Exception {
-        TaskStatus status = event.getStatus();
-        this.schedulerState.updateTask(status);
-        TaskID taskId = status.getTaskId();
-        NodeTask task = schedulerState.getTask(taskId);
-        if (task == null) {
-            LOGGER.warn("Task: {} not found, status: {}", taskId.getValue(), status.getState());
-            schedulerState.removeTask(taskId);
-            return;
-        }
-        LOGGER.info("Status Update for task: {} | state: {}", taskId.getValue(), status.getState());
-        TaskState state = status.getState();
-
-        switch (state) {
-            case TASK_STAGING:
-                schedulerState.makeTaskStaging(taskId);
-                break;
-            case TASK_STARTING:
-                schedulerState.makeTaskStaging(taskId);
-                break;
-            case TASK_RUNNING:
-                schedulerState.makeTaskActive(taskId);
-                break;
-            case TASK_FINISHED:
-                offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-                schedulerState.removeTask(taskId);
-                break;
-            case TASK_FAILED:
-                // Add to pending tasks
-              offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-              schedulerState.makeTaskPending(taskId);
-                break;
-            case TASK_KILLED:
-              offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-                schedulerState.removeTask(taskId);
-                break;
-            case TASK_LOST:
-              offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-                schedulerState.makeTaskPending(taskId);
-                break;
-            default:
-                LOGGER.error("Invalid state: {}", state);
-                break;
-        }
+    switch (state) {
+      case TASK_STAGING:
+        schedulerState.makeTaskStaging(taskId);
+        break;
+      case TASK_STARTING:
+        schedulerState.makeTaskStaging(taskId);
+        break;
+      case TASK_RUNNING:
+        schedulerState.makeTaskActive(taskId);
+        break;
+      case TASK_FINISHED:
+        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
+        schedulerState.removeTask(taskId);
+        break;
+      case TASK_FAILED:
+        // Add to pending tasks
+        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
+        schedulerState.makeTaskPending(taskId);
+        break;
+      case TASK_KILLED:
+        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
+        schedulerState.removeTask(taskId);
+        break;
+      case TASK_LOST:
+        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
+        schedulerState.makeTaskPending(taskId);
+        break;
+      default:
+        LOGGER.error("Invalid state: {}", state);
+        break;
     }
+  }
 }
