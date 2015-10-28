@@ -10,6 +10,9 @@ The name _Myriad_ means, _countless or extremely great number_. In context of th
 
 ## Getting started
 
+For up-to-date documentation, see [Apache Myriad](https://cwiki.apache.org/confluence/display/MYRIAD/Myriad+Home) on the wiki.
+
+
 * [How Myriad works](docs/how-it-works.md)
 * [Developing Myriad](docs/myriad-dev.md)
 * [Local vagrant setup guide](docs/vagrant.md)
@@ -30,8 +33,8 @@ Please keep checking this section for updates.
 - [x] Fine-grained scaling
 - [x] Remote distribution of NodeManager binaries
 - [x] Framework checkpointing
-- [ ] Launch Job History Server
-- [ ] Constraints based Node Manager placement
+- [x] Launch Job History Server
+- [x] Constraints based Node Manager placement
 - [ ] Support multi-tenancy for Node Managers
 - [ ] Configuration store for storing rules and policies for clusters managed by Myriad
 
