@@ -18,24 +18,16 @@
 
 package org.apache.myriad;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
-import com.google.inject.multibindings.MapBinder;
-import java.io.IOException;
-import java.util.Map;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.configuration.MyriadExecutorConfiguration;
-import org.apache.myriad.configuration.NodeManagerConfiguration;
-import org.apache.myriad.configuration.ServiceConfiguration;
-import org.apache.myriad.scheduler.NMExecutorCLGenImpl;
-import org.apache.myriad.scheduler.TaskFactory;
-import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.dataformat.yaml.*;
+import com.google.inject.*;
+import com.google.inject.multibindings.*;
+import java.io.*;
+import java.util.*;
+import org.apache.myriad.configuration.*;
+import org.apache.myriad.scheduler.*;
+import org.apache.myriad.scheduler.TaskFactory.*;
+import org.slf4j.*;
 
 /**
  * AbstractModule extension for UnitTests
@@ -77,18 +69,18 @@ public class MyriadTestModule extends AbstractModule {
           e.printStackTrace();
         }
       } else {
-        mapBinder.addBinding(entry.getKey()).to(org.apache.myriad.scheduler.ServiceTaskFactoryImpl.class).in(Scopes.SINGLETON);
+        mapBinder.addBinding(entry.getKey()).to(ServiceTaskFactoryImpl.class).in(Scopes.SINGLETON);
       }
     }
   }
 
   @Provides
   @Singleton
-  org.apache.myriad.scheduler.ExecutorCommandLineGenerator providesCLIGenerator(MyriadConfiguration cfg) {
-    org.apache.myriad.scheduler.ExecutorCommandLineGenerator cliGenerator = null;
+  ExecutorCommandLineGenerator providesCLIGenerator(MyriadConfiguration cfg) {
+    ExecutorCommandLineGenerator cliGenerator = null;
     MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
     if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
-      cliGenerator = new org.apache.myriad.scheduler.DownloadNMExecutorCLGenImpl(cfg, myriadExecutorConfiguration.getNodeManagerUri().get());
+      cliGenerator = new DownloadNMExecutorCLGenImpl(cfg, myriadExecutorConfiguration.getNodeManagerUri().get());
     } else {
       cliGenerator = new NMExecutorCLGenImpl(cfg);
     }

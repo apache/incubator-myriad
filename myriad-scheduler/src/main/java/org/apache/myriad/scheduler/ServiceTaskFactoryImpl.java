@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.inject.Inject;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.ExecutorInfo;
@@ -150,9 +151,9 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
     Map<String, String> envVars = cfg.getYarnEnvironment();
     if (envVars != null && !envVars.isEmpty()) {
-      org.apache.mesos.Protos.Environment.Builder yarnHomeB = org.apache.mesos.Protos.Environment.newBuilder();
+      Protos.Environment.Builder yarnHomeB = Protos.Environment.newBuilder();
       for (Map.Entry<String, String> envEntry : envVars.entrySet()) {
-        org.apache.mesos.Protos.Environment.Variable.Builder yarnEnvB = org.apache.mesos.Protos.Environment.Variable.newBuilder();
+        Protos.Environment.Variable.Builder yarnEnvB = Protos.Environment.Variable.newBuilder();
         yarnEnvB.setName(envEntry.getKey()).setValue(envEntry.getValue());
         yarnHomeB.addVariables(yarnEnvB.build());
       }

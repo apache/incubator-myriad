@@ -40,8 +40,13 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateS
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.Protos;
+import org.apache.myriad.configuration.NodeManagerConfiguration;
 import org.apache.myriad.executor.ContainerTaskStatusRequest;
+import org.apache.myriad.scheduler.MyriadDriver;
+import org.apache.myriad.scheduler.SchedulerUtils;
 import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
+import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,14 +66,14 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
 
   private final AbstractYarnScheduler yarnScheduler;
   private final RMContext rmContext;
-  private final org.apache.myriad.scheduler.MyriadDriver myriadDriver;
+  private final MyriadDriver myriadDriver;
   private final OfferLifecycleManager offerLifecycleMgr;
   private final NodeStore nodeStore;
-  private final org.apache.myriad.state.SchedulerState state;
+  private final SchedulerState state;
 
   @Inject
-  public YarnNodeCapacityManager(org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, RMContext rmContext, org.apache.myriad.scheduler.MyriadDriver myriadDriver, OfferLifecycleManager
-      offerLifecycleMgr, NodeStore nodeStore, org.apache.myriad.state.SchedulerState state) {
+  public YarnNodeCapacityManager(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, RMContext rmContext, MyriadDriver myriadDriver, OfferLifecycleManager
+      offerLifecycleMgr, NodeStore nodeStore, SchedulerState state) {
     if (registry != null) {
       registry.register(this);
     }
@@ -85,7 +90,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     return new CallBackFilter() {
       @Override
       public boolean allowCallBacksForNode(NodeId nodeManager) {
-        return org.apache.myriad.scheduler.SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
+        return SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
       }
     };
   }
@@ -93,7 +98,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   @Override
   public void afterSchedulerEventHandled(SchedulerEvent event) {
     switch (event.getType()) {
-      case NODE_ADDED: {
+      case NODE_ADDED:
         if (!(event instanceof NodeAddedSchedulerEvent)) {
           LOGGER.error("{} not an instance of {}", event.getClass().getName(), NodeAddedSchedulerEvent.class.getName());
           return;
@@ -106,10 +111,9 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         SchedulerNode node = yarnScheduler.getSchedulerNode(nodeId);
         nodeStore.add(node);
         LOGGER.info("afterSchedulerEventHandled: NM registration from node {}", host);
-      }
         break;
 
-      case NODE_UPDATE: {
+      case NODE_UPDATE:
         if (!(event instanceof NodeUpdateSchedulerEvent)) {
           LOGGER.error("{} not an instance of {}", event.getClass().getName(), NodeUpdateSchedulerEvent.class.getName());
           return;
@@ -117,7 +121,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
 
         RMNode rmNode = ((NodeUpdateSchedulerEvent) event).getRMNode();
         handleContainerAllocation(rmNode);
-      }
+
         break;
 
       default:
@@ -205,7 +209,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     // as this is now cached in the NodeTask object in scheduler state.
     Protos.ExecutorInfo executorInfo = node.getExecInfo();
     if (executorInfo == null) {
-      executorInfo = Protos.ExecutorInfo.newBuilder(state.getNodeTask(offer.getSlaveId(), org.apache.myriad.configuration.NodeManagerConfiguration.NM_TASK_PREFIX).getExecutorInfo()).setFrameworkId(offer.getFrameworkId()).build();
+      executorInfo = Protos.ExecutorInfo.newBuilder(state.getNodeTask(offer.getSlaveId(), NodeManagerConfiguration.NM_TASK_PREFIX).getExecutorInfo()).setFrameworkId(offer.getFrameworkId()).build();
       node.setExecInfo(executorInfo);
     }
 

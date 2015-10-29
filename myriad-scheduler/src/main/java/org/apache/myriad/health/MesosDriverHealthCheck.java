@@ -21,6 +21,7 @@ package org.apache.myriad.health;
 import com.codahale.metrics.health.HealthCheck;
 import javax.inject.Inject;
 import org.apache.mesos.Protos.Status;
+import org.apache.myriad.scheduler.MyriadDriverManager;
 
 /**
  * Health Check that Mesos Master is running
@@ -28,10 +29,10 @@ import org.apache.mesos.Protos.Status;
 public class MesosDriverHealthCheck extends HealthCheck {
 
   public static final String NAME = "mesos-driver";
-  private org.apache.myriad.scheduler.MyriadDriverManager driverManager;
+  private MyriadDriverManager driverManager;
 
   @Inject
-  public MesosDriverHealthCheck(org.apache.myriad.scheduler.MyriadDriverManager driverManager) {
+  public MesosDriverHealthCheck(MyriadDriverManager driverManager) {
     this.driverManager = driverManager;
   }
 

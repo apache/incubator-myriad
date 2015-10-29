@@ -33,6 +33,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateS
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.mesos.Protos;
 import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
+import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +45,7 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
   private static final Logger LOGGER = LoggerFactory.getLogger(LeastAMNodesFirstPolicy.class);
 
   private final AbstractYarnScheduler yarnScheduler;
-  private final org.apache.myriad.state.SchedulerState schedulerState;
+  private final SchedulerState schedulerState;
 
   //TODO(Santosh): Should figure out the right values for the hashmap properties.
   // currently it's tuned for 200 nodes and 50 RM RPC threads (Yarn's default).
@@ -54,7 +56,7 @@ public class LeastAMNodesFirstPolicy extends BaseInterceptor implements NodeScal
   private Map<String, SchedulerNode> schedulerNodes = new ConcurrentHashMap<>(INITIAL_NODE_SIZE, LOAD_FACTOR_DEFAULT, EXPECTED_CONCURRENT_ACCCESS_COUNT);
 
   @Inject
-  public LeastAMNodesFirstPolicy(org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, org.apache.myriad.state.SchedulerState schedulerState) {
+  public LeastAMNodesFirstPolicy(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, SchedulerState schedulerState) {
     registry.register(this);
     this.yarnScheduler = yarnScheduler;
     this.schedulerState = schedulerState;

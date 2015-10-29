@@ -24,6 +24,8 @@ import java.util.List;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
+import org.apache.myriad.scheduler.TaskUtils;
+import org.apache.myriad.scheduler.constraints.Constraint;
 
 /**
  * Represents a task to be launched by the executor
@@ -41,16 +43,16 @@ public class NodeTask {
   private ServiceResourceProfile serviceresourceProfile;
 
   @Inject
-  org.apache.myriad.scheduler.TaskUtils taskUtils;
+  TaskUtils taskUtils;
   /**
    * Mesos executor for this node.
    */
   private Protos.ExecutorInfo executorInfo;
 
-  private org.apache.myriad.scheduler.constraints.Constraint constraint;
+  private Constraint constraint;
   private List<Attribute> slaveAttributes;
 
-  public NodeTask(ServiceResourceProfile profile, org.apache.myriad.scheduler.constraints.Constraint constraint) {
+  public NodeTask(ServiceResourceProfile profile, Constraint constraint) {
     this.serviceresourceProfile = profile;
     this.hostname = "";
     this.constraint = constraint;
@@ -64,7 +66,7 @@ public class NodeTask {
     this.slaveId = slaveId;
   }
 
-  public org.apache.myriad.scheduler.constraints.Constraint getConstraint() {
+  public Constraint getConstraint() {
     return constraint;
   }
 

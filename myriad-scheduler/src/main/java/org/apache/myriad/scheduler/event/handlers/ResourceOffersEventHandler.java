@@ -38,13 +38,25 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.myriad.scheduler.SchedulerUtils;
+import org.apache.myriad.scheduler.ServiceResourceProfile;
+import org.apache.myriad.scheduler.TaskConstraints;
+import org.apache.myriad.scheduler.TaskConstraintsManager;
+import org.apache.myriad.scheduler.TaskFactory;
+import org.apache.myriad.scheduler.TaskUtils;
+import org.apache.myriad.scheduler.constraints.Constraint;
+import org.apache.myriad.scheduler.constraints.LikeConstraint;
+import org.apache.myriad.scheduler.event.ResourceOffersEvent;
+import org.apache.myriad.scheduler.fgs.OfferLifecycleManager;
+import org.apache.myriad.state.NodeTask;
+import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * handles and logs resource offers events
  */
-public class ResourceOffersEventHandler implements EventHandler<org.apache.myriad.scheduler.event.ResourceOffersEvent> {
+public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEvent> {
   private static final Logger LOGGER = LoggerFactory.getLogger(ResourceOffersEventHandler.class);
 
   private static final Lock driverOperationLock = new ReentrantLock();
@@ -56,22 +68,22 @@ public class ResourceOffersEventHandler implements EventHandler<org.apache.myria
 
 
   @Inject
-  private org.apache.myriad.state.SchedulerState schedulerState;
+  private SchedulerState schedulerState;
 
   @Inject
-  private org.apache.myriad.scheduler.TaskUtils taskUtils;
+  private TaskUtils taskUtils;
 
   @Inject
-  private Map<String, org.apache.myriad.scheduler.TaskFactory> taskFactoryMap;
+  private Map<String, TaskFactory> taskFactoryMap;
 
   @Inject
-  private org.apache.myriad.scheduler.fgs.OfferLifecycleManager offerLifecycleMgr;
+  private OfferLifecycleManager offerLifecycleMgr;
 
   @Inject
-  private org.apache.myriad.scheduler.TaskConstraintsManager taskConstraintsManager;
+  private TaskConstraintsManager taskConstraintsManager;
 
   @Override
-  public void onEvent(org.apache.myriad.scheduler.event.ResourceOffersEvent event, long sequence, boolean endOfBatch) throws Exception {
+  public void onEvent(ResourceOffersEvent event, long sequence, boolean endOfBatch) throws Exception {
     SchedulerDriver driver = event.getDriver();
     List<Offer> offers = event.getOffers();
 
@@ -91,8 +103,8 @@ public class ResourceOffersEventHandler implements EventHandler<org.apache.myria
     try {
       for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext(); ) {
         Offer offer = iterator.next();
-        Set<org.apache.myriad.state.NodeTask> nodeTasks = schedulerState.getNodeTasks(offer.getSlaveId());
-        for (org.apache.myriad.state.NodeTask nodeTask : nodeTasks) {
+        Set<NodeTask> nodeTasks = schedulerState.getNodeTasks(offer.getSlaveId());
+        for (NodeTask nodeTask : nodeTasks) {
           nodeTask.setSlaveAttributes(offer.getAttributesList());
         }
         // keep this in case SchedulerState gets out of sync. This should not happen with 
@@ -102,21 +114,21 @@ public class ResourceOffersEventHandler implements EventHandler<org.apache.myria
         Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
         if (CollectionUtils.isNotEmpty(pendingTasks)) {
           for (Protos.TaskID pendingTaskId : pendingTasks) {
-            org.apache.myriad.state.NodeTask taskToLaunch = schedulerState.getTask(pendingTaskId);
+            NodeTask taskToLaunch = schedulerState.getTask(pendingTaskId);
             if (taskToLaunch == null) {
               missingTasks.add(pendingTaskId);
               LOGGER.warn("Node task for TaskID: {} does not exist", pendingTaskId);
               continue;
             }
             String taskPrefix = taskToLaunch.getTaskPrefix();
-            org.apache.myriad.scheduler.ServiceResourceProfile profile = taskToLaunch.getProfile();
-            org.apache.myriad.scheduler.constraints.Constraint constraint = taskToLaunch.getConstraint();
+            ServiceResourceProfile profile = taskToLaunch.getProfile();
+            Constraint constraint = taskToLaunch.getConstraint();
 
-            Set<org.apache.myriad.state.NodeTask> launchedTasks = new HashSet<>();
+            Set<NodeTask> launchedTasks = new HashSet<>();
             launchedTasks.addAll(schedulerState.getActiveTasksByType(taskPrefix));
             launchedTasks.addAll(schedulerState.getStagingTasksByType(taskPrefix));
 
-            if (matches(offer, taskToLaunch, constraint) && org.apache.myriad.scheduler.SchedulerUtils.isUniqueHostname(offer, taskToLaunch, launchedTasks)) {
+            if (matches(offer, taskToLaunch, constraint) && SchedulerUtils.isUniqueHostname(offer, taskToLaunch, launchedTasks)) {
               try {
                 final TaskInfo task = taskFactoryMap.get(taskPrefix).createTask(offer, schedulerState.getFrameworkID(), pendingTaskId, taskToLaunch);
                 List<OfferID> offerIds = new ArrayList<>();
@@ -150,7 +162,7 @@ public class ResourceOffersEventHandler implements EventHandler<org.apache.myria
       }
 
       for (Offer offer : offers) {
-        if (org.apache.myriad.scheduler.SchedulerUtils.isEligibleForFineGrainedScaling(offer.getHostname(), schedulerState)) {
+        if (SchedulerUtils.isEligibleForFineGrainedScaling(offer.getHostname(), schedulerState)) {
           if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Picking an offer from slave with hostname {} for fine grained scaling.", offer.getHostname());
           }
@@ -167,7 +179,7 @@ public class ResourceOffersEventHandler implements EventHandler<org.apache.myria
     }
   }
 
-  private boolean matches(Offer offer, org.apache.myriad.state.NodeTask taskToLaunch, org.apache.myriad.scheduler.constraints.Constraint constraint) {
+  private boolean matches(Offer offer, NodeTask taskToLaunch, Constraint constraint) {
     if (!meetsConstraint(offer, constraint)) {
       return false;
     }
@@ -196,12 +208,12 @@ public class ResourceOffersEventHandler implements EventHandler<org.apache.myria
     return checkAggregates(offer, taskToLaunch, ports, cpus, mem);
   }
 
-  private boolean checkAggregates(Offer offer, org.apache.myriad.state.NodeTask taskToLaunch, int ports, double cpus, double mem) {
-    final org.apache.myriad.scheduler.ServiceResourceProfile profile = taskToLaunch.getProfile();
+  private boolean checkAggregates(Offer offer, NodeTask taskToLaunch, int ports, double cpus, double mem) {
+    final ServiceResourceProfile profile = taskToLaunch.getProfile();
     final String taskPrefix = taskToLaunch.getTaskPrefix();
     final double aggrCpu = profile.getAggregateCpu() + profile.getExecutorCpu();
     final double aggrMem = profile.getAggregateMemory() + profile.getExecutorMemory();
-    final org.apache.myriad.scheduler.TaskConstraints taskConstraints = taskConstraintsManager.getConstraints(taskPrefix);
+    final TaskConstraints taskConstraints = taskConstraintsManager.getConstraints(taskPrefix);
     if (aggrCpu <= cpus && aggrMem <= mem && taskConstraints.portsCount() <= ports) {
       return true;
     } else {
@@ -210,11 +222,11 @@ public class ResourceOffersEventHandler implements EventHandler<org.apache.myria
     }
   }
 
-  private boolean meetsConstraint(Offer offer, org.apache.myriad.scheduler.constraints.Constraint constraint) {
+  private boolean meetsConstraint(Offer offer, Constraint constraint) {
     if (constraint != null) {
       switch (constraint.getType()) {
         case LIKE: {
-          org.apache.myriad.scheduler.constraints.LikeConstraint likeConstraint = (org.apache.myriad.scheduler.constraints.LikeConstraint) constraint;
+          LikeConstraint likeConstraint = (LikeConstraint) constraint;
           if (likeConstraint.isConstraintOnHostName()) {
             return likeConstraint.matchesHostName(offer.getHostname());
           } else {

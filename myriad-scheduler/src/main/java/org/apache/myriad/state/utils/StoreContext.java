@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
+import org.apache.myriad.state.NodeTask;
 
 /**
  * The purpose of this container/utility is to create a mechanism to serialize the SchedulerState
@@ -62,7 +63,7 @@ public final class StoreContext {
    * @param lostTasks
    * @param killableTasks
    */
-  public StoreContext(Protos.FrameworkID frameworkId, Map<Protos.TaskID, org.apache.myriad.state.NodeTask> tasks, Set<Protos.TaskID> pendingTasks, Set<Protos.TaskID> stagingTasks, Set<Protos.TaskID> activeTasks, Set<Protos.TaskID> lostTasks,
+  public StoreContext(Protos.FrameworkID frameworkId, Map<Protos.TaskID, NodeTask> tasks, Set<Protos.TaskID> pendingTasks, Set<Protos.TaskID> stagingTasks, Set<Protos.TaskID> activeTasks, Set<Protos.TaskID> lostTasks,
       Set<Protos.TaskID> killableTasks) {
     setFrameworkId(frameworkId);
     setTasks(tasks);
@@ -147,10 +148,10 @@ public final class StoreContext {
    *
    * @param tasks
    */
-  public void setTasks(Map<Protos.TaskID, org.apache.myriad.state.NodeTask> tasks) {
+  public void setTasks(Map<Protos.TaskID, NodeTask> tasks) {
     taskIds = new ArrayList<ByteBuffer>(tasks.size());
     taskNodes = new ArrayList<ByteBuffer>(tasks.size());
-    for (Entry<TaskID, org.apache.myriad.state.NodeTask> entry : tasks.entrySet()) {
+    for (Entry<TaskID, NodeTask> entry : tasks.entrySet()) {
       taskIds.add(ByteBufferSupport.toByteBuffer(entry.getKey()));
       taskNodes.add(ByteBufferSupport.toByteBuffer(entry.getValue()));
     }
@@ -179,14 +180,14 @@ public final class StoreContext {
    *
    * @return
    */
-  public Map<Protos.TaskID, org.apache.myriad.state.NodeTask> getTasks() {
-    Map<Protos.TaskID, org.apache.myriad.state.NodeTask> map = null;
+  public Map<Protos.TaskID, NodeTask> getTasks() {
+    Map<Protos.TaskID, NodeTask> map = null;
     if (taskIds != null) {
-      map = new HashMap<Protos.TaskID, org.apache.myriad.state.NodeTask>(taskIds.size());
+      map = new HashMap<Protos.TaskID, NodeTask>(taskIds.size());
       int idx = 0;
       for (ByteBuffer bb : taskIds) {
         final Protos.TaskID taskId = ByteBufferSupport.toTaskId(bb);
-        final org.apache.myriad.state.NodeTask task = ByteBufferSupport.toNodeTask(taskNodes.get(idx++));
+        final NodeTask task = ByteBufferSupport.toNodeTask(taskNodes.get(idx++));
         if (task.getTaskPrefix() == null && taskId != null) {
           String taskPrefix = taskIdPattern.split(taskId.getValue())[0];
           task.setTaskPrefix(taskPrefix);
@@ -194,7 +195,7 @@ public final class StoreContext {
         map.put(taskId, task);
       }
     } else {
-      map = new HashMap<Protos.TaskID, org.apache.myriad.state.NodeTask>(0);
+      map = new HashMap<Protos.TaskID, NodeTask>(0);
     }
     return map;
   }
