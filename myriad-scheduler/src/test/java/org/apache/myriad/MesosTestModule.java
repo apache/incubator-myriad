@@ -37,8 +37,8 @@ import com.google.inject.Singleton;
 /**
  * Guice Module for Mesos objects.
  */
-public class MesosModule extends AbstractModule {
-  public MesosModule() {
+public class MesosTestModule extends AbstractModule {
+  public MesosTestModule() {
   }
 
   @Override
