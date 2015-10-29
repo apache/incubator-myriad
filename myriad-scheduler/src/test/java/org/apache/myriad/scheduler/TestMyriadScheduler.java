@@ -29,15 +29,6 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairSchedule
 import org.junit.After;
 import org.junit.Before;
 
-//import org.apache.hadoop.yarn.server.resourcemanager.MockNodes;
-//import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
-//import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeAddedSchedulerEvent;
-//import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeRemovedSchedulerEvent;
-//import org.apache.hadoop.yarn.util.resource.Resources;
-//import org.junit.Test;
-
-//import static org.junit.Assert.assertEquals;
-
 /**
  * Tests myriad scheduler.
  */
