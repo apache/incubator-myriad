@@ -1,4 +1,4 @@
-# Fined Grained Scaling Architecture
+# Fine-grained Scaling Architecture
 Myriad scheduler is comprised of components that interact with YARN and Mesos
 services. 
 
