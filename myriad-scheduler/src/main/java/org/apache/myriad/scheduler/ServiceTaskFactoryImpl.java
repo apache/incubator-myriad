@@ -17,15 +17,15 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.inject.Inject;
-
 import org.apache.mesos.Protos.CommandInfo;
+import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.Offer;
@@ -33,16 +33,13 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
-import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.Value.Scalar;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.MyriadExecutorConfiguration;
 import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.state.NodeTask;
-import com.google.common.annotations.VisibleForTesting;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Generic Service Class that allows to create a service solely base don the configuration

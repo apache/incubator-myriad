@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
 

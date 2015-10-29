@@ -18,15 +18,13 @@
 
 package org.apache.myriad.configuration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 import java.util.Map;
-
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 
 /**
  * Configuration for any service/task to be started from Myriad Scheduler

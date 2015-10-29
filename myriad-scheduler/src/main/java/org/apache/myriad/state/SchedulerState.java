@@ -18,10 +18,7 @@
  */
 package org.apache.myriad.state;
 
-import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.state.utils.StoreContext;
 import com.google.common.collect.Sets;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,10 +30,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
+import org.apache.myriad.scheduler.ServiceResourceProfile;
+import org.apache.myriad.state.utils.StoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

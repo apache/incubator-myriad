@@ -18,17 +18,15 @@
 
 package org.apache.myriad;
 
-import static org.junit.Assert.*;
-
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import java.util.Map;
-
+import org.apache.myriad.scheduler.TaskFactory;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import org.apache.myriad.scheduler.TaskFactory;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test for Multibindings

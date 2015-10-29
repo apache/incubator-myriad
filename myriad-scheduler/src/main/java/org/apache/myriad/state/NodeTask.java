@@ -19,12 +19,11 @@
 package org.apache.myriad.state;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
-import org.apache.myriad.scheduler.ServiceResourceProfile;
 import com.google.inject.Inject;
-
+import java.util.List;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Attribute;
+import org.apache.myriad.scheduler.ServiceResourceProfile;
 
 /**
  * Represents a task to be launched by the executor

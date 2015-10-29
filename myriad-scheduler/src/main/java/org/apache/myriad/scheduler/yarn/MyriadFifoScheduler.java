@@ -18,13 +18,13 @@
  */
 package org.apache.myriad.scheduler.yarn;
 
-import org.apache.myriad.scheduler.yarn.interceptor.YarnSchedulerInterceptor;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fifo.FifoScheduler;
+import org.apache.myriad.scheduler.yarn.interceptor.YarnSchedulerInterceptor;
 
 /**
  * {@link MyriadFifoScheduler} just extends YARN's {@link FifoScheduler} and

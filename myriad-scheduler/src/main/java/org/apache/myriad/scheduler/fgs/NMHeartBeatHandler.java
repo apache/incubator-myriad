@@ -18,8 +18,6 @@
  */
 package org.apache.myriad.scheduler.fgs;
 
-import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
-import org.apache.myriad.state.SchedulerState;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +35,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnSched
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
+import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
+import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

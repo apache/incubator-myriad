@@ -18,19 +18,6 @@
 
 package org.apache.myriad;
 
-import java.io.IOException;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.apache.myriad.configuration.ServiceConfiguration;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.configuration.MyriadExecutorConfiguration;
-import org.apache.myriad.configuration.NodeManagerConfiguration;
-import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
-import org.apache.myriad.scheduler.NMExecutorCLGenImpl;
-import org.apache.myriad.scheduler.TaskFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.inject.AbstractModule;
@@ -38,6 +25,17 @@ import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
+import java.io.IOException;
+import java.util.Map;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.configuration.MyriadExecutorConfiguration;
+import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.configuration.ServiceConfiguration;
+import org.apache.myriad.scheduler.NMExecutorCLGenImpl;
+import org.apache.myriad.scheduler.TaskFactory;
+import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * AbstractModule extension for UnitTests

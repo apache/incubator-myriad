@@ -19,7 +19,6 @@
 package org.apache.myriad.state;
 
 import com.google.gson.Gson;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.UUID;

@@ -18,6 +18,12 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.lmax.disruptor.EventTranslator;
+import java.util.List;
+import javax.inject.Inject;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Scheduler;
+import org.apache.mesos.SchedulerDriver;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.scheduler.event.ErrorEvent;
 import org.apache.myriad.scheduler.event.FrameworkMessageEvent;
@@ -26,13 +32,6 @@ import org.apache.myriad.scheduler.event.ReRegisteredEvent;
 import org.apache.myriad.scheduler.event.ResourceOffersEvent;
 import org.apache.myriad.scheduler.event.SlaveLostEvent;
 import org.apache.myriad.scheduler.event.StatusUpdateEvent;
-import com.lmax.disruptor.EventTranslator;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
-
-import javax.inject.Inject;
-import java.util.List;
 
 /**
  * Myriad Scheduler

@@ -18,9 +18,9 @@
  */
 package org.apache.myriad.scheduler.event.handlers;
 
-import org.apache.myriad.scheduler.event.SlaveLostEvent;
 import com.lmax.disruptor.EventHandler;
 import org.apache.mesos.Protos.SlaveID;
+import org.apache.myriad.scheduler.event.SlaveLostEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

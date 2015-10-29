@@ -18,6 +18,10 @@
  */
 package org.apache.myriad;
 
+import com.google.inject.Injector;
+import com.lmax.disruptor.dsl.Disruptor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.apache.myriad.scheduler.event.handlers.DisconnectedEventHandler;
 import org.apache.myriad.scheduler.event.handlers.ErrorEventHandler;
 import org.apache.myriad.scheduler.event.handlers.ExecutorLostEventHandler;
@@ -28,11 +32,6 @@ import org.apache.myriad.scheduler.event.handlers.RegisteredEventHandler;
 import org.apache.myriad.scheduler.event.handlers.ResourceOffersEventHandler;
 import org.apache.myriad.scheduler.event.handlers.SlaveLostEventHandler;
 import org.apache.myriad.scheduler.event.handlers.StatusUpdateEventHandler;
-import com.google.inject.Injector;
-import com.lmax.disruptor.dsl.Disruptor;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Disruptor class is an event bus used in high speed financial systems. http://martinfowler.com/articles/lmax.html

@@ -19,7 +19,6 @@
 package org.apache.myriad.scheduler.fgs;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 import org.apache.mesos.Protos;
 
 /**

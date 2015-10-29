@@ -19,12 +19,15 @@
 package org.apache.myriad.webapp;
 
 import com.google.inject.servlet.GuiceFilter;
+import javax.inject.Inject;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
-import org.mortbay.jetty.servlet.*;
-
-import javax.inject.Inject;
+import org.mortbay.jetty.servlet.Context;
+import org.mortbay.jetty.servlet.DefaultServlet;
+import org.mortbay.jetty.servlet.FilterHolder;
+import org.mortbay.jetty.servlet.FilterMapping;
+import org.mortbay.jetty.servlet.ServletHandler;
 
 /**
  * The myriad web server configuration for jetty

@@ -22,20 +22,17 @@ package org.apache.myriad.executor;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.server.api.ApplicationInitializationContext;
 import org.apache.hadoop.yarn.server.api.ApplicationTerminationContext;
 import org.apache.hadoop.yarn.server.api.AuxiliaryService;
 import org.apache.hadoop.yarn.server.api.ContainerInitializationContext;
 import org.apache.hadoop.yarn.server.api.ContainerTerminationContext;
-
 import org.apache.mesos.MesosExecutorDriver;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
-import org.apache.mesos.Protos;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

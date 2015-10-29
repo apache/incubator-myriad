@@ -18,6 +18,8 @@
  */
 package org.apache.myriad.executor;
 
+import java.nio.charset.Charset;
+import java.util.Set;
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -28,12 +30,8 @@ import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.charset.Charset;
-import java.util.Set;
 
 /**
  * Myriad's Executor

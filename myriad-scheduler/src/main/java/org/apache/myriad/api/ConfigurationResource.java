@@ -19,13 +19,12 @@
 package org.apache.myriad.api;
 
 import com.codahale.metrics.annotation.Timed;
-import org.apache.myriad.configuration.MyriadConfiguration;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import org.apache.myriad.configuration.MyriadConfiguration;
 
 /**
  * Defines the REST API to the Myriad configuration.

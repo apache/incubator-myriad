@@ -18,17 +18,15 @@
  */
 package org.apache.myriad.scheduler;
 
-import static org.junit.Assert.*;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.mesos.Protos.CommandInfo;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Class to test CommandLine generation

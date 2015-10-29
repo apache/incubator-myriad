@@ -18,10 +18,10 @@
  */
 package org.apache.myriad.scheduler.yarn;
 
-import org.apache.myriad.scheduler.yarn.interceptor.YarnSchedulerInterceptor;
 import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEvent;
+import org.apache.myriad.scheduler.yarn.interceptor.YarnSchedulerInterceptor;
 
 /**
  * Passes the {@link RMNodeEvent} events into the {@link YarnSchedulerInterceptor}.

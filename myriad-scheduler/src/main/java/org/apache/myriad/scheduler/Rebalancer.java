@@ -18,9 +18,8 @@
  */
 package org.apache.myriad.scheduler;
 
-import javax.inject.Inject;
 import java.util.Set;
-
+import javax.inject.Inject;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

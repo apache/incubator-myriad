@@ -18,11 +18,11 @@
  */
 package org.apache.myriad.scheduler.event.handlers;
 
+import com.google.inject.Inject;
+import com.lmax.disruptor.EventHandler;
 import org.apache.myriad.scheduler.ReconcileService;
 import org.apache.myriad.scheduler.event.ReRegisteredEvent;
 import org.apache.myriad.state.SchedulerState;
-import com.google.inject.Inject;
-import com.lmax.disruptor.EventHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

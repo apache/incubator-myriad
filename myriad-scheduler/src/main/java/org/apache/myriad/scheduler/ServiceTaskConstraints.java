@@ -19,7 +19,6 @@
 package org.apache.myriad.scheduler;
 
 import java.util.Map;
-
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.ServiceConfiguration;
 

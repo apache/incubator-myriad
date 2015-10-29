@@ -19,14 +19,12 @@
 package org.apache.myriad.scheduler;
 
 import javax.inject.Inject;
-
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
-
 import org.apache.myriad.configuration.MyriadConfiguration;
 
 /**

@@ -21,9 +21,23 @@ package org.apache.myriad;
 import com.codahale.metrics.JmxReporter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
-import org.apache.myriad.configuration.ServiceConfiguration;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.collections.MapUtils;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.myriad.configuration.MyriadBadConfigurationException;
 import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.health.MesosDriverHealthCheck;
 import org.apache.myriad.health.MesosMasterHealthCheck;
 import org.apache.myriad.health.ZookeeperHealthCheck;
@@ -32,24 +46,8 @@ import org.apache.myriad.scheduler.ServiceProfileManager;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
 import org.apache.myriad.scheduler.TaskFactory;
 import org.apache.myriad.webapp.WebAppGuiceModule;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
-import org.apache.commons.collections.MapUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.HashSet;
 
 /**
  * Main entry point for myriad scheduler

@@ -21,9 +21,7 @@ package org.apache.myriad.scheduler.fgs;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.inject.Inject;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.slf4j.Logger;

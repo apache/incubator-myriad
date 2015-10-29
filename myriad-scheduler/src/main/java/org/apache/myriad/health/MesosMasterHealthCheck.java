@@ -19,15 +19,14 @@
 package org.apache.myriad.health;
 
 import com.codahale.metrics.health.HealthCheck;
-import org.apache.myriad.configuration.MyriadConfiguration;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.myriad.configuration.MyriadConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Health check for Mesos master

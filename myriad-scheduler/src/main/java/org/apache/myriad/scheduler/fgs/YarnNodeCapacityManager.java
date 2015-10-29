@@ -18,18 +18,13 @@
  */
 package org.apache.myriad.scheduler.fgs;
 
-import org.apache.myriad.executor.ContainerTaskStatusRequest;
-import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
-
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -45,6 +40,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateS
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.Protos;
+import org.apache.myriad.executor.ContainerTaskStatusRequest;
+import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

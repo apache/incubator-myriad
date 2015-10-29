@@ -19,9 +19,8 @@
 package org.apache.myriad.health;
 
 import com.codahale.metrics.health.HealthCheck;
-import org.apache.mesos.Protos.Status;
-
 import javax.inject.Inject;
+import org.apache.mesos.Protos.Status;
 
 /**
  * Health Check that Mesos Master is running

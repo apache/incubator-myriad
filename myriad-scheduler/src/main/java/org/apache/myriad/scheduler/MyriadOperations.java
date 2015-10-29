@@ -18,28 +18,26 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Status;
 import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.policy.NodeScaleDownPolicy;
 import org.apache.myriad.scheduler.constraints.Constraint;
 import org.apache.myriad.scheduler.constraints.LikeConstraint;
 import org.apache.myriad.state.NodeTask;
 import org.apache.myriad.state.SchedulerState;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-
-import org.apache.mesos.Protos;
 import org.apache.myriad.webapp.MyriadWebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Myriad scheduler operations

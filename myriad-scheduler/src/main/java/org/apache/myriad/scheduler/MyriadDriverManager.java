@@ -19,15 +19,14 @@
 package org.apache.myriad.scheduler;
 
 import com.google.common.base.Preconditions;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import javax.inject.Inject;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Manager for the myriad scheduler driver
