@@ -108,12 +108,13 @@ public interface TaskFactory {
             }
           }
         }
-        final int allAvailablePortsSize = allAvailablePorts.size();
+
         Preconditions.checkState(allAvailablePorts.size() >= NMPorts.expectedNumPorts(), "Not enough ports in offer");
         
         while (ports.size() < NMPorts.expectedNumPorts()) {
-          int portIndex = rand.nextInt(allAvailablePortsSize);
+          int portIndex = rand.nextInt(allAvailablePorts.size());
           ports.add(allAvailablePorts.get(portIndex));
+          allAvailablePorts.remove(portIndex);
         }        
       }
       return ports;
