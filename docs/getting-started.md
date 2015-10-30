@@ -2,13 +2,12 @@
 
 ## Launching the Myriad Environment ##
 
-
-The Myriad environment is established by running an initial application for the resource manager. This initial application name is specified in the yarn-site.xml file with the the yarn.resourcemanager.hostname property and the value, <app-name>.<framework>.mesos.
+The Myriad environment is established by running an initial application for the resource manager. This initial application name is specified in the yarn-site.xml file with the the yarn.resourcemanager.hostname property and the value, &lt;app-ID>&lt;framework>.mesos.
 
 For example, if the value of  yarn.resourcemanager.hostname property is rm.marathon.mesos:
 
 * rm - The ID given to the Resource Manager when launched using Marathon. Mesos-DNS constructs the Resource Manager hostname using the ID.
-* marathon - The Myriad framework.
+* marathon - The Mesos framework.
 
 If you are using Marathon, launch Marathon and run an initial Resource Manager application. See Starting Resource Manager for more information.
 
@@ -18,9 +17,9 @@ The ports used by Mesos, Marathon, and Myriad are:
 
 Application | Port | Syntax |
 ----------------| ------ | ---------- |
-Marathon | 8080 | http://<IP address>:8080 |
-Mesos | 5050 | http://<IP address>:5050. Use the 5050 port and Frameworks directory. For example: http://<ip address>:5050/#/frameworks (http://10.141.141.20:5050/#/frameworks) |
-Myriad | 8192 | http://<IP address>:8192. For example: http://<ip address>:8192/ (http://10.141.141.20:8192/). Without the Mesos-DNS service, this IP is slave node's IP address where the Resource Manager is running. With the Mesos-DNS service, Mesos-DNS discovers the node where the Resource Manager is running by using Mesos DNS FQDN (<app-name>.<framework>.mesos). |
+Marathon | 8080 | http://&lt;IP address>:8080 |
+Mesos | 5050 | http://&lt;IP address>:5050. Use the 5050 port and Frameworks directory. For example: http://&lt;IP address>:5050/#/frameworks (http://10.141.141.20:5050/#/frameworks) |
+Myriad | 8192 | http://<IP address>:8192. For example: http://<ip address>:8192/ (http://10.141.141.20:8192/). Without the Mesos-DNS service, this IP is slave node's IP address where the Resource Manager is running. With the Mesos-DNS service, Mesos-DNS discovers the node where the Resource Manager is running by using Mesos DNS FQDN (&lt;app-ID>.&lt;framework>.mesos). |
 
 ## Launching Resource Manager ##
 
@@ -49,11 +48,11 @@ Alternatively, start and stop Myriad from the Marathon UI. See Marathon: Applica
 cd hadoop-2.7.1/sbin && yarn-daemon.sh start resourcemanager
 ```
  
-Alternatively, when launching the Resource Manager in an HA environment, specify value for the ``yarn.resourcemanager.hostname`` property. The hostname is the ID field specified when launching a Marathon application.
+Alternatively, when launching the Resource Manager in an HA environment, specify value for the `yarn.resourcemanager.hostname` property. The hostname is the ID field specified when launching a Marathon application.
 
 To initially launch the Resource Manager from Marathon:
 
-1. Launch Marathon with <host>:8080. For example: http://10.10.100.16:8080
+1. Launch Marathon with &lt;host>:8080. For example: http://10.10.100.16:8080
 2. Click on **New App**.
 3. Create a new application for the resource manager and specify:
 	* ID
@@ -70,7 +69,7 @@ ID | rm | The ID for the Resource Manager when launched using Marathon. Mesos-DN
 CPU | 0.2 | Amount of CPU allocated. |
 Memory | 2048 | Amount of memory allocated |
 Instances | 1 | Number of instances to be launched. |
-Command | env && && yarn resourcemanager | Command to launch the resource manager. |
+Command | env && yarn resourcemanager | Command to launch the resource manager. |
 
 **Note:** If the yarn.resourcemanager.hostname property is not specified in the yarn-site.xml file, then the -DYARN_RESOURCEMANAGER_OPTS option must be specified. When the -Dyarn.resourcemanager.hostname property is specified when launching Resource Manager, Myriad propagates this value to the Node Managers launched via the flexup API. The Node Managers can discover back the Resource Manager using the hostname specified in -Dyarn.resourcemanager.hostname. If that hostname happens to be a Mesos DNS hostname, then when the Resource Manager moves to another node during failover, Node Managerss can still connect to the new Resource Manager using the same hostname. Marathon helps move the Resource Manager to a different node whenever it detects the failure of Resource Manager.
 
