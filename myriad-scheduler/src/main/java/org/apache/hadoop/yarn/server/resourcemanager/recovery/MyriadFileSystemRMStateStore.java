@@ -97,4 +97,15 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
       LOGGER.error("State information for Myriad could not be stored at: " + myriadStatePath, e);
     }
   }
+
+  @Override
+  public synchronized void removeMyriadState() throws Exception {
+    if (fs.exists(myriadPathRoot)) {
+      if (!fs.delete(myriadPathRoot, true)) {
+        LOGGER.error("Failed to delete MyriadStateStore path " + myriadPathRoot);
+        return;
+      }
+      LOGGER.info("Deleted Myriad state store path " + myriadPathRoot);
+    }
+  }
 }

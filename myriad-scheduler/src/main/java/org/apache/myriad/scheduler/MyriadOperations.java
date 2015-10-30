@@ -33,6 +33,7 @@ import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.policy.NodeScaleDownPolicy;
 import org.apache.myriad.scheduler.constraints.Constraint;
 import org.apache.myriad.scheduler.constraints.LikeConstraint;
+import org.apache.myriad.state.MyriadStateStore;
 import org.apache.myriad.state.NodeTask;
 import org.apache.myriad.state.SchedulerState;
 import org.apache.myriad.webapp.MyriadWebServer;
@@ -50,15 +51,18 @@ public class MyriadOperations {
   private NodeScaleDownPolicy nodeScaleDownPolicy;
   private MyriadDriverManager driverManager;
   private MyriadWebServer myriadWebServer;
+  private MyriadStateStore myriadStateStore;
 
   @Inject
-  public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState, NodeScaleDownPolicy nodeScaleDownPolicy,
-                          MyriadDriverManager driverManager, MyriadWebServer myriadWebServer) {
+  public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState,
+      NodeScaleDownPolicy nodeScaleDownPolicy, MyriadDriverManager driverManager,
+      MyriadWebServer myriadWebServer, MyriadStateStore myriadStateStore) {
     this.cfg = cfg;
     this.schedulerState = schedulerState;
     this.nodeScaleDownPolicy = nodeScaleDownPolicy;
     this.driverManager = driverManager;
     this.myriadWebServer = myriadWebServer;
+    this.myriadStateStore = myriadStateStore;
   }
 
   public void flexUpCluster(ServiceResourceProfile serviceResourceProfile, int instances, Constraint constraint) {
@@ -263,13 +267,20 @@ public class MyriadOperations {
       // Stop the driver, tasks, and executor.
       driverStatus = driverManager.stopDriver(false);
       LOGGER.info("Myriad driver was shutdown with status " + driverStatus);
-      try {
-        myriadWebServer.stop();
-      } catch (Exception e) {
-        LOGGER.info("Failed to shutdown Myriad webserver: " + e.getMessage());
-        return;
-      }
+    }
+
+    try {
+      myriadWebServer.stop();
       LOGGER.info("Myriad webserver was shutdown successfully");
+    } catch (Exception e) {
+      LOGGER.info("Failed to shutdown Myriad webserver: " + e.getMessage());
+    }
+
+    try {
+      myriadStateStore.removeMyriadState();
+      LOGGER.info("Myriad State store was removed successfully.");
+    } catch (Exception e) {
+      LOGGER.info("Failed to remove Myriad state store: " + e.getMessage());
     }
   }
 }
