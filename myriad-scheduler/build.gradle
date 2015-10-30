@@ -54,11 +54,15 @@ task copyRunTimeDeps(type: Sync) {
 
 jar {
     dependsOn copyRunTimeDeps
-    dependsOn gulp_build
+}
+
+clean {
+    dependsOn gulp_clean
 }
 
 processResources {
     exclude ('*/node_modules/**')
+    dependsOn gulp_build
 }
 
 sourceSets {
@@ -106,4 +110,3 @@ gulp {
     // makes sure on each build that gulp is installed
     gulp_build.dependsOn 'installGulp'
 }
-
