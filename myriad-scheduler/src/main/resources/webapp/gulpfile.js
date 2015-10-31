@@ -57,7 +57,7 @@ gulp.task('img', ['clean'], function () {
         .pipe( gulp.dest('public/img/'))
 });
 
-gulp.task('webserver', function() {
+gulp.task('webserver', ['build-dev'], function() {
   gulp.src('./public')
     .pipe(webserver({
       livereload: true,
@@ -67,10 +67,10 @@ gulp.task('webserver', function() {
     }));
 });
 
-gulp.task('watch', function() {
+gulp.task('watch', ['build-dev'], function() {
     gulp.watch('index.html', ['html']);
     gulp.watch('css/**', ['css']);
-    gulp.watch('js/**', ['js']);
+    gulp.watch('js/**', ['js-dev']);
     gulp.watch('img/**', ['img']);
 });
 
@@ -78,8 +78,11 @@ gulp.task('clean', function() {
   return del(['./public']);
 });
 
-gulp.task('dev', ['js-dev', 'html', 'css', 'img', 'watch', 'webserver']);
+gulp.task('build-dev', ['js-dev', 'html', 'css', 'img']);
+
+gulp.task('dev', ['watch', 'webserver']);
 
 gulp.task('default', ['js', 'html', 'css', 'img']);
 
 gulp.task('build', ['default']); // gradle calls gulp build by default
+

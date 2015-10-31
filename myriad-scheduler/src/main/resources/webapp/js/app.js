@@ -14,7 +14,7 @@ var Router = require('react-router')
 
 var routes = (
   <Route name="myriad" path="/" handler={Myriad} >
-    <Route name="frameworkDown" path="frameworkDown" {...this.props} handler={ShutdownFrameworkComponent} />
+    <Route name="frameworkDown" path="frameworkDown" handler={ShutdownFrameworkComponent} />
     <Route name="flex" path="flex" handler={FlexComponent} />
     <Route name="tasks" path="tasks" handler={TasksComponent} />
     <Route name="help" path="help" handler={HelpComponent} />
@@ -27,4 +27,3 @@ var routes = (
 Router.run(routes, function (Handler) {
   React.render(<Handler/>, document.getElementById("myriad"));
 });
-
