@@ -259,6 +259,7 @@ public class MyriadOperations {
    * Shutdown framework means the Mesos driver is stopped taking down the executors and associated tasks
    */
   public void shutdownFramework() {
+    LOGGER.info("Received request to shutdown Myriad Framework..");
     Status driverStatus = driverManager.getDriverStatus();
 
     if (Status.DRIVER_RUNNING != driverStatus) {
