@@ -18,15 +18,13 @@
  */
 package org.apache.myriad.scheduler.yarn.interceptor;
 
-import org.apache.myriad.Main;
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
-
+import org.apache.myriad.Main;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 /**
  * Responsible for intializing myriad.

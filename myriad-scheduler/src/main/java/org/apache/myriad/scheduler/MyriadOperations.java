@@ -18,28 +18,26 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Status;
 import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.policy.NodeScaleDownPolicy;
 import org.apache.myriad.scheduler.constraints.Constraint;
 import org.apache.myriad.scheduler.constraints.LikeConstraint;
 import org.apache.myriad.state.NodeTask;
 import org.apache.myriad.state.SchedulerState;
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-
-import org.apache.mesos.Protos;
 import org.apache.myriad.webapp.MyriadWebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Myriad scheduler operations
@@ -54,7 +52,8 @@ public class MyriadOperations {
   private MyriadWebServer myriadWebServer;
 
   @Inject
-  public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState, NodeScaleDownPolicy nodeScaleDownPolicy, MyriadDriverManager driverManager, MyriadWebServer myriadWebServer) {
+  public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState, NodeScaleDownPolicy nodeScaleDownPolicy,
+                          MyriadDriverManager driverManager, MyriadWebServer myriadWebServer) {
     this.cfg = cfg;
     this.schedulerState = schedulerState;
     this.nodeScaleDownPolicy = nodeScaleDownPolicy;
@@ -79,15 +78,19 @@ public class MyriadOperations {
     int numPendingTasksScaledDown = flexDownPendingTasks(serviceResourceProfile, constraint, numInstancesToScaleDown);
 
     // Flex down Staging tasks, if any
-    int numStagingTasksScaledDown = flexDownStagingTasks(serviceResourceProfile, constraint, numInstancesToScaleDown - numPendingTasksScaledDown);
+    int numStagingTasksScaledDown = flexDownStagingTasks(serviceResourceProfile, constraint,
+        numInstancesToScaleDown - numPendingTasksScaledDown);
 
     // Flex down Active tasks, if any
-    int numActiveTasksScaledDown = flexDownActiveTasks(serviceResourceProfile, constraint, numInstancesToScaleDown - numPendingTasksScaledDown - numStagingTasksScaledDown);
+    int numActiveTasksScaledDown = flexDownActiveTasks(serviceResourceProfile, constraint,
+        numInstancesToScaleDown - numPendingTasksScaledDown - numStagingTasksScaledDown);
 
     if (numActiveTasksScaledDown + numStagingTasksScaledDown + numPendingTasksScaledDown == 0) {
-      LOGGER.info("No Node Managers with profile '{}' and constraint '{}' found for scaling down.", serviceResourceProfile.getName(), constraint == null ? "null" : constraint.toString());
+      LOGGER.info("No Node Managers with profile '{}' and constraint '{}' found for scaling down.",
+          serviceResourceProfile.getName(), constraint == null ? "null" : constraint.toString());
     } else {
-      LOGGER.info("Flexed down {} active, {} staging  and {} pending Node Managers with " + "'{}' profile and constraint '{}'.", numActiveTasksScaledDown, numStagingTasksScaledDown, numPendingTasksScaledDown, serviceResourceProfile.getName(),
+      LOGGER.info("Flexed down {} active, {} staging  and {} pending Node Managers with " + "'{}' profile and constraint '{}'.",
+          numActiveTasksScaledDown, numStagingTasksScaledDown, numPendingTasksScaledDown, serviceResourceProfile.getName(),
           constraint == null ? "null" : constraint.toString());
     }
   }
@@ -107,8 +110,11 @@ public class MyriadOperations {
       // check number of instances
       // sum of active, staging, pending should be < maxInstances
       if (totalflexInstances > maxInstances) {
-        LOGGER.error("Current number of active, staging, pending and requested instances: {}" + ", while it is greater then max instances allowed: {}", totalflexInstances, maxInstances);
-        throw new MyriadBadConfigurationException("Current number of active, staging, pending instances and requested: " + totalflexInstances + ", while it is greater then max instances allowed: " + maxInstances);
+        LOGGER.error("Current number of active, staging, pending and requested instances: {}" +
+                     ", while it is greater then max instances allowed: {}", totalflexInstances, maxInstances);
+        throw new MyriadBadConfigurationException(
+            "Current number of active, staging, pending instances and requested: " + totalflexInstances +
+            ", while it is greater then max instances allowed: " + maxInstances);
       }
     }
 
@@ -179,15 +185,18 @@ public class MyriadOperations {
       }
     }
 
-    LOGGER.info("Flexed down {} of {} instances including {} staging instances, and {} pending instances of {}", numScaledDown, numInstancesToScaleDown, numStagingTasksScaledDown, numPendingTasksScaledDown, serviceName);
+    LOGGER.info("Flexed down {} of {} instances including {} staging instances, and {} pending instances of {}", numScaledDown,
+        numInstancesToScaleDown, numStagingTasksScaledDown, numPendingTasksScaledDown, serviceName);
   }
 
   private int flexDownPendingTasks(ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
-    return numInstancesToScaleDown > 0 ? flexDownTasks(schedulerState.getPendingTaskIDsForProfile(profile), profile, constraint, numInstancesToScaleDown) : 0;
+    return numInstancesToScaleDown > 0 ? flexDownTasks(schedulerState.getPendingTaskIDsForProfile(profile), profile, constraint,
+        numInstancesToScaleDown) : 0;
   }
 
   private int flexDownStagingTasks(ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
-    return numInstancesToScaleDown > 0 ? flexDownTasks(schedulerState.getStagingTaskIDsForProfile(profile), profile, constraint, numInstancesToScaleDown) : 0;
+    return numInstancesToScaleDown > 0 ? flexDownTasks(schedulerState.getStagingTaskIDsForProfile(profile), profile, constraint,
+        numInstancesToScaleDown) : 0;
   }
 
   private int flexDownActiveTasks(ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
@@ -199,7 +208,8 @@ public class MyriadOperations {
     return 0;
   }
 
-  private int flexDownTasks(Collection<Protos.TaskID> taskIDs, ServiceResourceProfile profile, Constraint constraint, int numInstancesToScaleDown) {
+  private int flexDownTasks(Collection<Protos.TaskID> taskIDs, ServiceResourceProfile profile, Constraint constraint,
+                            int numInstancesToScaleDown) {
     int numInstancesScaledDown = 0;
     for (Protos.TaskID taskID : taskIDs) {
       NodeTask nodeTask = schedulerState.getTask(taskID);
@@ -236,7 +246,9 @@ public class MyriadOperations {
   }
 
   public Integer getFlexibleInstances(String taskPrefix) {
-    return this.schedulerState.getActiveTaskIds(taskPrefix).size() + this.schedulerState.getStagingTaskIds(taskPrefix).size() + this.schedulerState.getPendingTaskIds(taskPrefix).size();
+    return this.schedulerState.getActiveTaskIds(taskPrefix).size() +
+           this.schedulerState.getStagingTaskIds(taskPrefix).size() +
+           this.schedulerState.getPendingTaskIds(taskPrefix).size();
   }
 
   /**

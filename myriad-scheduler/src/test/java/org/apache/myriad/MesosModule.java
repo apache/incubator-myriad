@@ -18,21 +18,19 @@
  */
 package org.apache.myriad;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
 import java.util.concurrent.FutureTask;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.state.State;
 import org.apache.mesos.state.Variable;
-import org.mockito.Mockito;
-
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.state.MyriadState;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
+import org.mockito.Mockito;
 
 /**
  * Guice Module for Mesos objects.
@@ -48,7 +46,8 @@ public class MesosModule extends AbstractModule {
 
   @Provides
   @Singleton
-  SchedulerDriver providesSchedulerDriver(org.apache.myriad.scheduler.MyriadScheduler scheduler, MyriadConfiguration cfg, org.apache.myriad.state.SchedulerState schedulerState) {
+  SchedulerDriver providesSchedulerDriver(org.apache.myriad.scheduler.MyriadScheduler scheduler, MyriadConfiguration cfg,
+                                          org.apache.myriad.state.SchedulerState schedulerState) {
 
     SchedulerDriver driver = Mockito.mock(SchedulerDriver.class);
     Mockito.when(driver.start()).thenReturn(Status.DRIVER_RUNNING);

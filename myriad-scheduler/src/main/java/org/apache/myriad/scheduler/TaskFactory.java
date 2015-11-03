@@ -18,20 +18,14 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-
 import javax.inject.Inject;
-
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.configuration.MyriadExecutorConfiguration;
-import org.apache.myriad.state.NodeTask;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.ExecutorID;
@@ -39,11 +33,14 @@ import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskID;
+import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Scalar;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.configuration.MyriadExecutorConfiguration;
+import org.apache.myriad.state.NodeTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,16 +107,16 @@ public interface TaskFactory {
         }
 
         Preconditions.checkState(allAvailablePorts.size() >= NMPorts.expectedNumPorts(), "Not enough ports in offer");
-        
+
         while (ports.size() < NMPorts.expectedNumPorts()) {
           int portIndex = rand.nextInt(allAvailablePorts.size());
           ports.add(allAvailablePorts.get(portIndex));
           allAvailablePorts.remove(portIndex);
-        }        
+        }
       }
       return ports;
     }
-    
+
     //Utility function to get the first NMPorts.expectedNumPorts number of ports of an offer
     @VisibleForTesting
     protected static NMPorts getPorts(Offer offer) {
@@ -144,8 +141,7 @@ public interface TaskFactory {
       if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
         //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
         if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
-          throw new RuntimeException("Trying to use remote distribution, but frameworkUser" +
-            "and/or frameworkSuperUser not set!");
+          throw new RuntimeException("Trying to use remote distribution, but frameworkUser" + "and/or frameworkSuperUser not set!");
         }
         String nodeManagerUri = myriadExecutorConfiguration.getNodeManagerUri().get();
         cmd = clGenerator.generateCommandLine(profile, ports);
@@ -189,12 +185,27 @@ public interface TaskFactory {
       CommandInfo commandInfo = getCommandInfo(serviceProfile, ports);
       ExecutorInfo executorInfo = getExecutorInfoForSlave(frameworkId, offer, commandInfo);
 
-      TaskInfo.Builder taskBuilder = TaskInfo.newBuilder().setName("task-" + taskId.getValue()).setTaskId(taskId).setSlaveId(offer.getSlaveId());
+      TaskInfo.Builder taskBuilder = TaskInfo.newBuilder().setName("task-" + taskId.getValue()).setTaskId(taskId).setSlaveId(
+          offer.getSlaveId());
 
-      return taskBuilder.addResources(Resource.newBuilder().setName("cpus").setType(Value.Type.SCALAR).setScalar(taskCpus).build()).addResources(Resource.newBuilder().setName("mem").setType(Value.Type.SCALAR).setScalar(taskMemory).build())
-          .addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(Value.Ranges.newBuilder().addRange(Value.Range.newBuilder().setBegin(ports.getRpcPort()).setEnd(ports.getRpcPort()).build()).addRange(Value.Range
-              .newBuilder().setBegin(ports.getLocalizerPort()).setEnd(ports.getLocalizerPort()).build()).addRange(Value.Range.newBuilder().setBegin(ports.getWebAppHttpPort()).setEnd(ports.getWebAppHttpPort()).build()).addRange(Value.Range
-              .newBuilder().setBegin(ports.getShufflePort()).setEnd(ports.getShufflePort()).build()))).setExecutor(executorInfo).build();
+      return taskBuilder.addResources(Resource.newBuilder().setName("cpus").setType(Value.Type.SCALAR).setScalar(taskCpus).build())
+          .addResources(Resource.newBuilder().setName("mem").setType(Value.Type.SCALAR).setScalar(taskMemory).build())
+          .addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(
+              Value.Ranges.newBuilder().addRange(Value.Range.newBuilder()
+                  .setBegin(ports.getRpcPort())
+                  .setEnd(ports.getRpcPort())
+                  .build()).addRange(Value.Range.newBuilder()
+                  .setBegin(ports.getLocalizerPort())
+                  .setEnd(ports.getLocalizerPort())
+                  .build()).addRange(Value.Range.newBuilder()
+                  .setBegin(ports.getWebAppHttpPort())
+                  .setEnd(ports.getWebAppHttpPort())
+                  .build()).addRange(Value.Range.newBuilder()
+                  .setBegin(ports.getShufflePort())
+                  .setEnd(ports.getShufflePort())
+                  .build())))
+          .setExecutor(executorInfo)
+          .build();
     }
 
     @Override
@@ -203,9 +214,13 @@ public interface TaskFactory {
       Scalar executorCpus = Scalar.newBuilder().setValue(taskUtils.getExecutorCpus()).build();
 
       ExecutorID executorId = ExecutorID.newBuilder().setValue(EXECUTOR_PREFIX + frameworkId.getValue() +
-          offer.getId().getValue() + offer.getSlaveId().getValue()).build();
-      return ExecutorInfo.newBuilder().setCommand(commandInfo).setName(EXECUTOR_NAME).addResources(Resource.newBuilder().setName("cpus").setType(Value.Type.SCALAR).setScalar(executorCpus).build()).addResources(Resource.newBuilder().setName("mem")
-          .setType(Value.Type.SCALAR).setScalar(executorMemory).build()).setExecutorId(executorId).build();
+                                                               offer.getId().getValue() + offer.getSlaveId().getValue()).build();
+      return ExecutorInfo.newBuilder().setCommand(commandInfo).setName(EXECUTOR_NAME).addResources(Resource.newBuilder().setName(
+          "cpus").setType(Value.Type.SCALAR).setScalar(executorCpus).build()).addResources(Resource.newBuilder()
+          .setName("mem")
+          .setType(Value.Type.SCALAR)
+          .setScalar(executorMemory)
+          .build()).setExecutorId(executorId).build();
     }
   }
 

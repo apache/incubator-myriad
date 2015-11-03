@@ -18,16 +18,14 @@
  */
 package org.apache.myriad.scheduler;
 
-import java.lang.reflect.Type;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import java.lang.reflect.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Resource Profile for any service
@@ -112,7 +110,8 @@ public class ServiceResourceProfile {
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomDeserializer.class);
 
     @Override
-    public ServiceResourceProfile deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public ServiceResourceProfile deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+        throws JsonParseException {
       String type = json.getAsJsonObject().get("className").getAsString();
       try {
         @SuppressWarnings("rawtypes") Class c = Class.forName(type);

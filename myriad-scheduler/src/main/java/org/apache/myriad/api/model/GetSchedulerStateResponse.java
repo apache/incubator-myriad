@@ -33,7 +33,8 @@ public class GetSchedulerStateResponse {
 
   }
 
-  public GetSchedulerStateResponse(Collection<String> pendingTasks, Collection<String> stagingTasks, Collection<String> activeTasks, Collection<String> killableTasks) {
+  public GetSchedulerStateResponse(Collection<String> pendingTasks, Collection<String> stagingTasks, Collection<String> activeTasks,
+                                   Collection<String> killableTasks) {
     this.pendingTasks = pendingTasks;
     this.stagingTasks = stagingTasks;
     this.activeTasks = activeTasks;

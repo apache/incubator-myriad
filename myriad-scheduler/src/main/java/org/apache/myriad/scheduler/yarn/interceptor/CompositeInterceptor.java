@@ -20,6 +20,8 @@ package org.apache.myriad.scheduler.yarn.interceptor;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
@@ -30,12 +32,8 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeRemoved
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeResourceUpdateSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * An interceptor that wraps other interceptors. The Myriad{Fair,Capacity,Fifo}Scheduler classes

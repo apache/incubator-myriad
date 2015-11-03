@@ -29,9 +29,11 @@ public class MyriadExecutorDefaults {
    */
   public static final String KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS = "yarn.nodemanager.container-executor.class";
 
-  public static final String VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS = "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor";
+  public static final String VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS =
+      "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor";
 
-  public static final String DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS = "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor";
+  public static final String DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS =
+      "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor";
 
   /**
    * YARN class to help handle LCE resources

@@ -62,7 +62,8 @@ public class LikeConstraint implements Constraint {
               return this.pattern.matcher(String.valueOf(attr.getScalar().getValue())).matches();
 
             default:
-              LOGGER.warn("LIKE constraint currently doesn't support Mesos slave attributes " + "of type {}. Attribute Name: {}", attr.getType(), attr.getName());
+              LOGGER.warn("LIKE constraint currently doesn't support Mesos slave attributes " + "of type {}. Attribute Name: {}",
+                  attr.getType(), attr.getName());
               return false;
 
           }

@@ -18,12 +18,11 @@
  */
 package org.apache.myriad.webapp;
 
-import org.apache.myriad.configuration.MyriadConfiguration;
 import com.google.inject.Provider;
+import javax.inject.Inject;
+import org.apache.myriad.configuration.MyriadConfiguration;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.nio.SelectChannelConnector;
-
-import javax.inject.Inject;
 
 /**
  * The factory for creating the http connector for the myriad scheduler

@@ -18,10 +18,11 @@
  */
 package org.apache.myriad.scheduler;
 
-import javax.inject.Inject;
 import java.util.Set;
-
+import javax.inject.Inject;
 import org.apache.mesos.Protos;
+import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +33,12 @@ import org.slf4j.LoggerFactory;
 public class Rebalancer implements Runnable {
   private static final Logger LOGGER = LoggerFactory.getLogger(Rebalancer.class);
 
-  private final org.apache.myriad.state.SchedulerState schedulerState;
+  private final SchedulerState schedulerState;
   private final MyriadOperations myriadOperations;
   private final ServiceProfileManager profileManager;
 
   @Inject
-  public Rebalancer(org.apache.myriad.state.SchedulerState schedulerState, MyriadOperations myriadOperations, ServiceProfileManager profileManager) {
+  public Rebalancer(SchedulerState schedulerState, MyriadOperations myriadOperations, ServiceProfileManager profileManager) {
     this.schedulerState = schedulerState;
     this.myriadOperations = myriadOperations;
     this.profileManager = profileManager;
@@ -45,8 +46,8 @@ public class Rebalancer implements Runnable {
 
   @Override
   public void run() {
-    final Set<Protos.TaskID> activeIds = schedulerState.getActiveTaskIds(org.apache.myriad.configuration.NodeManagerConfiguration.NM_TASK_PREFIX);
-    final Set<Protos.TaskID> pendingIds = schedulerState.getPendingTaskIds(org.apache.myriad.configuration.NodeManagerConfiguration.NM_TASK_PREFIX);
+    final Set<Protos.TaskID> activeIds = schedulerState.getActiveTaskIds(NodeManagerConfiguration.NM_TASK_PREFIX);
+    final Set<Protos.TaskID> pendingIds = schedulerState.getPendingTaskIds(NodeManagerConfiguration.NM_TASK_PREFIX);
     LOGGER.info("Active {}, Pending {}", activeIds.size(), pendingIds.size());
     if (activeIds.size() < 1 && pendingIds.size() < 1) {
       myriadOperations.flexUpCluster(profileManager.get("small"), 1, null);

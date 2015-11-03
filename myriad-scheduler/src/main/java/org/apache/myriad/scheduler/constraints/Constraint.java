@@ -22,6 +22,8 @@ package org.apache.myriad.scheduler.constraints;
  * Interface for Constraint.
  */
 public interface Constraint {
+  public Type getType();
+
   /**
    * Type of Constraint
    */
@@ -29,7 +31,5 @@ public interface Constraint {
     NULL, // to help with serialization
     LIKE
   }
-
-  public Type getType();
 
 }

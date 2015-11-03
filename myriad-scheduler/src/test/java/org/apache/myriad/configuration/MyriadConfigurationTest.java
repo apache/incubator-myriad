@@ -18,16 +18,14 @@
 
 package org.apache.myriad.configuration;
 
-import static org.junit.Assert.*;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.util.Map;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * AuxServices/tasks test
@@ -39,7 +37,8 @@ public class MyriadConfigurationTest {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"), MyriadConfiguration.class);
+    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
+        MyriadConfiguration.class);
 
   }
 

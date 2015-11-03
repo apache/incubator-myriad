@@ -18,9 +18,8 @@
  */
 package org.apache.myriad.policy;
 
-import org.apache.mesos.Protos;
-
 import java.util.List;
+import org.apache.mesos.Protos;
 
 /**
  * Policy for scaling down the node managers.

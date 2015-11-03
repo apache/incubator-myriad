@@ -19,7 +19,6 @@
 package org.apache.myriad.scheduler;
 
 import javax.inject.Inject;
-
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.SchedulerDriver;
@@ -43,7 +42,7 @@ public class MyriadDriver {
     LOGGER.info("Stopping driver");
     Status status = driver.stop(failover);
     LOGGER.info("Driver stopped with status: {}", status);
-    return status;      
+    return status;
   }
 
   public Status start() {

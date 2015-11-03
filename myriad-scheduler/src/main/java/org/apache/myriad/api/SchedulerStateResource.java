@@ -19,19 +19,18 @@
 package org.apache.myriad.api;
 
 import com.codahale.metrics.annotation.Timed;
-import org.apache.myriad.api.model.GetSchedulerStateResponse;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos;
-
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
+import org.apache.myriad.api.model.GetSchedulerStateResponse;
+import org.apache.myriad.configuration.MyriadConfiguration;
 
 /**
  * Defines the REST API for the current state of Myriad
@@ -51,7 +50,8 @@ public class SchedulerStateResource {
   @Timed
   @GET
   public GetSchedulerStateResponse getState() {
-    return new GetSchedulerStateResponse(toStringCollection(state.getPendingTaskIds()), toStringCollection(state.getStagingTaskIds()), toStringCollection(state.getActiveTaskIds()), toStringCollection(state.getKillableTasks()));
+    return new GetSchedulerStateResponse(toStringCollection(state.getPendingTaskIds()), toStringCollection(
+        state.getStagingTaskIds()), toStringCollection(state.getActiveTaskIds()), toStringCollection(state.getKillableTasks()));
   }
 
   private Collection<String> toStringCollection(Collection<Protos.TaskID> collection) {

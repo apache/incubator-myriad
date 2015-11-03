@@ -21,11 +21,10 @@ package org.apache.myriad.scheduler.fgs;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import javax.inject.Inject;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
+import org.apache.myriad.scheduler.MyriadDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,10 +42,10 @@ public class OfferLifecycleManager {
   private final Map<String, ConsumedOffer> consumedOfferMap;
 
   private final NodeStore nodeStore;
-  private final org.apache.myriad.scheduler.MyriadDriver myriadDriver;
+  private final MyriadDriver myriadDriver;
 
   @Inject
-  public OfferLifecycleManager(NodeStore nodeStore, org.apache.myriad.scheduler.MyriadDriver myriadDriver) {
+  public OfferLifecycleManager(NodeStore nodeStore, MyriadDriver myriadDriver) {
 
     this.offerFeedMap = new ConcurrentHashMap<>(200, 0.75f, 50);
     this.consumedOfferMap = new HashMap<>(200, 0.75f);

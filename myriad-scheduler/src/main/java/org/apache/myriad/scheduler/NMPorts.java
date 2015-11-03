@@ -19,7 +19,6 @@
 package org.apache.myriad.scheduler;
 
 import com.google.common.base.Preconditions;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,7 +31,8 @@ public class NMPorts implements Ports {
   private static final String NM_WEBAPP_HTTP_PORT_KEY = "nm.webapp.http.port";
   private static final String NM_HTTP_SHUFFLE_PORT_KEY = "nm.http.shuffle.port";
 
-  private static final String[] NM_PORT_KEYS = {NM_RPC_PORT_KEY, NM_LOCALIZER_PORT_KEY, NM_WEBAPP_HTTP_PORT_KEY, NM_HTTP_SHUFFLE_PORT_KEY};
+  private static final String[] NM_PORT_KEYS =
+      {NM_RPC_PORT_KEY, NM_LOCALIZER_PORT_KEY, NM_WEBAPP_HTTP_PORT_KEY, NM_HTTP_SHUFFLE_PORT_KEY};
 
   private Map<String, Long> portsMap = new HashMap<>(NM_PORT_KEYS.length);
 

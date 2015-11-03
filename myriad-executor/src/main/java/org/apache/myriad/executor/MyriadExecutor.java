@@ -18,6 +18,8 @@
  */
 package org.apache.myriad.executor;
 
+import java.nio.charset.Charset;
+import java.util.Set;
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
@@ -28,12 +30,8 @@ import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.charset.Charset;
-import java.util.Set;
 
 /**
  * Myriad's Executor
@@ -80,7 +78,8 @@ public class MyriadExecutor implements Executor {
       // currently running 
       synchronized (containerIds) {
         for (String containerId : containerIds) {
-          Protos.TaskID containerTaskId = Protos.TaskID.newBuilder().setValue(MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX + containerId).build();
+          Protos.TaskID containerTaskId = Protos.TaskID.newBuilder().setValue(
+              MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX + containerId).build();
           status = TaskStatus.newBuilder().setTaskId(containerTaskId).setState(TaskState.TASK_KILLED).build();
           driver.sendStatusUpdate(status);
         }

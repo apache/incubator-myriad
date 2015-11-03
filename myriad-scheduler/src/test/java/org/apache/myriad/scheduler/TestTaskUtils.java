@@ -17,18 +17,17 @@
  */
 package org.apache.myriad.scheduler;
 
-import static org.junit.Assert.*;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.MyriadConfiguration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.myriad.configuration.MyriadBadConfigurationException;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests for TaskUtils
@@ -40,7 +39,8 @@ public class TestTaskUtils {
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"), MyriadConfiguration.class);
+    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
+        MyriadConfiguration.class);
   }
 
   @AfterClass
@@ -71,7 +71,8 @@ public class TestTaskUtils {
   public void testServiceResourceProfile() throws Exception {
     // testing custom deserializer
 
-    Gson gson = new GsonBuilder().registerTypeAdapter(ServiceResourceProfile.class, new ServiceResourceProfile.CustomDeserializer()).create();
+    Gson gson = new GsonBuilder().registerTypeAdapter(ServiceResourceProfile.class, new ServiceResourceProfile.CustomDeserializer())
+        .create();
 
 
     ServiceResourceProfile parentProfile = new ServiceResourceProfile("abc", 1.0, 100.0);

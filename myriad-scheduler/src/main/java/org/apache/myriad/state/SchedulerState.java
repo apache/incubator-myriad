@@ -18,10 +18,7 @@
  */
 package org.apache.myriad.state;
 
-import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.state.utils.StoreContext;
 import com.google.common.collect.Sets;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,10 +30,11 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
+import org.apache.myriad.scheduler.ServiceResourceProfile;
+import org.apache.myriad.state.utils.StoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,10 +70,12 @@ public class SchedulerState {
       return;
     }
     for (NodeTask node : nodes) {
-      Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(String.format("%s.%s.%s", node.getTaskPrefix(), node.getProfile().getName(), UUID.randomUUID())).build();
+      Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(String.format("%s.%s.%s", node.getTaskPrefix(),
+          node.getProfile().getName(), UUID.randomUUID())).build();
       addTask(taskId, node);
       SchedulerStateForType taskState = this.statesForTaskType.get(node.getTaskPrefix());
-      LOGGER.info("Marked taskId {} pending, size of pending queue for {} is: {}", taskId.getValue(), node.getTaskPrefix(), (taskState == null ? 0 : taskState.getPendingTaskIds().size()));
+      LOGGER.info("Marked taskId {} pending, size of pending queue for {} is: {}", taskId.getValue(), node.getTaskPrefix(),
+          (taskState == null ? 0 : taskState.getPendingTaskIds().size()));
       makeTaskPending(taskId);
     }
 
@@ -369,7 +369,8 @@ public class SchedulerState {
     }
 
     try {
-      StoreContext sc = new StoreContext(frameworkId, tasks, getPendingTaskIds(), getStagingTaskIds(), getActiveTaskIds(), getLostTaskIds(), getKillableTasks());
+      StoreContext sc = new StoreContext(frameworkId, tasks, getPendingTaskIds(), getStagingTaskIds(), getActiveTaskIds(),
+          getLostTaskIds(), getKillableTasks());
       stateStore.storeMyriadState(sc);
     } catch (Exception e) {
       LOGGER.error("Failed to update scheduler state to state store", e);
@@ -393,10 +394,10 @@ public class SchedulerState {
         convertToThis(TaskState.LOST, sc.getLostTasks());
         convertToThis(TaskState.KILLABLE, sc.getKillableTasks());
         LOGGER.info("Loaded Myriad state from state store successfully.");
-        LOGGER.debug("State Store state includes " +
-            "frameworkId: {}, pending tasks count: {}, staging tasks count: {} " +
-            "active tasks count: {}, lost tasks count: {}, " +
-            "and killable tasks count: {}", frameworkId.getValue(), this.getPendingTaskIds().size(), this.getStagingTaskIds().size(), this.getActiveTaskIds().size(), this.getLostTaskIds().size(), this.getKillableTasks().size());
+        LOGGER.debug("State Store state includes frameworkId: {}, pending tasks count: {}, staging tasks count: {} " +
+                     "active tasks count: {}, lost tasks count: {}, and killable tasks count: {}", frameworkId.getValue(),
+                      this.getPendingTaskIds().size(), this.getStagingTaskIds().size(), this.getActiveTaskIds().size(),
+                      this.getLostTaskIds().size(), this.getKillableTasks().size());
       }
     } catch (Exception e) {
       LOGGER.error("Failed to read scheduler state from state store", e);

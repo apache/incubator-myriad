@@ -18,21 +18,23 @@
  */
 package org.apache.myriad.scheduler;
 
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.scheduler.event.ErrorEvent;
-import org.apache.myriad.scheduler.event.FrameworkMessageEvent;
-import org.apache.myriad.scheduler.event.OfferRescindedEvent;
-import org.apache.myriad.scheduler.event.ReRegisteredEvent;
-import org.apache.myriad.scheduler.event.ResourceOffersEvent;
-import org.apache.myriad.scheduler.event.SlaveLostEvent;
-import org.apache.myriad.scheduler.event.StatusUpdateEvent;
 import com.lmax.disruptor.EventTranslator;
+import java.util.List;
+import javax.inject.Inject;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-
-import javax.inject.Inject;
-import java.util.List;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.scheduler.event.DisconnectedEvent;
+import org.apache.myriad.scheduler.event.ErrorEvent;
+import org.apache.myriad.scheduler.event.ExecutorLostEvent;
+import org.apache.myriad.scheduler.event.FrameworkMessageEvent;
+import org.apache.myriad.scheduler.event.OfferRescindedEvent;
+import org.apache.myriad.scheduler.event.ReRegisteredEvent;
+import org.apache.myriad.scheduler.event.RegisteredEvent;
+import org.apache.myriad.scheduler.event.ResourceOffersEvent;
+import org.apache.myriad.scheduler.event.SlaveLostEvent;
+import org.apache.myriad.scheduler.event.StatusUpdateEvent;
 
 /**
  * Myriad Scheduler
@@ -47,9 +49,9 @@ public class MyriadScheduler implements Scheduler {
 
   @Override
   public void registered(final SchedulerDriver driver, final Protos.FrameworkID frameworkId, final Protos.MasterInfo masterInfo) {
-    disruptorManager.getRegisteredEventDisruptor().publishEvent(new EventTranslator<org.apache.myriad.scheduler.event.RegisteredEvent>() {
+    disruptorManager.getRegisteredEventDisruptor().publishEvent(new EventTranslator<RegisteredEvent>() {
       @Override
-      public void translateTo(org.apache.myriad.scheduler.event.RegisteredEvent event, long sequence) {
+      public void translateTo(RegisteredEvent event, long sequence) {
         event.setDriver(driver);
         event.setFrameworkId(frameworkId);
         event.setMasterInfo(masterInfo);
@@ -102,7 +104,8 @@ public class MyriadScheduler implements Scheduler {
   }
 
   @Override
-  public void frameworkMessage(final SchedulerDriver driver, final Protos.ExecutorID executorId, final Protos.SlaveID slaveId, final byte[] bytes) {
+  public void frameworkMessage(final SchedulerDriver driver, final Protos.ExecutorID executorId, final Protos.SlaveID slaveId,
+                               final byte[] bytes) {
     disruptorManager.getFrameworkMessageEventDisruptor().publishEvent(new EventTranslator<FrameworkMessageEvent>() {
       @Override
       public void translateTo(FrameworkMessageEvent event, long sequence) {
@@ -116,9 +119,9 @@ public class MyriadScheduler implements Scheduler {
 
   @Override
   public void disconnected(final SchedulerDriver driver) {
-    disruptorManager.getDisconnectedEventDisruptor().publishEvent(new EventTranslator<org.apache.myriad.scheduler.event.DisconnectedEvent>() {
+    disruptorManager.getDisconnectedEventDisruptor().publishEvent(new EventTranslator<DisconnectedEvent>() {
       @Override
-      public void translateTo(org.apache.myriad.scheduler.event.DisconnectedEvent event, long sequence) {
+      public void translateTo(DisconnectedEvent event, long sequence) {
         event.setDriver(driver);
       }
     });
@@ -136,10 +139,11 @@ public class MyriadScheduler implements Scheduler {
   }
 
   @Override
-  public void executorLost(final SchedulerDriver driver, final Protos.ExecutorID executorId, final Protos.SlaveID slaveId, final int exitStatus) {
-    disruptorManager.getExecutorLostEventDisruptor().publishEvent(new EventTranslator<org.apache.myriad.scheduler.event.ExecutorLostEvent>() {
+  public void executorLost(final SchedulerDriver driver, final Protos.ExecutorID executorId, final Protos.SlaveID slaveId,
+                           final int exitStatus) {
+    disruptorManager.getExecutorLostEventDisruptor().publishEvent(new EventTranslator<ExecutorLostEvent>() {
       @Override
-      public void translateTo(org.apache.myriad.scheduler.event.ExecutorLostEvent event, long sequence) {
+      public void translateTo(ExecutorLostEvent event, long sequence) {
         event.setDriver(driver);
         event.setExecutorId(executorId);
         event.setSlaveId(slaveId);

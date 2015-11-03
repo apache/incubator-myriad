@@ -18,18 +18,13 @@
  */
 package org.apache.myriad.scheduler.fgs;
 
-import org.apache.myriad.executor.ContainerTaskStatusRequest;
-import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
-
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -45,6 +40,13 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeUpdateS
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.Protos;
+import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.executor.ContainerTaskStatusRequest;
+import org.apache.myriad.scheduler.MyriadDriver;
+import org.apache.myriad.scheduler.SchedulerUtils;
+import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
+import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,14 +66,15 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
 
   private final AbstractYarnScheduler yarnScheduler;
   private final RMContext rmContext;
-  private final org.apache.myriad.scheduler.MyriadDriver myriadDriver;
+  private final MyriadDriver myriadDriver;
   private final OfferLifecycleManager offerLifecycleMgr;
   private final NodeStore nodeStore;
-  private final org.apache.myriad.state.SchedulerState state;
+  private final SchedulerState state;
 
   @Inject
-  public YarnNodeCapacityManager(org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, RMContext rmContext, org.apache.myriad.scheduler.MyriadDriver myriadDriver, OfferLifecycleManager
-      offerLifecycleMgr, NodeStore nodeStore, org.apache.myriad.state.SchedulerState state) {
+  public YarnNodeCapacityManager(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
+                                 MyriadDriver myriadDriver, OfferLifecycleManager offerLifecycleMgr, NodeStore nodeStore,
+                                 SchedulerState state) {
     if (registry != null) {
       registry.register(this);
     }
@@ -88,7 +91,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     return new CallBackFilter() {
       @Override
       public boolean allowCallBacksForNode(NodeId nodeManager) {
-        return org.apache.myriad.scheduler.SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
+        return SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
       }
     };
   }
@@ -96,7 +99,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   @Override
   public void afterSchedulerEventHandled(SchedulerEvent event) {
     switch (event.getType()) {
-      case NODE_ADDED: {
+      case NODE_ADDED:
         if (!(event instanceof NodeAddedSchedulerEvent)) {
           LOGGER.error("{} not an instance of {}", event.getClass().getName(), NodeAddedSchedulerEvent.class.getName());
           return;
@@ -109,10 +112,9 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         SchedulerNode node = yarnScheduler.getSchedulerNode(nodeId);
         nodeStore.add(node);
         LOGGER.info("afterSchedulerEventHandled: NM registration from node {}", host);
-      }
         break;
 
-      case NODE_UPDATE: {
+      case NODE_UPDATE:
         if (!(event instanceof NodeUpdateSchedulerEvent)) {
           LOGGER.error("{} not an instance of {}", event.getClass().getName(), NodeUpdateSchedulerEvent.class.getName());
           return;
@@ -120,7 +122,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
 
         RMNode rmNode = ((NodeUpdateSchedulerEvent) event).getRMNode();
         handleContainerAllocation(rmNode);
-      }
+
         break;
 
       default:
@@ -148,14 +150,16 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     Set<RMContainer> containersBeforeSched = node.getContainerSnapshot();
     Set<RMContainer> containersAfterSched = new HashSet<>(node.getNode().getRunningContainers());
 
-    Set<RMContainer> containersAllocatedByMesosOffer = (containersBeforeSched == null) ? containersAfterSched : Sets.difference(containersAfterSched, containersBeforeSched);
+    Set<RMContainer> containersAllocatedByMesosOffer = (containersBeforeSched == null) ? containersAfterSched : Sets.difference(
+        containersAfterSched, containersBeforeSched);
 
     if (containersAllocatedByMesosOffer.isEmpty()) {
       LOGGER.debug("No containers allocated using Mesos offers for host: {}", host);
       for (Protos.Offer offer : consumedOffer.getOffers()) {
         offerLifecycleMgr.declineOffer(offer);
       }
-      setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(), OfferUtils.getYarnResourcesFromMesosOffers(consumedOffer.getOffers())));
+      setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(), OfferUtils.getYarnResourcesFromMesosOffers(
+          consumedOffer.getOffers())));
     } else {
       LOGGER.debug("Containers allocated using Mesos offers for host: {} count: {}", host, containersAllocatedByMesosOffer.size());
 
@@ -195,25 +199,35 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     LOGGER.debug("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
     // updates the scheduler with the new capacity for the NM.
     // the event is handled by the scheduler asynchronously
-    rmContext.getDispatcher().getEventHandler().handle(new NodeResourceUpdateSchedulerEvent(rmNode, ResourceOption.newInstance(rmNode.getTotalCapability(), RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT)));
+    rmContext.getDispatcher().getEventHandler().handle(new NodeResourceUpdateSchedulerEvent(rmNode, ResourceOption.newInstance(
+        rmNode.getTotalCapability(), RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT)));
   }
 
   private Protos.TaskInfo getTaskInfoForContainer(RMContainer rmContainer, ConsumedOffer consumedOffer, Node node) {
 
     Protos.Offer offer = consumedOffer.getOffers().get(0);
     Container container = rmContainer.getContainer();
-    Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(ContainerTaskStatusRequest.YARN_CONTAINER_TASK_ID_PREFIX + container.getId().toString()).build();
+    Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(
+        ContainerTaskStatusRequest.YARN_CONTAINER_TASK_ID_PREFIX + container.getId().toString()).build();
 
     // TODO (sdaingade) Remove ExecutorInfo from the Node object
     // as this is now cached in the NodeTask object in scheduler state.
     Protos.ExecutorInfo executorInfo = node.getExecInfo();
     if (executorInfo == null) {
-      executorInfo = Protos.ExecutorInfo.newBuilder(state.getNodeTask(offer.getSlaveId(), org.apache.myriad.configuration.NodeManagerConfiguration.NM_TASK_PREFIX).getExecutorInfo()).setFrameworkId(offer.getFrameworkId()).build();
+      executorInfo = Protos.ExecutorInfo.newBuilder(state.getNodeTask(offer.getSlaveId(), NodeManagerConfiguration.NM_TASK_PREFIX)
+          .getExecutorInfo()).setFrameworkId(offer.getFrameworkId()).build();
       node.setExecInfo(executorInfo);
     }
 
-    return Protos.TaskInfo.newBuilder().setName("task_" + taskId.getValue()).setTaskId(taskId).setSlaveId(offer.getSlaveId()).addResources(Protos.Resource.newBuilder().setName("cpus").setType(Protos.Value.Type.SCALAR).setScalar(Protos.Value.Scalar
-        .newBuilder().setValue(container.getResource().getVirtualCores()))).addResources(Protos.Resource.newBuilder().setName("mem").setType(Protos.Value.Type.SCALAR).setScalar(Protos.Value.Scalar.newBuilder().setValue(container.getResource()
-        .getMemory()))).setExecutor(executorInfo).build();
+    return Protos.TaskInfo.newBuilder()
+        .setName("task_" + taskId.getValue())
+        .setTaskId(taskId)
+        .setSlaveId(offer.getSlaveId())
+        .addResources(Protos.Resource.newBuilder().setName("cpus").setType(Protos.Value.Type.SCALAR).setScalar(
+            Protos.Value.Scalar.newBuilder().setValue(container.getResource().getVirtualCores())))
+        .addResources(Protos.Resource.newBuilder().setName("mem").setType(Protos.Value.Type.SCALAR).setScalar(
+            Protos.Value.Scalar.newBuilder().setValue(container.getResource().getMemory())))
+        .setExecutor(executorInfo)
+        .build();
   }
 }

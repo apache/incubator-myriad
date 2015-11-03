@@ -19,15 +19,14 @@
 package org.apache.myriad.health;
 
 import com.codahale.metrics.health.HealthCheck;
-import org.apache.myriad.configuration.MyriadConfiguration;
+import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
+import org.apache.myriad.configuration.MyriadConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Health check for Mesos master
@@ -58,7 +57,8 @@ public class MesosMasterHealthCheck extends HealthCheck {
       for (String hostPort : hostPorts) {
         final int maxRetries = 3;
         final int baseSleepTimeMs = 1000;
-        CuratorFramework client = CuratorFrameworkFactory.newClient(hostPort, new ExponentialBackoffRetry(baseSleepTimeMs, maxRetries));
+        CuratorFramework client = CuratorFrameworkFactory.newClient(hostPort, new ExponentialBackoffRetry(baseSleepTimeMs,
+            maxRetries));
         client.start();
         final int blockTime = 5;
         client.blockUntilConnected(blockTime, TimeUnit.SECONDS);

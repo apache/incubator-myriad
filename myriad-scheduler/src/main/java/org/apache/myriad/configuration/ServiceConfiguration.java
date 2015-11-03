@@ -18,15 +18,13 @@
 
 package org.apache.myriad.configuration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 import java.util.Map;
-
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 
 /**
  * Configuration for any service/task to be started from Myriad Scheduler
@@ -43,25 +41,25 @@ public class ServiceConfiguration {
    * Translates to -Xmx for the JVM.
    */
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerDouble.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerDouble.class)
   protected Double jvmMaxMemoryMB;
 
   /**
    * Amount of CPU share given to  JVM.
    */
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerDouble.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerDouble.class)
   protected Double cpus;
 
   /**
    * Translates to jvm opts for the JVM.
    */
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
   protected String jvmOpts;
 
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerMap.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerMap.class)
   protected Map<String, Long> ports;
 
   /**
@@ -70,7 +68,7 @@ public class ServiceConfiguration {
    * we can use this one to have a specific implementation
    */
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
   protected String taskFactoryImplName;
 
   @JsonProperty
@@ -81,11 +79,11 @@ public class ServiceConfiguration {
   protected String taskName;
 
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerInt.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerInt.class)
   protected Integer maxInstances;
 
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
   protected String command;
 
   @JsonProperty

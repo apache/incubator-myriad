@@ -18,10 +18,10 @@
  */
 package org.apache.myriad.scheduler
 
+import org.apache.mesos.Protos
 import org.apache.myriad.configuration.NodeManagerConfiguration
 import org.apache.myriad.state.NodeTask
 import org.apache.myriad.state.SchedulerState
-import org.apache.mesos.Protos
 import spock.lang.Specification
 
 /**

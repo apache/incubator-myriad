@@ -19,24 +19,22 @@
 
 package org.apache.myriad.state.utils;
 
-import org.apache.myriad.scheduler.constraints.Constraint;
-import org.apache.myriad.scheduler.constraints.Constraint.Type;
-import org.apache.myriad.scheduler.constraints.LikeConstraint;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.protobuf.GeneratedMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
-
 import org.apache.myriad.scheduler.ServiceResourceProfile;
+import org.apache.myriad.scheduler.constraints.Constraint;
+import org.apache.myriad.scheduler.constraints.Constraint.Type;
+import org.apache.myriad.scheduler.constraints.LikeConstraint;
 import org.apache.myriad.state.NodeTask;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.protobuf.GeneratedMessage;
 
 /**
  * ByteBuffer support for the Serialization of the StoreContext
@@ -47,7 +45,8 @@ public class ByteBufferSupport {
   public static final String UTF8 = "UTF-8";
   public static final byte[] ZERO_BYTES = new byte[0];
   private static Gson gson = new Gson();
-  private static Gson gsonCustom = new GsonBuilder().registerTypeAdapter(ServiceResourceProfile.class, new ServiceResourceProfile.CustomDeserializer()).create();
+  private static Gson gsonCustom = new GsonBuilder().registerTypeAdapter(ServiceResourceProfile.class,
+      new ServiceResourceProfile.CustomDeserializer()).create();
 
   public static void addByteBuffers(List<ByteBuffer> list, ByteArrayOutputStream bytes) throws IOException {
     // If list, add the list size, then the size of each buffer followed by the buffer.

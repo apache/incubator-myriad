@@ -18,19 +18,16 @@
  */
 package org.apache.myriad.scheduler;
 
-import org.apache.myriad.scheduler.fgs.OfferLifecycleManager;
-import org.apache.myriad.state.NodeTask;
-import org.apache.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-
 import java.util.Set;
-
 import javax.inject.Inject;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Status;
 import org.apache.mesos.Protos.TaskID;
+import org.apache.myriad.scheduler.fgs.OfferLifecycleManager;
+import org.apache.myriad.state.NodeTask;
+import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +42,8 @@ public class TaskTerminator implements Runnable {
   private final OfferLifecycleManager offerLifeCycleManager;
 
   @Inject
-  public TaskTerminator(SchedulerState schedulerState, MyriadDriverManager driverManager, OfferLifecycleManager offerLifecycleManager) {
+  public TaskTerminator(SchedulerState schedulerState, MyriadDriverManager driverManager,
+                        OfferLifecycleManager offerLifecycleManager) {
     this.schedulerState = schedulerState;
     this.driverManager = driverManager;
     this.offerLifeCycleManager = offerLifecycleManager;

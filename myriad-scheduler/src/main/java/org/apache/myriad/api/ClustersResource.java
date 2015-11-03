@@ -19,26 +19,10 @@
 package org.apache.myriad.api;
 
 import com.codahale.metrics.annotation.Timed;
-import org.apache.myriad.api.model.FlexDownClusterRequest;
-import org.apache.myriad.api.model.FlexDownServiceRequest;
-import org.apache.myriad.api.model.FlexUpClusterRequest;
-import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.scheduler.constraints.ConstraintFactory;
-import org.apache.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
-
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import org.apache.myriad.api.model.FlexUpServiceRequest;
-import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.scheduler.ServiceProfileManager;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -48,6 +32,19 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import org.apache.myriad.api.model.FlexDownClusterRequest;
+import org.apache.myriad.api.model.FlexDownServiceRequest;
+import org.apache.myriad.api.model.FlexUpClusterRequest;
+import org.apache.myriad.api.model.FlexUpServiceRequest;
+import org.apache.myriad.configuration.MyriadBadConfigurationException;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.scheduler.MyriadOperations;
+import org.apache.myriad.scheduler.ServiceProfileManager;
+import org.apache.myriad.scheduler.ServiceResourceProfile;
+import org.apache.myriad.scheduler.constraints.ConstraintFactory;
+import org.apache.myriad.state.SchedulerState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RESTful API to resource manager
@@ -60,10 +57,11 @@ public class ClustersResource {
   private MyriadConfiguration cfg;
   private SchedulerState schedulerState;
   private ServiceProfileManager profileManager;
-  private org.apache.myriad.scheduler.MyriadOperations myriadOperations;
+  private MyriadOperations myriadOperations;
 
   @Inject
-  public ClustersResource(MyriadConfiguration cfg, SchedulerState state, ServiceProfileManager profileManager, org.apache.myriad.scheduler.MyriadOperations myriadOperations) {
+  public ClustersResource(MyriadConfiguration cfg, SchedulerState state, ServiceProfileManager profileManager,
+                          MyriadOperations myriadOperations) {
     this.cfg = cfg;
     this.schedulerState = state;
     this.profileManager = profileManager;
@@ -91,7 +89,8 @@ public class ClustersResource {
     Response returnResponse = response.build();
     if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
       String constraint = constraints != null && !constraints.isEmpty() ? constraints.get(0) : null;
-      this.myriadOperations.flexUpCluster(this.profileManager.get(profile), instances, ConstraintFactory.createConstraint(constraint));
+      this.myriadOperations.flexUpCluster(this.profileManager.get(profile), instances, ConstraintFactory.createConstraint(
+          constraint));
     }
 
     return returnResponse;
@@ -228,7 +227,8 @@ public class ClustersResource {
 
     String[] splits = constraint.split(" LIKE "); // "<key> LIKE <val_regex>"
     if (splits.length != 2) {
-      String message = String.format("Invalid format for LIKE operator in constraint: %s. Format: %s", constraint, LIKE_CONSTRAINT_FORMAT);
+      String message = String.format("Invalid format for LIKE operator in constraint: %s. Format: %s", constraint,
+          LIKE_CONSTRAINT_FORMAT);
       response.status(Status.BAD_REQUEST).entity(message);
       LOGGER.error(message);
       return false;
@@ -247,7 +247,8 @@ public class ClustersResource {
 
   private Integer getNumFlexedupNMs(String profile) {
     ServiceResourceProfile serviceProfile = profileManager.get(profile);
-    return this.schedulerState.getActiveTaskIDsForProfile(serviceProfile).size() + this.schedulerState.getStagingTaskIDsForProfile(serviceProfile).size() + this.schedulerState.getPendingTaskIDsForProfile(serviceProfile).size();
+    return this.schedulerState.getActiveTaskIDsForProfile(serviceProfile).size() + this.schedulerState.getStagingTaskIDsForProfile(
+        serviceProfile).size() + this.schedulerState.getPendingTaskIDsForProfile(serviceProfile).size();
   }
 
   @Timed

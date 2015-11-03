@@ -19,14 +19,12 @@
 
 package org.apache.myriad.scheduler;
 
-import java.util.Map;
 import java.util.HashMap;
-
+import java.util.Map;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.myriad.configuration.MyriadConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.myriad.configuration.MyriadConfiguration;
 
 /**
  * Implementation assumes NM binaries already deployed
@@ -44,14 +42,14 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
    */
   public static final String KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS = "yarn.nodemanager.container-executor.class";
   // TODO (mohit): Should it be configurable ?
-  public static final String VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS = "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor";
-  public static final String DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS = "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor";
-
+  public static final String VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS =
+      "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor";
+  public static final String DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS =
+      "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor";
   /**
    * YARN class to help handle LCE resources
    */
   public static final String KEY_YARN_NM_LCE_RH_CLASS = "yarn.nodemanager.linux-container-executor.resources-handler.class";
-
   // TODO (mohit): Should it be configurable ?
   public static final String VAL_YARN_NM_LCE_RH_CLASS = "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler";
   public static final String KEY_YARN_NM_LCE_CGROUPS_HIERARCHY = "yarn.nodemanager.linux-container-executor.cgroups.hierarchy";
