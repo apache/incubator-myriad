@@ -18,11 +18,15 @@
  */
 package org.apache.myriad;
 
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.protobuf.ByteString;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.Credential;
@@ -32,18 +36,12 @@ import org.apache.mesos.Protos.FrameworkInfo.Builder;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.state.State;
 import org.apache.mesos.state.ZooKeeperState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.scheduler.MyriadDriver;
 import org.apache.myriad.scheduler.MyriadScheduler;
 import org.apache.myriad.state.SchedulerState;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
-import com.google.protobuf.ByteString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Guice Module for Mesos objects.

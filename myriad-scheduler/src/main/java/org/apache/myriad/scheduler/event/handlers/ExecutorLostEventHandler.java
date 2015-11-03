@@ -21,17 +21,18 @@ package org.apache.myriad.scheduler.event.handlers;
 import com.lmax.disruptor.EventHandler;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.SlaveID;
+import org.apache.myriad.scheduler.event.ExecutorLostEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * handles and logs executor lost events
  */
-public class ExecutorLostEventHandler implements EventHandler<org.apache.myriad.scheduler.event.ExecutorLostEvent> {
+public class ExecutorLostEventHandler implements EventHandler<ExecutorLostEvent> {
   private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorLostEventHandler.class);
 
   @Override
-  public void onEvent(org.apache.myriad.scheduler.event.ExecutorLostEvent event, long sequence, boolean endOfBatch) throws Exception {
+  public void onEvent(ExecutorLostEvent event, long sequence, boolean endOfBatch) throws Exception {
     ExecutorID executorId = event.getExecutorId();
     SlaveID slaveId = event.getSlaveId();
     int exitStatus = event.getExitStatus();

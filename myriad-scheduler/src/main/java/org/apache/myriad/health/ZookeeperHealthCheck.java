@@ -19,9 +19,8 @@
 package org.apache.myriad.health;
 
 import com.codahale.metrics.health.HealthCheck;
-import org.apache.myriad.configuration.MyriadConfiguration;
-
 import javax.inject.Inject;
+import org.apache.myriad.configuration.MyriadConfiguration;
 
 /**
  * Health Check on ZK

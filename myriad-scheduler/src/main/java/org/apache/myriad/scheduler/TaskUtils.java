@@ -18,21 +18,10 @@
  */
 package org.apache.myriad.scheduler;
 
-import org.apache.myriad.configuration.ServiceConfiguration;
-import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.configuration.MyriadExecutorConfiguration;
-import org.apache.myriad.configuration.NodeManagerConfiguration;
 import com.google.common.base.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,10 +38,19 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import org.apache.myriad.configuration.MyriadBadConfigurationException;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.configuration.MyriadExecutorConfiguration;
+import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.configuration.ServiceConfiguration;
+import org.apache.myriad.executor.MyriadExecutorDefaults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * utility class for working with tasks and node manager profiles
@@ -144,7 +142,7 @@ public class TaskUtils {
   }
 
   public double getAggregateCpus(NMProfile profile) {
-    return getNodeManagerCpus() + org.apache.myriad.executor.MyriadExecutorDefaults.DEFAULT_CPUS + profile.getCpus();
+    return getNodeManagerCpus() + MyriadExecutorDefaults.DEFAULT_CPUS + profile.getCpus();
   }
 
   public double getNodeManagerMemory() {
@@ -159,12 +157,12 @@ public class TaskUtils {
 
   public double getExecutorCpus() {
 
-    return org.apache.myriad.executor.MyriadExecutorDefaults.DEFAULT_CPUS;
+    return MyriadExecutorDefaults.DEFAULT_CPUS;
   }
 
   public double getExecutorMemory() {
     MyriadExecutorConfiguration executorCfg = this.cfg.getMyriadExecutorConfiguration();
-    return (executorCfg.getJvmMaxMemoryMB().isPresent() ? executorCfg.getJvmMaxMemoryMB().get() : org.apache.myriad.executor.MyriadExecutorDefaults.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + org.apache.myriad.executor.MyriadExecutorDefaults.JVM_OVERHEAD);
+    return (executorCfg.getJvmMaxMemoryMB().isPresent() ? executorCfg.getJvmMaxMemoryMB().get() : MyriadExecutorDefaults.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + MyriadExecutorDefaults.JVM_OVERHEAD);
   }
 
   public double getTaskCpus(NMProfile profile) {

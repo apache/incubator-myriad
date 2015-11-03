@@ -19,17 +19,18 @@
 package org.apache.myriad.scheduler.event.handlers;
 
 import com.lmax.disruptor.EventHandler;
+import org.apache.myriad.scheduler.event.DisconnectedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * handles and logs disconnected events
  */
-public class DisconnectedEventHandler implements EventHandler<org.apache.myriad.scheduler.event.DisconnectedEvent> {
+public class DisconnectedEventHandler implements EventHandler<DisconnectedEvent> {
   private static final Logger LOGGER = LoggerFactory.getLogger(DisconnectedEventHandler.class);
 
   @Override
-  public void onEvent(org.apache.myriad.scheduler.event.DisconnectedEvent event, long sequence, boolean endOfBatch) throws Exception {
+  public void onEvent(DisconnectedEvent event, long sequence, boolean endOfBatch) throws Exception {
     LOGGER.info("Framework disconnected!");
   }
 

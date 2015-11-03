@@ -19,26 +19,10 @@
 package org.apache.myriad.api;
 
 import com.codahale.metrics.annotation.Timed;
-import org.apache.myriad.api.model.FlexDownClusterRequest;
-import org.apache.myriad.api.model.FlexDownServiceRequest;
-import org.apache.myriad.api.model.FlexUpClusterRequest;
-import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.scheduler.constraints.ConstraintFactory;
-import org.apache.myriad.state.SchedulerState;
 import com.google.common.base.Preconditions;
-
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
-import org.apache.myriad.api.model.FlexUpServiceRequest;
-import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.scheduler.ServiceProfileManager;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -48,6 +32,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import org.apache.myriad.api.model.FlexDownClusterRequest;
+import org.apache.myriad.api.model.FlexDownServiceRequest;
+import org.apache.myriad.api.model.FlexUpClusterRequest;
+import org.apache.myriad.api.model.FlexUpServiceRequest;
+import org.apache.myriad.configuration.MyriadBadConfigurationException;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.scheduler.ServiceProfileManager;
+import org.apache.myriad.scheduler.ServiceResourceProfile;
+import org.apache.myriad.scheduler.constraints.ConstraintFactory;
+import org.apache.myriad.state.SchedulerState;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RESTful API to resource manager

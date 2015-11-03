@@ -18,10 +18,9 @@
  */
 package org.apache.myriad.scheduler.event;
 
+import java.util.List;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-
-import java.util.List;
 
 /**
  * resource offer event

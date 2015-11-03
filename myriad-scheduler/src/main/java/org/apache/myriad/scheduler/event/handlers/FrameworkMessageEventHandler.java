@@ -21,17 +21,18 @@ package org.apache.myriad.scheduler.event.handlers;
 import com.lmax.disruptor.EventHandler;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.SlaveID;
+import org.apache.myriad.scheduler.event.FrameworkMessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * handles and logs mesos framework messages
  */
-public class FrameworkMessageEventHandler implements EventHandler<org.apache.myriad.scheduler.event.FrameworkMessageEvent> {
+public class FrameworkMessageEventHandler implements EventHandler<FrameworkMessageEvent> {
   private static final Logger LOGGER = LoggerFactory.getLogger(FrameworkMessageEventHandler.class);
 
   @Override
-  public void onEvent(org.apache.myriad.scheduler.event.FrameworkMessageEvent event, long sequence, boolean endOfBatch) throws Exception {
+  public void onEvent(FrameworkMessageEvent event, long sequence, boolean endOfBatch) throws Exception {
     ExecutorID executorId = event.getExecutorId();
     SlaveID slaveId = event.getSlaveId();
     LOGGER.info("Received framework message from executor {} of slave {}", executorId, slaveId);

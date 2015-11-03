@@ -18,17 +18,15 @@
  */
 package org.apache.myriad.configuration;
 
+import com.google.common.base.Optional;
 import java.io.IOException;
 import java.util.Map;
-
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.JsonSerializer;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializerProvider;
-
-import com.google.common.base.Optional;
 
 /**
  * Custom Serializer that allows to serialize Optional

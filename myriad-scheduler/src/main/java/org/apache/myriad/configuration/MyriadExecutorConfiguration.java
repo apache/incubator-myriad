@@ -18,11 +18,10 @@
  */
 package org.apache.myriad.configuration;
 
-import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerDouble;
-import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
-
+import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerDouble;
+import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 

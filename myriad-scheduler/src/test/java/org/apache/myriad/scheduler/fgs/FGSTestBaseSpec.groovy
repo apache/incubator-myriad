@@ -18,7 +18,6 @@
  */
 package org.apache.myriad.scheduler.fgs
 
-import org.apache.myriad.configuration.MyriadConfiguration
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import org.apache.hadoop.yarn.api.records.*
@@ -37,6 +36,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode
 import org.apache.hadoop.yarn.util.resource.Resources
 import org.apache.mesos.Protos
 import org.apache.mesos.SchedulerDriver
+import org.apache.myriad.configuration.MyriadConfiguration
 import org.apache.myriad.scheduler.MyriadDriver
 import spock.lang.Specification
 

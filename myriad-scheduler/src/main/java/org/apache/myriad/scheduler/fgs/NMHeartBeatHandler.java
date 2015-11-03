@@ -18,8 +18,6 @@
  */
 package org.apache.myriad.scheduler.fgs;
 
-import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
-import org.apache.myriad.state.SchedulerState;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +35,11 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnSched
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
+import org.apache.myriad.scheduler.MyriadDriver;
+import org.apache.myriad.scheduler.SchedulerUtils;
+import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
+import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
+import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,14 +51,14 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   Logger logger = LoggerFactory.getLogger(NMHeartBeatHandler.class);
 
   private final AbstractYarnScheduler yarnScheduler;
-  private final org.apache.myriad.scheduler.MyriadDriver myriadDriver;
+  private final MyriadDriver myriadDriver;
   private final YarnNodeCapacityManager yarnNodeCapacityMgr;
   private final OfferLifecycleManager offerLifecycleMgr;
   private final NodeStore nodeStore;
   private final SchedulerState state;
 
   @Inject
-  public NMHeartBeatHandler(org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, org.apache.myriad.scheduler.MyriadDriver myriadDriver, YarnNodeCapacityManager yarnNodeCapacityMgr,
+  public NMHeartBeatHandler(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, MyriadDriver myriadDriver, YarnNodeCapacityManager yarnNodeCapacityMgr,
       OfferLifecycleManager offerLifecycleMgr, NodeStore nodeStore, SchedulerState state) {
 
     if (registry != null) {
@@ -75,7 +78,7 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     return new CallBackFilter() {
       @Override
       public boolean allowCallBacksForNode(NodeId nodeManager) {
-        return org.apache.myriad.scheduler.SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
+        return SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
       }
     };
   }

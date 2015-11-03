@@ -18,18 +18,24 @@
  */
 package org.apache.myriad;
 
-import org.apache.myriad.configuration.ServiceConfiguration;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.inject.multibindings.MapBinder;
+import java.util.Map;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.MyriadExecutorConfiguration;
 import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.policy.LeastAMNodesFirstPolicy;
 import org.apache.myriad.policy.NodeScaleDownPolicy;
-import org.apache.myriad.scheduler.MyriadDriverManager;
-import org.apache.myriad.scheduler.fgs.NMHeartBeatHandler;
-import org.apache.myriad.scheduler.fgs.NodeStore;
-import org.apache.myriad.scheduler.fgs.OfferLifecycleManager;
 import org.apache.myriad.scheduler.DownloadNMExecutorCLGenImpl;
 import org.apache.myriad.scheduler.ExecutorCommandLineGenerator;
+import org.apache.myriad.scheduler.MyriadDriverManager;
 import org.apache.myriad.scheduler.NMExecutorCLGenImpl;
 import org.apache.myriad.scheduler.NMTaskFactoryAnnotation;
 import org.apache.myriad.scheduler.ReconcileService;
@@ -38,25 +44,17 @@ import org.apache.myriad.scheduler.ServiceTaskFactoryImpl;
 import org.apache.myriad.scheduler.TaskConstraintsManager;
 import org.apache.myriad.scheduler.TaskFactory;
 import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
+import org.apache.myriad.scheduler.fgs.NMHeartBeatHandler;
+import org.apache.myriad.scheduler.fgs.NodeStore;
+import org.apache.myriad.scheduler.fgs.OfferLifecycleManager;
 import org.apache.myriad.scheduler.fgs.YarnNodeCapacityManager;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.MyriadStateStore;
 import org.apache.myriad.state.SchedulerState;
 import org.apache.myriad.webapp.HttpConnectorProvider;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
-import com.google.inject.multibindings.MapBinder;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.myriad.webapp.MyriadWebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 /**
  * Guice Module for Myriad

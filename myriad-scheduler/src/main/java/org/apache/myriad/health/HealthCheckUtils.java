@@ -18,11 +18,10 @@
  */
 package org.apache.myriad.health;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.Socket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Health Check Utilities

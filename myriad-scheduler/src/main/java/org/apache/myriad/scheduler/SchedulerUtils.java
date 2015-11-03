@@ -18,17 +18,15 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.google.common.base.Preconditions;
+import java.util.Collection;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos;
 import org.apache.myriad.configuration.NodeManagerConfiguration;
 import org.apache.myriad.state.NodeTask;
 import org.apache.myriad.state.SchedulerState;
-import com.google.common.base.Preconditions;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
 
 /**
  * Provides utilities for scheduling with the mesos offers

@@ -19,13 +19,11 @@
 package org.apache.myriad.configuration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
-
-import org.hibernate.validator.constraints.NotEmpty;
-
 import java.util.Map;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.hibernate.validator.constraints.NotEmpty;
 
 /**
  * Myriad Configuration commonly defined in the YML file
@@ -104,11 +102,11 @@ public class MyriadConfiguration {
   private String frameworkRole;
 
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
   private String frameworkUser;
 
   @JsonProperty
-  @JsonSerialize(using = org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString.class)
+  @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
   private String frameworkSuperUser;
 
   @JsonProperty

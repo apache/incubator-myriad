@@ -19,22 +19,21 @@
 package org.apache.myriad.scheduler;
 
 
-import static org.junit.Assert.*;
-
+import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Ranges;
+import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Test Class to test NM ports randomization

@@ -18,13 +18,11 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.google.gson.Gson;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
 
 /**
  * Class to keep all the ServiceResourceProfiles together

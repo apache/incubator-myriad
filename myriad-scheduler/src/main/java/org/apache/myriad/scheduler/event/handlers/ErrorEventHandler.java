@@ -19,17 +19,18 @@
 package org.apache.myriad.scheduler.event.handlers;
 
 import com.lmax.disruptor.EventHandler;
+import org.apache.myriad.scheduler.event.ErrorEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * handles and logs error events
  */
-public class ErrorEventHandler implements EventHandler<org.apache.myriad.scheduler.event.ErrorEvent> {
+public class ErrorEventHandler implements EventHandler<ErrorEvent> {
   private static final Logger LOGGER = LoggerFactory.getLogger(ErrorEventHandler.class);
 
   @Override
-  public void onEvent(org.apache.myriad.scheduler.event.ErrorEvent event, long sequence, boolean endOfBatch) throws Exception {
+  public void onEvent(ErrorEvent event, long sequence, boolean endOfBatch) throws Exception {
     String message = event.getMessage();
     LOGGER.error(message);
   }

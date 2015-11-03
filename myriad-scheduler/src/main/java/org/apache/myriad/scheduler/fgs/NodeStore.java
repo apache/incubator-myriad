@@ -19,7 +19,6 @@
 package org.apache.myriad.scheduler.fgs;
 
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
 
 /**

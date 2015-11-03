@@ -19,12 +19,11 @@
 
 package org.apache.myriad.scheduler;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.apache.myriad.configuration.MyriadConfiguration;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implementation assumes NM binaries will be downloaded

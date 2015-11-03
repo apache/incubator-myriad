@@ -19,14 +19,12 @@
 
 package org.apache.myriad.scheduler;
 
-import java.util.Map;
 import java.util.HashMap;
-
+import java.util.Map;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.myriad.configuration.MyriadConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.myriad.configuration.MyriadConfiguration;
 
 /**
  * Implementation assumes NM binaries already deployed
