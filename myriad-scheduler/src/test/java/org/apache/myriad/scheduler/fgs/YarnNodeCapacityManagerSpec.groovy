@@ -22,7 +22,9 @@ import org.apache.hadoop.yarn.api.records.ContainerState
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeResourceUpdateSchedulerEvent
 import org.apache.hadoop.yarn.util.resource.Resources
 import org.apache.mesos.Protos
+import org.apache.myriad.configuration.MyriadConfiguration
 import org.apache.myriad.configuration.NodeManagerConfiguration
+import org.apache.myriad.scheduler.TaskUtils
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry
 import org.apache.myriad.state.NodeTask
 import org.apache.myriad.state.SchedulerState
@@ -128,8 +130,13 @@ class YarnNodeCapacityManagerSpec extends FGSTestBaseSpec {
         def state = Mock(SchedulerState) {
             getNodeTask(_, NodeManagerConfiguration.NM_TASK_PREFIX) >> nodeTask
         }
+        def cfg = Mock(MyriadConfiguration) {
+            getFrameworkRole() >> "some_role"
+        }
+        print(cfg.getFrameworkRole())
+        def taskUtils = new TaskUtils(cfg)
         return new YarnNodeCapacityManager(registry, yarnScheduler, rmContext,
-                myriadDriver, offerLifecycleManager, nodeStore, state)
+                myriadDriver, offerLifecycleManager, nodeStore, state, taskUtils)
 
     }
 }
