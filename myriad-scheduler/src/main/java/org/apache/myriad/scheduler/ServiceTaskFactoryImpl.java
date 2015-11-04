@@ -34,7 +34,6 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
-import org.apache.mesos.Protos.Value.Scalar;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.MyriadExecutorConfiguration;
 import org.apache.myriad.configuration.ServiceConfiguration;
@@ -125,14 +124,11 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
 
     LOGGER.info("Command line for service: {} is: {}", nodeTask.getTaskPrefix(), strB.toString());
 
-    Scalar taskMemory = Scalar.newBuilder().setValue(nodeTask.getProfile().getMemory()).build();
-    Scalar taskCpus = Scalar.newBuilder().setValue(nodeTask.getProfile().getCpus()).build();
-
     TaskInfo.Builder taskBuilder = TaskInfo.newBuilder();
 
-    taskBuilder.setName(nodeTask.getTaskPrefix()).setTaskId(taskId).setSlaveId(offer.getSlaveId()).addResources(
-        Resource.newBuilder().setName("cpus").setType(Value.Type.SCALAR).setScalar(taskCpus).build()).addResources(
-        Resource.newBuilder().setName("mem").setType(Value.Type.SCALAR).setScalar(taskMemory).build());
+    taskBuilder.setName(nodeTask.getTaskPrefix()).setTaskId(taskId).setSlaveId(offer.getSlaveId())
+        .addAllResources(taskUtils.getScalarResource(offer, "cpus", nodeTask.getProfile().getCpus(), 0.0))
+        .addAllResources(taskUtils.getScalarResource(offer, "mem", nodeTask.getProfile().getMemory(), 0.0));
 
     if (additionalPortsNumbers != null && !additionalPortsNumbers.isEmpty()) {
       // set ports
@@ -216,7 +212,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     }
     final List<Long> returnedPorts = new ArrayList<>();
     for (Resource resource : offer.getResourcesList()) {
-      if (resource.getName().equals("ports")) {
+      if (resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {
         Iterator<Value.Range> itr = resource.getRanges().getRangeList().iterator();
         while (itr.hasNext()) {
           Value.Range range = itr.next();

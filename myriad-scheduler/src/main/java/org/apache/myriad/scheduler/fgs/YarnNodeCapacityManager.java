@@ -44,6 +44,7 @@ import org.apache.myriad.configuration.NodeManagerConfiguration;
 import org.apache.myriad.executor.ContainerTaskStatusRequest;
 import org.apache.myriad.scheduler.MyriadDriver;
 import org.apache.myriad.scheduler.SchedulerUtils;
+import org.apache.myriad.scheduler.TaskUtils;
 import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.SchedulerState;
@@ -70,11 +71,11 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   private final OfferLifecycleManager offerLifecycleMgr;
   private final NodeStore nodeStore;
   private final SchedulerState state;
-
+  private TaskUtils taskUtils;
   @Inject
   public YarnNodeCapacityManager(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
                                  MyriadDriver myriadDriver, OfferLifecycleManager offerLifecycleMgr, NodeStore nodeStore,
-                                 SchedulerState state) {
+                                 SchedulerState state, TaskUtils taskUtils) {
     if (registry != null) {
       registry.register(this);
     }
@@ -84,6 +85,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     this.offerLifecycleMgr = offerLifecycleMgr;
     this.nodeStore = nodeStore;
     this.state = state;
+    this.taskUtils = taskUtils;
   }
 
   @Override
@@ -220,13 +222,10 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     }
 
     return Protos.TaskInfo.newBuilder()
-        .setName("task_" + taskId.getValue())
-        .setTaskId(taskId)
+        .setName("task_" + taskId.getValue()).setTaskId(taskId)
         .setSlaveId(offer.getSlaveId())
-        .addResources(Protos.Resource.newBuilder().setName("cpus").setType(Protos.Value.Type.SCALAR).setScalar(
-            Protos.Value.Scalar.newBuilder().setValue(container.getResource().getVirtualCores())))
-        .addResources(Protos.Resource.newBuilder().setName("mem").setType(Protos.Value.Type.SCALAR).setScalar(
-            Protos.Value.Scalar.newBuilder().setValue(container.getResource().getMemory())))
+        .addAllResources(taskUtils.getScalarResource(offer, "cpus", (double) container.getResource().getVirtualCores(), 0.0))
+        .addAllResources(taskUtils.getScalarResource(offer, "mem", (double) container.getResource().getMemory(), 0.0))
         .setExecutor(executorInfo)
         .build();
   }

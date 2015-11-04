@@ -22,6 +22,7 @@ import com.google.common.base.Optional;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,6 +39,8 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import org.apache.mesos.Protos;
 import org.apache.myriad.configuration.MyriadBadConfigurationException;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.MyriadExecutorConfiguration;
@@ -203,6 +206,43 @@ public class TaskUtils {
       throw new MyriadBadConfigurationException("memory is not defined for task with name: " + taskName);
     }
     return auxConf.getJvmMaxMemoryMB().get();
+  }
 
+  /**
+   * Helper function that returns all scalar resources of a given name in an offer up to a given value.  Attempts to
+   * take resource from the prescribed role first and then from the default role.  The variable used indicated any
+   * resources previously requested.   Assumes enough resources are present.
+   * @param offer - An offer by Mesos, assumed to have enough resources.
+   * @param name  - The name of the SCALAR resource, i.e. cpus or mem
+   * @param value - The amount of SCALAR resources needed.
+   * @param used - The amount of SCALAR resources already removed from this offer.
+   * @return An Iterable containing one or two scalar resources of a given name in an offer up to a given value.
+   */
+  public Iterable<Protos.Resource> getScalarResource(Protos.Offer offer, String name, Double value, Double used) {
+    String role = cfg.getFrameworkRole();
+    ArrayList<Protos.Resource> resources = new ArrayList<>();
+    double resourceDoubleValue = 0;
+    //Find role by name, must loop through resources
+    for (Protos.Resource r : offer.getResourcesList()) {
+      if (r.getName().equals(name) && r.hasRole() && r.getRole().equals(role) && r.hasScalar()) {
+        resourceDoubleValue = r.getScalar().getValue();
+        if (resourceDoubleValue - used > 0) {
+          resources.add(Protos.Resource.newBuilder().setName(name).setType(Protos.Value.Type.SCALAR)
+              .setScalar(Protos.Value.Scalar.newBuilder().setValue(Math.min(value, resourceDoubleValue - used)).build())
+              .setRole(role).build());
+        }
+        break;
+      } else if (r.getName().equals(name) && r.hasRole() && r.getRole().equals(role)) {
+        //Should never get here, there must be a miss configured slave
+        LOGGER.warn("Resource with name: " + name + "expected type to be SCALAR check configuration on: " + offer.getHostname());
+      }
+    }
+    //Assume enough resources are present in default value, if not we shouldn't of gotten to this function.
+    if (value - (resourceDoubleValue - used) > 0) {
+      resources.add(Protos.Resource.newBuilder().setName(name).setType(Protos.Value.Type.SCALAR)
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(value - (resourceDoubleValue - used)).build())
+          .build()); //no role assumes default
+    }
+    return resources;
   }
 }
