@@ -146,7 +146,9 @@ public class MyriadModule extends AbstractModule {
     return new SchedulerState(myriadStateStore);
   }
 
-  private MyriadStateStore providesMyriadStateStore() {
+  @Provides
+  @Singleton
+  MyriadStateStore providesMyriadStateStore() {
     // TODO (sdaingade) Read the implementation class from yml
     // once multiple implementations are available.
     if (rmContext.getStateStore() instanceof MyriadStateStore) {
