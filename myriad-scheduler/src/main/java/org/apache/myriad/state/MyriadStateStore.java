@@ -30,4 +30,5 @@ public interface MyriadStateStore {
 
   void storeMyriadState(StoreContext storeContext) throws Exception;
 
+  void removeMyriadState() throws Exception;
 }
