@@ -1,45 +1,43 @@
-# Myriad Fine Grained Scaling
+# Myriad Fine-grained Scaling
 
-The objective of "Fine Grained Scaling" (FGS) is to bring elasticity of resources between Myriad/YARN and other Mesos frameworks.
-The idea is to allow YARN to take resource offers from Mesos, run enough containers (YARN tasks) that the offers can hold and release the resources back to Mesos once the containers finish.
+The objective of fine-grained scaling is to bring elasticity of resources between YARN and other Mesos frameworks. With fine-grained scaling, YARN takes resource offers from Mesos and runs enough containers (YARN tasks) that the offers can hold and release the resources back to Mesos once the containers finish.
 
-* Node Managers that register with RM with (0 memory,0 cpu) are eligible for FGS. i.e. Myriad expands/shrinks the capacity of such NMs with the resources offered by Mesos. Further, Myriad ensures that YARN containers will be launched on such NMs only if Mesos offers enough resources on the slave nodes running those NMs.
-* A new **zero** profile is defined in [myriad-config-default.yml](../myriad-scheduler/src/main/resources/myriad-config-default.yml#L15) to help admins launch NMs with (0mem,0cpu) capacities using the [/api/cluster/flexup](API.md#put-apiclusterflexup).
-* Node Managers that register with RM with more than (0 mem, 0 cpu) are **not** eligible for FGS. i.e. Myriad will not expand/shrink the capacity of such NMs. These NMs are typically launched with low/medium/high profile.
+* Node Managers that register with the Resource Manager with (0 memory, 0 CPU) are eligible for fine-grained scaling, that is, Myriad expands and shrinks the capacity of the Node Managers with the resources offered by Mesos. Further, Myriad ensures that YARN containers are launched on the Node Managers only if Mesos offers enough resources on the slave nodes running those Node Managers. 
+* A zero profile, as well as small, medium, and large profiles are defined in the Myriad configuration file, myriad-config-default.yml. A zero profile allows administrators to launch Node Managers with (0 memory, 0 CPU) capacities. To modify the profile, use the Cluster REST /api/cluster/flexup command).
+* Node Managers that register with the Resource Manager with more than (0 memory, 0 CPU) are not eligible for fine-grained scaling. For example, Myriad does not expand and shrink the capacity of the Node Managers. Node Managers are typically launched with a low, medium, or high profile.
 
-### The feature (currently) works as follows
+## Fine-grained Scaling Behavior
 
-* Admin launches Node Managers via [Myriad flexup API](API.md#put-apiclusterflexup) with **zero** capacities.
-* The Node Managers report **zero** capacities to the Resource Manager upon registration.
-* A user submits an application to YARN (for e.g. a MapReduce job).
-* The application is added to RM's scheduling pipeline. However, YARN scheduler (for e.g. FairShareScheduler) will not allocate any application containers on the **zero** profile Node Managers. 
-* If there are other Node Managers that were registered with RM using non-zero capacities (low/medium/high profiles), some containers might be allocated for those NMs depending on their free capacity.
-* Myriad subsequently receives resource offers from Mesos for slave nodes running **zero** profile NMs.
-* The offered resources are projected to YARN's scheduler as "available capacity" of the **zero** profile Node Manager. For e.g. if Mesos offers (10G,4CPU) for a given node, then the capacity of the **zero** profile NM running on that node increases to (10G,4CPU).
-* The YARN scheduler now goes ahead and allocates a few containers for the **zero** profile Node Managers.
-* For each allocated container, Myriad spins up a "placeholder" Mesos task that holds on to Mesos resources as long as the corresponding YARN container is alive.
-* (In reality, a bunch of "placeholder" tasks are launched in a single shot, corresponding to a bunch of containers YARN allocates.)
-* NMs become aware of container allocations via YARN's HB mechanism. Myriad ensures that NMs are made aware of container allocations only after the corresponding "placeholder" Mesos tasks are launched.
-* When NMs report to RM that some of the containers have "finished", Myriad sends out "finished" status updates to Mesos for the corresponding "placeholder" tasks.
-* Mesos takes back the resources from Myriad that were held using "placeholder" tasks upon receiving the "finished" status updates.
+The administrator launches Node Managers with zero capacity (via the REST /api/cluster/flexup command) and the Node Managers report zero capacity to the Resource Manager upon registration.
 
-### To try out Fine Grained Scaling
+When a user submits an application to YARN (for example, a MapReduce job), the following occurs:
 
-* Spin up Resource Manager with "Myriad Scheduler" plugged into it.
-* Flexup a few NMs using [/api/cluster/flexup](API.md) with **"zero"** profile:
-```
-{
-  "instances":3, "profile": "zero"
-}
-```
-* The **zero** profile Node Managers advertise **zero** resources to Resource Manager (RM's "Nodes" UI should show this).
-* Submit a M/R job to the Resource Manager.
-* When Mesos offers resources to Myriad, the Mesos UI should show "placeholder" mesos tasks (prefixed with "yarn_") for each yarn container allocated using those offers.
-* The RM's UI should show these containers allocated to the **zero** profile NM nodes.
-* The placeholder mesos tasks should finish as and when the YARN containers finish.
-* The job should finish successfully (although some NMs were originally launched with 0 capacities).
+1. The application is added to the Resource Manager's scheduling pipeline. 
+	* If a Node Manager has a zero profile, the YARN scheduler (for example. FairShareScheduler) does not allocate any application containers.
+	* If a Node Manager has a non-zero capacity (low, medium, or high profiles), containers might be allocated for those Node Managers depending on their free capacity.
+2. Myriad receives resource offers from Mesos for slave nodes running zero profile Node Managers.
+3. The offered resources are projected to the YARN Scheduler as available capacity of the zero profile Node Manager. For example, if Mesos offers (10G memory, 4CPU) for a given node, then the capacity of the zero profile Node Manager running on that node increases to (10G memory, 4 CPU).
+4. The YARN Scheduler allocates a few containers for the zero profile Node Manager.
+	* For each allocated container, Myriad spins up a placeholder Mesos task that holds on to Mesos resources as long as the corresponding YARN container is alive. The placeholder tasks are launched in a single shot, corresponding to the containers that YARN allocates.
+	* Node Managers become aware of container allocations via YARN's heart-beat mechanism.
+	* Myriad ensures that Node Managers are made aware of container allocations only after the corresponding placeholder Mesos tasks are launched.
+6. When containers finish, Myriad sends out finished status updates to Mesos for the corresponding placeholder tasks.
+7. Mesos takes back the resources from Myriad after receiving a finished status update.
+
+## Trying out Fine-grained Scaling
+
+1. Spin up Resource Manager with Myriad Scheduler plugged into it.
+2. Flexup a few Node Managers using [/api/cluster/flexup](API.md) with zero profile: `{"instances":3, "profile": "zero"}`
+Note: The zero profile Node Managers advertise zero resources to Resource Manager (the Resource Manager Nodes UI shows this).
+
+3. Submit a MapReduce job to the Resource Manager.
+	* The zero profile Node Managers advertise zero resources to Resource Manager (the Resource Manager Nodes UI shows this).
+	* When Mesos offers resources to Myriad, the Mesos UI shows placeholder Mesos tasks (prefixed with "yarn_") for each yarn container allocated using those offers.
+	* The Resource Manager's UI shows these containers allocated to the zero profile Node Manager nodes.
+	* The placeholder Mesos tasks typically finish when the YARN containers finish.
+	* The job should finish successfully (although some Node Managers were originally launched with zero (0) capacities).
 
 
-### Sample Screenshot
+### Sample Mesos Tasks Screenshot
 
 ![mesos_tasks_for_yarn_containers](https://cloud.githubusercontent.com/assets/3505177/7049736/d7995bf8-ddd0-11e4-850d-c59bca1fd1bf.png)
