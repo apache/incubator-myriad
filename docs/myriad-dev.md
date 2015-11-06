@@ -65,7 +65,7 @@ For example:
 ```
 cp myriad-scheduler/build/libs/*.jar /opt/hadoop-2.7.1/share/hadoop/yarn/lib/
 cp myriad-executor/build/libs/myriad-executor-0.0.1.jar /opt/hadoop-2.7.1/share/hadoop/yarn/lib/
-cp myriad-scheduler/build/src/main/resources/myriad-config-default.yml /opt/hadoop-2.7.1/etc/hadoop/
+cp myriad-scheduler/build/resources/main/myriad-config-default.yml /opt/hadoop-2.7.1/etc/hadoop/
 ```
 
 **NOTE:** For advanced users, you can also copy myriad-executor-xxx.jar to any other directory on a slave filesystem or it can be copied to HDFS as well. In either case, you need to update the executor's path property in the myriad-config-default.yml file and prepend the path with either file:// or hdfs://, as appropriate. 
