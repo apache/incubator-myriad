@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Status;
 import org.apache.myriad.configuration.MyriadBadConfigurationException;
@@ -56,13 +58,15 @@ public class MyriadOperations {
   @Inject
   public MyriadOperations(MyriadConfiguration cfg, SchedulerState schedulerState,
       NodeScaleDownPolicy nodeScaleDownPolicy, MyriadDriverManager driverManager,
-      MyriadWebServer myriadWebServer, MyriadStateStore myriadStateStore) {
+      MyriadWebServer myriadWebServer, RMContext rmContext) {
     this.cfg = cfg;
     this.schedulerState = schedulerState;
     this.nodeScaleDownPolicy = nodeScaleDownPolicy;
     this.driverManager = driverManager;
     this.myriadWebServer = myriadWebServer;
-    this.myriadStateStore = myriadStateStore;
+    if (rmContext.getStateStore() instanceof MyriadStateStore) {
+      myriadStateStore = (MyriadStateStore) rmContext.getStateStore();
+    }
   }
 
   public void flexUpCluster(ServiceResourceProfile serviceResourceProfile, int instances, Constraint constraint) {
@@ -277,11 +281,13 @@ public class MyriadOperations {
       LOGGER.info("Failed to shutdown Myriad webserver: " + e.getMessage());
     }
 
-    try {
-      myriadStateStore.removeMyriadState();
-      LOGGER.info("Myriad State store was removed successfully.");
-    } catch (Exception e) {
-      LOGGER.info("Failed to remove Myriad state store: " + e.getMessage());
+    if (myriadStateStore != null) {
+      try {
+        myriadStateStore.removeMyriadState();
+        LOGGER.info("Myriad State store was removed successfully.");
+      } catch (Exception e) {
+        LOGGER.info("Failed to remove Myriad state store: " + e.getMessage());
+      }
     }
   }
 }
