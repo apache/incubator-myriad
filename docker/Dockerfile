@@ -4,13 +4,9 @@
 
 FROM debian
 MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
-#USER yarn
 
 ENV HADOOP_USER="yarn"
-ENV HADOOP_VER="2.7.1"
-ENV HADOOP_TARBALL_URL="http://172.31.1.11/hadoop-2.7.1.tar.gz"
-
-#RUN useradd yarn -g 112 -u 113 -s /bin/bash
+ENV HADOOP_VER="2.7.0"
 
 # Setup mesosphere repositories
 RUN apt-get -y update
@@ -21,7 +17,6 @@ RUN apt-get -y update
 
 ADD myriad-bin/create-user.sh /create-user.sh
 RUN sh /create-user.sh
-
 
 # Install Mesos
 RUN apt-get install -y mesos curl tar
