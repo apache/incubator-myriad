@@ -37,7 +37,7 @@ To deploy the Myriad Scheduler and Executor files, copy the jar filess and confi
 ```
 cp myriad-scheduler/build/libs/*.jar /opt/hadoop-2.7.1/share/hadoop/yarn/lib/
 cp myriad-executor/build/libs/myriad-executor-0.0.1.jar /opt/hadoop-2.7.1/share/hadoop/yarn/lib/
-cp myriad-scheduler/build/src/main/resources/myriad-config-default.yml /opt/hadoop-2.7.1/etc/hadoop/
+cp myriad-scheduler/build/resources/main/myriad-config-default.yml /opt/hadoop-2.7.1/etc/hadoop/
 ```
 
 ### Step 3: Configure the Myriad Defaults
