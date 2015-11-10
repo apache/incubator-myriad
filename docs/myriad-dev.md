@@ -43,7 +43,7 @@ To build Myriad Scheduler, from $PROJECT_HOME/myriad-scheduler run:
 
 ### Building Myriad Executor Only
 
-The `./gradlew build` command builds the **myriad-executor-runnable-xxx.jar** and place it inside the **$PROJECT_HOME/myriad-executor/build/libs/** directory. 
+The `./gradlew build` command builds the **myriad-executor-runnable-xxx.jar** and place it inside the **$PROJECT_HOME/myriad-executor/build/libs/** directory.
 
 To build Myriad Executor individually as a self-contained executor jar, from $PROJECT_HOME/myriad-executor, run:
 
@@ -56,7 +56,7 @@ To build Myriad Executor individually as a self-contained executor jar, from $PR
 
 To deploy Myriad Scheduler and Executor files:
 
-1. Copy the Myriad Scheduler jar files from the $PROJECT_HOME/myriad-scheduler/build/libs/ directory to the $YARN_HOME/share/hadoop/yarn/lib/ directory on all nodes in your cluster. 
+1. Copy the Myriad Scheduler jar files from the $PROJECT_HOME/myriad-scheduler/build/libs/ directory to the $YARN_HOME/share/hadoop/yarn/lib/ directory on all nodes in your cluster.
 2. Copy the Myriad Executor myriad-executor-xxx.jar file from the $PROJECT_HOME/myriad-executor/build/libs/ directory to each mesos slave's $YARN_HOME/share/hadoop/yarn/lib/ directory.
 3. Copy the myriad-config-default.yml file from $PROJECT_HOME/myriad-scheduler/build/src/main/resources/ directory to the $YARN_HOME/etc/hadoop directory.
 
@@ -68,7 +68,7 @@ cp myriad-executor/build/libs/myriad-executor-0.0.1.jar /opt/hadoop-2.7.1/share/
 cp myriad-scheduler/build/resources/main/myriad-config-default.yml /opt/hadoop-2.7.1/etc/hadoop/
 ```
 
-**NOTE:** For advanced users, you can also copy myriad-executor-xxx.jar to any other directory on a slave filesystem or it can be copied to HDFS as well. In either case, you need to update the executor's path property in the myriad-config-default.yml file and prepend the path with either file:// or hdfs://, as appropriate. 
+**NOTE:** For advanced users, you can also copy myriad-executor-xxx.jar to any other directory on a slave filesystem or it can be copied to HDFS as well. In either case, you need to update the executor's path property in the myriad-config-default.yml file and prepend the path with either file:// or hdfs://, as appropriate.
 
 
 ## Step 3: Configure the Myriad Defaults
@@ -81,7 +81,7 @@ As a minimum, the following Myriad configuration parameters must be set:
 
 Enabling Cgroups involves modifying the yarn-site.xml and **myriad-config-default.yml** files. If you plan on using Cgroups, you could set that property at this time. See [Configuring Cgroup](cgroups.md) for more information.
 
-**NOTE:** By copying the **myriad-config-default.yml** file to the **/etc/hadoop** directory, you can make changes to the configuration file without having to rebuild Myriad. If you specify the Myriad configuration parameters before building Myriad, you must rebuild Myriad and redeploy the jar files. This is required because the **myriad-config-default.yml** file is embedded into the Myriad Scheduler jar. 
+**NOTE:** By copying the **myriad-config-default.yml** file to the **/etc/hadoop** directory, you can make changes to the configuration file without having to rebuild Myriad. If you specify the Myriad configuration parameters before building Myriad, you must rebuild Myriad and redeploy the jar files. This is required because the **myriad-config-default.yml** file is embedded into the Myriad Scheduler jar.
 
 
 ## Step 4: Configure YARN to Use Myriad
@@ -136,7 +136,7 @@ export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so
 
 	1. On each node, change directory to $YARN_HOME/etc/hadoop.
 	2. Copy mapred-site.xml.template to mapred-site.xml.
-	3. Edit and add the following property to the mapred-site.xml file. 
+	3. Edit and add the following property to the mapred-site.xml file.
 
 ```
 // Add following to $YARN_HOME/etc/hadoop/mapred-site.xml:

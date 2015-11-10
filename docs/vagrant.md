@@ -29,7 +29,7 @@ The password for vagrant user is **vagrant'**
 
 To setup YARN/Hadoop inside VM, run following YARN setup shell files:
 
-1 Run the first YARN setup shell command from the vagrant directory to create a user hduser in group hadoop. Be sure to remember the password that you provide for this user. 
+1 Run the first YARN setup shell command from the vagrant directory to create a user hduser in group hadoop. Be sure to remember the password that you provide for this user.
 ```
 cd /vagrant
 ./setup-yarn-1.sh
@@ -77,13 +77,13 @@ cd /vagrant
 ./gradlew build
 ```
 
-**NOTE:** If build failure failure occurs, the issue is not with the build itself, but a failure to write to disk.  This can happen when you built outside the vagrant instance first.  Exit the user `hduser` by typing `exit` and build again as the `vagrant` user.   
+**NOTE:** If build failure failure occurs, the issue is not with the build itself, but a failure to write to disk.  This can happen when you built outside the vagrant instance first.  Exit the user `hduser` by typing `exit` and build again as the `vagrant` user.
 
 ### Step 2: Deploy the Myriad Files ###
 
 The Myriad Schedule and Executer jar files and all the runtime dependences as well as the Myriad configuration file must be copied to $YARN_HOME.
 
-* The Myriad Scheduler jar and all the runtime dependencies are located at: 
+* The Myriad Scheduler jar and all the runtime dependencies are located at:
 
 ```
 /vagrant/myriad-scheduler/build/libs/*

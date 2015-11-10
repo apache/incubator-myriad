@@ -10,10 +10,10 @@ The following diagram shows two resource managers running independently which re
 
 ## Advertising Resources: Mesos Slave and YARN Node Manager
 
-The Mesos Slave and YARN’s Node Manager are processes that run on the host OS. Both processes advertise available resources to Mesos Master and YARN Resource Manager respectively. Each process can be configured to advertise a subset of resources. This ability is leveraged, in conjunction with Cgroups, to allow Mesos Slave and YARN Node Manager to co-exist on a node. 
+The Mesos Slave and YARN’s Node Manager are processes that run on the host OS. Both processes advertise available resources to Mesos Master and YARN Resource Manager respectively. Each process can be configured to advertise a subset of resources. This ability is leveraged, in conjunction with Cgroups, to allow Mesos Slave and YARN Node Manager to co-exist on a node.
 
-* The Mesos Slave processes advertises all of a node’s resources (8 CPUs, 16 GB RAM) to the Mesos Master. 
-* The YARN Node Manager is started as a Mesos Task. This task is allotted (4 CPUs and 8 GB RAM) and the Node Manager is configured to only advertise 3 CPUs and 7 GB RAM. 
+* The Mesos Slave processes advertises all of a node’s resources (8 CPUs, 16 GB RAM) to the Mesos Master.
+* The YARN Node Manager is started as a Mesos Task. This task is allotted (4 CPUs and 8 GB RAM) and the Node Manager is configured to only advertise 3 CPUs and 7 GB RAM.
 * The Node Manager is also configured to mount the YARN containers under the  [cgroup hierarchy](cgroups.md)  which stems from a Mesos task. For example:
 
 ```bash
@@ -27,7 +27,7 @@ The following diagram showsa node running YARN NodeManager as a Mesos Slave task
 
 ## High Level Design
 
-One way to avoid static partitioning and to enable resource sharing when running two resource managers, is to let one resource manager be in absolute control of the datacenter’s resources. The other resource manager then manages a subset of resources, allocated to it through the primary resource manager. 
+One way to avoid static partitioning and to enable resource sharing when running two resource managers, is to let one resource manager be in absolute control of the datacenter’s resources. The other resource manager then manages a subset of resources, allocated to it through the primary resource manager.
 
 The following diagram shows a scenario where Mesos is used as the resource manager for the datacenter which allows both  Mesos and YARN to schedule tasks on any node.
 
@@ -37,7 +37,7 @@ Each node in the cluster has both daemons, Mesos Slave and YARN Node Manager, in
 
 The following diagram shows how Myriad launches a YARN Node Manager as a task under Mesos Slave:
 
-1. Myriad makes a decision to launch a new NodeManager.  
+1. Myriad makes a decision to launch a new NodeManager.
 	* Myriad passes the required configuration and task launch information to the Mesos Master which forwards that to the Mesos Slave(s).
 	* Mesos Slave launches Myriad Executor which manages the lifecycle of the NodeManager.
 	* Myriad Executor upon launch, configures Node Manager (for example, specifying CPU and memory to advertise, Cgroups hierarchy, and so on) and then launches it. For example: In the following diagram, Node Manager is allotted 2.5 CPU and 2.5 GB RAM.

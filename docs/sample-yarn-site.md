@@ -7,7 +7,7 @@ The following is a sample yarn-site.xml file.
 <pre>
 &lt;?xml version="1.0" encoding="UTF-8"?>
 &lt;configuration>
- 
+
 &lt;!-- Site-specific YARN configuration properties -->
    &ltproperty>
         &lt;name>yarn.nodemanager.aux-services&lt;/name>
@@ -61,7 +61,7 @@ The following is a sample yarn-site.xml file.
         &lt;name>yarn.nodemanager.localizer.address&lt;/name>
         &lt;value>${myriad.yarn.nodemanager.localizer.address}&lt;/value>
     &lt;/property>
- 
+
 &lt;!-- Myriad Scheduler configuration -->
     &lt;property>
         &lt;name>yarn.resourcemanager.scheduler.class&lt;/name>
@@ -71,7 +71,7 @@ The following is a sample yarn-site.xml file.
     &lt;property>
   &lt;name>yarn.scheduler.minimum-allocation-vcores&lt;/name>
         &lt;value>0&lt;/value>
-    &lt;/property>    
+    &lt;/property>
     &lt;property>
         &lt;name>yarn.scheduler.minimum-allocation-vcores&lt;/name>
         &lt;value>0&lt;/value>
