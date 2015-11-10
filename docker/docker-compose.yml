@@ -1,0 +1,9 @@
+myriad:
+  build: .
+  dockerfile: ResourceManager.dockerfile
+  volumes:
+    - ./config:/myriad-conf  
+  environment:
+    - "HADOOP_NAMENODE=172.31.45.229:54310"
+#    - "ALTERNATE_HADOOP_URL=http://192.168.99.100/files/hadoop-2.7.0.tar.gz"
+  net: "host"

@@ -1,0 +1,48 @@
+<!--
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<header class="mdl-layout__header mdl-color--grey-100 mdl-color-text--myriad">
+  <div class="mdl-layout__header-row">
+    <span class="mdl-layout-title">{{page.title}}</span>
+    <div class="mdl-layout-spacer"></div>
+    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="hdrbtn">
+      <i class="material-icons">more_vert</i>
+    </button>
+    <ul class="mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right" for="hdrbtn">
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/">Apache Homepage</a></li>
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/licenses/">License</a></li>
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/foundation/sponsorship.html">Sponsorship</a></li>
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/foundation/thanks.html">Thanks</a></li>
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/security/">Security</a></li>
+    </ul>
+  </div>
+</header>
+<div class="mdl-layout__drawer mdl-color-text--myriad mdl-color--grey-100">
+  <span class="">
+    <img src="{{ site.baseurl }}/img/navbar_logo.png" alt="Incubator Logo" ></img>
+  </span>
+  <nav class="mdl-navigation">
+    <a class="mdl-navigation__link" href="{{ site.baseurl }}/">Home</a>
+    <a class="mdl-navigation__link" href="{{ site.baseurl }}/news">News</a>
+    <a class="mdl-navigation__link" href="{{ site.baseurl }}/docs">Documentation</a>
+    <a class="mdl-navigation__link" href="{{ site.baseurl }}/downloads">Downloads</a>
+    <a class="mdl-navigation__link" href="{{ site.baseurl }}/community">Community</a>
+    <hr/>
+  </nav>
+</div>
