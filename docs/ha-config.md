@@ -14,7 +14,7 @@ On failover, the following occurs:
 
 ## Prerequisites ##
    * Deploy mesos-master, mesos-slave (per node), zookeeper, marathon, and mesos-dns on your cluster.
-  
+
 ## Setting Up Mesos-DNS ##
 
 **Step 1:** Create a directory for Mesos-DNS. For example, /etc/mesos-dns.
@@ -44,7 +44,7 @@ On failover, the following occurs:
 **Note:** Add the entries at the top (in the beginning) of the /etc/resolv.conf file. If the entries are not at the top, Mesos-DNS may not work correctly.
 
 ## Configuring HA ##
-Configuring Myriad for HA involves adding HA configuration properties to the $YARN_HOME/etc/hadoop/yarn-site.xml file and the $YARN_HOME/etc/hadoop/myriad-config-default.yml file. 
+Configuring Myriad for HA involves adding HA configuration properties to the $YARN_HOME/etc/hadoop/yarn-site.xml file and the $YARN_HOME/etc/hadoop/myriad-config-default.yml file.
 
 ### Modify yarn-site.xml ###
 
@@ -72,7 +72,7 @@ To the $YARN_HOME/etc/hadoop/yarn-site.xml file, add the following properties:
  &lt;/property> -->
 </pre>
 
- 
+
 ### Modify myriad-config-default.yml ###
 
 To the $YARN_HOME/etc/hadoop/myriad-config-default.yml file, modify the following values:
@@ -84,5 +84,5 @@ haEnabled: true
 
 **Note:** The Myriad Mesos frameworkFailoverTimeout parameter is specified in milliseconds. This paramenter indicates to Mesos that Myriad will failover within this time interval.
 
- 
+
 

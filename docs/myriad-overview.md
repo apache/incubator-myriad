@@ -1,6 +1,6 @@
 # Myriad Overview #
 
-Apache Myriad enables the co-existence of Apache Hadoop and Apache Mesos on the physical infrastructure. By running Hadoop YARN as a Mesos framework, YARN applications and Mesos frameworks can run side-by-side, dynamically sharing cluster resources. 
+Apache Myriad enables the co-existence of Apache Hadoop and Apache Mesos on the physical infrastructure. By running Hadoop YARN as a Mesos framework, YARN applications and Mesos frameworks can run side-by-side, dynamically sharing cluster resources.
 
 With Apache Myriad, you can:
 
@@ -19,8 +19,8 @@ Key features include:
 	* Fine-grained - Administrators can provision thin node managers that are dynamically resized based on application demand.
 * High Availability (HA) and graceful restart of YARN daemons.
 * Ability to launch multiple YARN clusters on the same set of nodes.
-* Support for YARN FairScheduler and all functionality such as hierarchical queues with weights. 
-* Ability to deploy YARN Resource Manager using Marathon. This feature leverages Marathon's dynamic scheduling, process supervision, and integration with service discovery (Mesos-DNS). 
+* Support for YARN FairScheduler and all functionality such as hierarchical queues with weights.
+* Ability to deploy YARN Resource Manager using Marathon. This feature leverages Marathon's dynamic scheduling, process supervision, and integration with service discovery (Mesos-DNS).
 * Ability to run MapReduce v2 and associated libraries such as Hive, Pig, and Mahout.
 
 ## Use Cases ##
@@ -38,4 +38,3 @@ As organizations become more reliant on data processing technologies like Hadoop
 Using Myriad, these organizations can save money and increase agility by provisioning multiple logical Hadoop clusters on a single physical Mesos cluster with either shared or dedicated data services. Each logical cluster can be tailored to the end user, with a custom configuration and security policy, while running a specific version, and with either static or dynamic resources allocated to it.
 In a multi-tenant environment, this model means that a shared pool of resources can be shared among many data processing frameworks, with each capable of allocating additional resources when needed and releasing them when not. The top-level Mesos scheduler ensures fairness in the case that multiple frameworks are competing for resources.
 In case of a version migration (for example, upgrading only one of two Hadoop clusters), this model means that logical Hadoop clusters of different versions can be deployed side by side on top of the same shared data. Users can migrate workloads from old versions to new versions gradually, add resources to the new cluster, and take resources away from the old cluster. After all workloads are moved over, the old cluster can be decommissioned.
- 

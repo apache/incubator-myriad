@@ -25,10 +25,10 @@
 
 * Marathon -- 8080
 * Mesos -- 5050
-* Myriad -- 8192 
+* Myriad -- 8192
 
 **Note:** If your environment has both Marathon and Spark installed on the same node, a conflict occurs because the default port for both is 8080. To resolve this conflict, change the port for one of the applications.
- 
+
 ## General Tasks ##
 
 The following is an overview of the general installation and configuration tasks needed for setting up and configuring Myriad:
