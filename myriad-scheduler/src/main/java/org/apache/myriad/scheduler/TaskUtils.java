@@ -238,9 +238,10 @@ public class TaskUtils {
       }
     }
     //Assume enough resources are present in default value, if not we shouldn't of gotten to this function.
-    if (value - (resourceDoubleValue - used) > 0) {
+    //Use Math.max in case used>resourceDoubleValue
+    if (value - Math.max((resourceDoubleValue - used), 0) > 0) {
       resources.add(Protos.Resource.newBuilder().setName(name).setType(Protos.Value.Type.SCALAR)
-          .setScalar(Protos.Value.Scalar.newBuilder().setValue(value - (resourceDoubleValue - used)).build())
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(value - Math.max((resourceDoubleValue - used), 0)).build())
           .build()); //no role assumes default
     }
     return resources;
