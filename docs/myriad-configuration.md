@@ -60,7 +60,7 @@ executor:
   # nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz # the uri to d/l hadoop from   # Path to the Hadoop tarball
 # Environment variables required to launch Node Manager process. Admin can also pass other environment variables to NodeManager.
 yarnEnvironment:
-  YARN_HOME: /usr/local/hadoop # Or /opt/mapr/hadoop/hadoop-2.7.1/ if using MapR's Hadoop
+  YARN_HOME: /usr/local/hadoop # Or /opt/mapr/hadoop/hadoop-2.7.0/ if using MapR's Hadoop
   # YARN_HOME: hadoop-2.7.0 # Should be relative nodeManagerUri is set
   YARN_NODEMANAGER_OPTS: -Dnodemanager.resource.io-spindles=4.0 # Required only if using MapR's Hadoop
   # JAVA_HOME: /usr/lib/jvm/java-default # System dependent, but sometimes necessary

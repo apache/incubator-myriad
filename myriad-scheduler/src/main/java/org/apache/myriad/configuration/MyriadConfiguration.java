@@ -52,7 +52,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  * cgroups: false
  * executor:
  * jvmMaxMemoryMB: 256
- * path: file://localhost/usr/local/libexec/mesos/myriad-executor-runnable-0.0.1.jar
+ * path: file://localhost/usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
  * yarnEnvironment:
  * YARN_HOME: /usr/local/hadoop
  */
