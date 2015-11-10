@@ -16,9 +16,9 @@ This information involves bundling Myriad and creating a tarball.
 
 The following are assumptions about your environment:
 
-* You are using hadoop-2.7.1 downloaded from [hadoop.apache.org](http://hadoop.apache.org).  Specific vendor versions should work but may require additional steps. 
+* You are using hadoop-2.7.0 downloaded from [hadoop.apache.org](http://hadoop.apache.org).  Specific vendor versions should work but may require additional steps. 
 
-**NOTE:** The default location for $YARN_HOME is **/opt/hadoop-2.7.1**.
+**NOTE:** The default location for $YARN_HOME is **/opt/hadoop-2.7.0**.
 
 ## Building the Myriad Remote Distribution Bundle ##
 Before building Myriad, configure the Resource Manager as you normally would.
@@ -35,9 +35,9 @@ From the project root you build Myriad with the commands
 To deploy the Myriad Scheduler and Executor files, copy the jar filess and configuration file to the following locations:
 
 ```
-cp myriad-scheduler/build/libs/*.jar /opt/hadoop-2.7.1/share/hadoop/yarn/lib/
-cp myriad-executor/build/libs/myriad-executor-0.0.1.jar /opt/hadoop-2.7.1/share/hadoop/yarn/lib/
-cp myriad-scheduler/build/resources/main/myriad-config-default.yml /opt/hadoop-2.7.1/etc/hadoop/
+cp myriad-scheduler/build/libs/*.jar /opt/hadoop-2.7.0/share/hadoop/yarn/lib/
+cp myriad-executor/build/libs/myriad-executor-0.1.0.jar /opt/hadoop-2.7.0/share/hadoop/yarn/lib/
+cp myriad-scheduler/build/resources/main/myriad-config-default.yml /opt/hadoop-2.7.0/etc/hadoop/
 ```
 
 ### Step 3: Configure the Myriad Defaults
@@ -50,9 +50,9 @@ frameworkSuperUser: admin              # Must be root or have passwordless sudo 
 frameworkUser: hduser                  # Should be the same user running the resource manager.
                                        # Must exist on all nodes and be in the 'hadoop' group
 executor:
-  nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.1.tar.gz
+  nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz
 yarnEnvironment:
-YARN_HOME: hadoop-2.7.1                # This should be relative if nodeManagerUri is set  
+YARN_HOME: hadoop-2.7.0                # This should be relative if nodeManagerUri is set  
 ```
 
 
@@ -68,10 +68,10 @@ The tarball has all of the files needed for the Node Managers and  Resource Mana
 
 ```
 cd ~
-sudo cp -rp /opt/hadoop-2.7.1 .
-sudo rm ~/hadoop-2.7.1/etc/hadoop/yarn-site.xml
-sudo tar -zcpf ~/hadoop-2.7.1.tar.gz hadoop-2.7.1
-hadoop fs -put ~/hadoop-2.7.1.tar.gz /dist
+sudo cp -rp /opt/hadoop-2.7.0 .
+sudo rm ~/hadoop-2.7.0/etc/hadoop/yarn-site.xml
+sudo tar -zcpf ~/hadoop-2.7.0.tar.gz hadoop-2.7.0
+hadoop fs -put ~/hadoop-2.7.0.tar.gz /dist
 ```
 
 ## Getting Started ##

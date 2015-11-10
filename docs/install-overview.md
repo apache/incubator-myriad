@@ -4,7 +4,7 @@
 
 * JDK 1.7+
 * Gradle
-* Hadoop 2.7.1
+* Hadoop 2.7.0
 
 ## Operating Systems ##
 

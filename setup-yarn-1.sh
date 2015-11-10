@@ -1,6 +1,6 @@
 set -e
 
-HADOOP_VER=2.5.0
+HADOOP_VER=2.7.0
 
 cd ~/
 
