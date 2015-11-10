@@ -45,7 +45,7 @@ yarn-daemon.sh stop resourcemanager
 Alternatively, start and stop Myriad from the Marathon UI. See Marathon: Application Basics for more information. For example, create an application to start the Resource Manager:
 
 ```
-cd hadoop-2.7.1/sbin && yarn-daemon.sh start resourcemanager
+cd hadoop-2.7.0/sbin && yarn-daemon.sh start resourcemanager
 ```
  
 Alternatively, when launching the Resource Manager in an HA environment, specify value for the `yarn.resourcemanager.hostname` property. The hostname is the ID field specified when launching a Marathon application.

@@ -104,9 +104,9 @@ gulp {
     // Whether output from Gulp should be buffered - useful when running tasks in parallel
     bufferOutput = false
 
-    // processes your package.json before running gulp build
-    gulp_build.dependsOn 'npmInstall'
-
-    // makes sure on each build that gulp is installed
+  // makes sure on each build that gulp is installed
     gulp_build.dependsOn 'installGulp'
+
+  // processes your package.json before running gulp build
+    gulp_build.dependsOn 'npmInstall'
 }
