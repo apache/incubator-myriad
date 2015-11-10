@@ -1,6 +1,6 @@
 # Sample: myriad-config-default.yml
 
-Myriad Scheduler (the component that plugs into Resource Manager process), exposes configuration properties that administrators can modify. It expects a file **myriad-config-default.yml** to be present on the Resource Manager's java classpath. 
+Myriad Scheduler (the component that plugs into Resource Manager process), exposes configuration properties that administrators can modify. It expects a file **myriad-config-default.yml** to be present on the Resource Manager's java classpath.
 
 Currently, this file is built into Myriad Scheduler jar. So, if you need to modify some of the properties in this file, modify them **before** building Myriad Scheduler. This sample **myriad-config-default.yml** is a standard configuration
 
@@ -45,7 +45,7 @@ profiles:
 nmInstances:
     medium: 1
 # Whether to turn on myriad's auto-rebalancer feature.
-# Currently it's work-in-progress and should be set to 'false'.   
+# Currently it's work-in-progress and should be set to 'false'.
 rebalancer: false
 haEnabled: false
 # Properties for the Node Manager process that's launched by myriad as a result of 'flex up' REST call.

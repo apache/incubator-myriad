@@ -1,6 +1,6 @@
 # Installing for Administrators
 
-The Myriad Scheduler can be configured to automatically download and run the Hadoop YARN binaries and get the Hadoop configuration from the resource manager. This means you won't have to install and configure Hadoop YARN on each machine. 
+The Myriad Scheduler can be configured to automatically download and run the Hadoop YARN binaries and get the Hadoop configuration from the resource manager. This means you won't have to install and configure Hadoop YARN on each machine.
 This information involves bundling Myriad and creating a tarball.
 
 * [Assumptions](#assumptions)
@@ -16,7 +16,7 @@ This information involves bundling Myriad and creating a tarball.
 
 The following are assumptions about your environment:
 
-* You are using hadoop-2.7.1 downloaded from [hadoop.apache.org](http://hadoop.apache.org).  Specific vendor versions should work but may require additional steps. 
+* You are using hadoop-2.7.1 downloaded from [hadoop.apache.org](http://hadoop.apache.org).  Specific vendor versions should work but may require additional steps.
 
 **NOTE:** The default location for $YARN_HOME is **/opt/hadoop-2.7.1**.
 
@@ -27,7 +27,7 @@ Before building Myriad, configure the Resource Manager as you normally would.
 From the project root you build Myriad with the commands
 
 ```
-./gradlew build  
+./gradlew build
 ```
 
 ### Step 2: Deploy the Myriad Files
@@ -42,7 +42,7 @@ cp myriad-scheduler/build/resources/main/myriad-config-default.yml /opt/hadoop-2
 
 ### Step 3: Configure the Myriad Defaults
 
-Edit the **$YARN_HOME/etc/hadoop/myriad-config-default.yml** file to configure the default parameters. See the sample [Myriad configuration file](myriad-configuration.md) for more information. To enable remote binary distribution, you must set the following options: 
+Edit the **$YARN_HOME/etc/hadoop/myriad-config-default.yml** file to configure the default parameters. See the sample [Myriad configuration file](myriad-configuration.md) for more information. To enable remote binary distribution, you must set the following options:
 
 
 ```YAML
@@ -52,7 +52,7 @@ frameworkUser: hduser                  # Should be the same user running the res
 executor:
   nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.1.tar.gz
 yarnEnvironment:
-YARN_HOME: hadoop-2.7.1                # This should be relative if nodeManagerUri is set  
+YARN_HOME: hadoop-2.7.1                # This should be relative if nodeManagerUri is set
 ```
 
 

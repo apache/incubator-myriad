@@ -24,7 +24,7 @@ services:
         maxInstances:       # If defined maximum number of instances this service can have per myriad framework
         command:            # Command to be executed
         serviceOptsName:    # Name of the env. variable that may need to be set for the service that will include env. settings
- 
+
 The following example defines the parameter for JobHistoryServer and TimeLineServer tasks:
 <!-- Define services as a task -->
 services:

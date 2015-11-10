@@ -23,8 +23,8 @@ Myriad | 8192 | http://<IP address>:8192. For example: http://<ip address>:8192/
 
 ## Launching Resource Manager ##
 
-If you are using Marathon, launch Marathon and run an initial Resource Manager application. The Resource Manager can be launched or stopped from either the command line or the Marathon UI. 
- 
+If you are using Marathon, launch Marathon and run an initial Resource Manager application. The Resource Manager can be launched or stopped from either the command line or the Marathon UI.
+
 ### Launching from the Command Line ###
 
 
@@ -33,13 +33,13 @@ To start the Resource Manager, run the YARN daemon from the command line:
 ```
 yarn-daemon.sh start resourcemanager
 ```
- 
+
 To shut down he Resource Manager, run the YARN daemon from the command line:
 
 ```
 yarn-daemon.sh stop resourcemanager
 ```
- 
+
 ### Launching from Marathon ###
 
 Alternatively, start and stop Myriad from the Marathon UI. See Marathon: Application Basics for more information. For example, create an application to start the Resource Manager:
@@ -47,7 +47,7 @@ Alternatively, start and stop Myriad from the Marathon UI. See Marathon: Applica
 ```
 cd hadoop-2.7.1/sbin && yarn-daemon.sh start resourcemanager
 ```
- 
+
 Alternatively, when launching the Resource Manager in an HA environment, specify value for the `yarn.resourcemanager.hostname` property. The hostname is the ID field specified when launching a Marathon application.
 
 To initially launch the Resource Manager from Marathon:
@@ -160,7 +160,7 @@ To flexup and flexdown instances via the Myriad UI, go to the Flex button on the
 ### REST API ###
 
 To scale a cluster up or down, use the Myriad Cluster API. The [Cluster API](API.md) provides flexup and flexdown capability that changes the size of one or more instances in a cluster. These predefined values are specified in the Myriad configuration file (**myriad-config-default.yml**). To retrieve the Myriad configuration and the Myriad Scheduler state, use the Configuration API and State API.
- 
+
 The HTTP method and URIs for flexing up and down are:
 
 ```
@@ -168,8 +168,8 @@ PUT /api/cluster/flexup
 
 PUT /api/cluster/flexdown
 ```
- 
 
 
 
- 
+
+

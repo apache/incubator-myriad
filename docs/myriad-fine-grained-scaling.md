@@ -2,7 +2,7 @@
 
 The objective of fine-grained scaling is to bring elasticity of resources between YARN and other Mesos frameworks. With fine-grained scaling, YARN takes resource offers from Mesos and runs enough containers (YARN tasks) that the offers can hold and release the resources back to Mesos once the containers finish.
 
-* Node Managers that register with the Resource Manager with (0 memory, 0 CPU) are eligible for fine-grained scaling, that is, Myriad expands and shrinks the capacity of the Node Managers with the resources offered by Mesos. Further, Myriad ensures that YARN containers are launched on the Node Managers only if Mesos offers enough resources on the slave nodes running those Node Managers. 
+* Node Managers that register with the Resource Manager with (0 memory, 0 CPU) are eligible for fine-grained scaling, that is, Myriad expands and shrinks the capacity of the Node Managers with the resources offered by Mesos. Further, Myriad ensures that YARN containers are launched on the Node Managers only if Mesos offers enough resources on the slave nodes running those Node Managers.
 * A zero profile, as well as small, medium, and large profiles are defined in the Myriad configuration file, myriad-config-default.yml. A zero profile allows administrators to launch Node Managers with (0 memory, 0 CPU) capacities. To modify the profile, use the Cluster REST /api/cluster/flexup command).
 * Node Managers that register with the Resource Manager with more than (0 memory, 0 CPU) are not eligible for fine-grained scaling. For example, Myriad does not expand and shrink the capacity of the Node Managers. Node Managers are typically launched with a low, medium, or high profile.
 
@@ -12,7 +12,7 @@ The administrator launches Node Managers with zero capacity (via the REST /api/c
 
 When a user submits an application to YARN (for example, a MapReduce job), the following occurs:
 
-1. The application is added to the Resource Manager's scheduling pipeline. 
+1. The application is added to the Resource Manager's scheduling pipeline.
 	* If a Node Manager has a zero profile, the YARN scheduler (for example. FairShareScheduler) does not allocate any application containers.
 	* If a Node Manager has a non-zero capacity (low, medium, or high profiles), containers might be allocated for those Node Managers depending on their free capacity.
 2. Myriad receives resource offers from Mesos for slave nodes running zero profile Node Managers.
