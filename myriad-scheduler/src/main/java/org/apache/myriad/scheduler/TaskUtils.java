@@ -221,14 +221,15 @@ public class TaskUtils {
   public Iterable<Protos.Resource> getScalarResource(Protos.Offer offer, String name, Double value, Double used) {
     String role = cfg.getFrameworkRole();
     ArrayList<Protos.Resource> resources = new ArrayList<>();
-    double resourceDoubleValue = 0;
+    double resourceDifference = 0; //used to determine the resource difference of value and the resources requested from role *
     //Find role by name, must loop through resources
     for (Protos.Resource r : offer.getResourcesList()) {
       if (r.getName().equals(name) && r.hasRole() && r.getRole().equals(role) && r.hasScalar()) {
-        resourceDoubleValue = r.getScalar().getValue();
-        if (resourceDoubleValue - used > 0) {
+        //Use Math.max in case used>resourceValue
+        resourceDifference = Math.max(r.getScalar().getValue() - used, 0.0);
+        if (resourceDifference > 0) {
           resources.add(Protos.Resource.newBuilder().setName(name).setType(Protos.Value.Type.SCALAR)
-              .setScalar(Protos.Value.Scalar.newBuilder().setValue(Math.min(value, resourceDoubleValue - used)).build())
+              .setScalar(Protos.Value.Scalar.newBuilder().setValue(Math.min(value, resourceDifference)).build())
               .setRole(role).build());
         }
         break;
@@ -237,11 +238,10 @@ public class TaskUtils {
         LOGGER.warn("Resource with name: " + name + "expected type to be SCALAR check configuration on: " + offer.getHostname());
       }
     }
-    //Assume enough resources are present in default value, if not we shouldn't of gotten to this function.
-    //Use Math.max in case used>resourceDoubleValue
-    if (value - Math.max((resourceDoubleValue - used), 0) > 0) {
+    //Assume enough resources are present in default value, if not we shouldn't have gotten to this function.
+    if (value - resourceDifference > 0) {
       resources.add(Protos.Resource.newBuilder().setName(name).setType(Protos.Value.Type.SCALAR)
-          .setScalar(Protos.Value.Scalar.newBuilder().setValue(value - Math.max((resourceDoubleValue - used), 0)).build())
+          .setScalar(Protos.Value.Scalar.newBuilder().setValue(value - resourceDifference).build())
           .build()); //no role assumes default
     }
     return resources;
