@@ -10,7 +10,7 @@ The Node Manager profile is an abstraction for the amount of resources a Node Ma
   },
 ```
 
-The following default profiles are configurable. To change a profile, modify the Myriad configuration file, `myriad-config-default.yml`. 
+The following default profiles are configurable. To change a profile, modify the Myriad configuration file, `myriad-config-default.yml`.
 
 **Note:** If you modify the Myriad configuration file after the initial build, you must build and deploy again for the changes to take affect.
 

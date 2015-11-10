@@ -15,7 +15,7 @@ API | HTTP Method | URI | Description |
 
 
 
-  
+
 ## Cluster API
 
 The Cluster REST API uses the PUT /api/cluster/flexup and flexdown HTTP method and URI to expand and shrink the cluster size.
@@ -24,7 +24,7 @@ The Cluster REST API uses the PUT /api/cluster/flexup and flexdown HTTP method a
 
 ```
 PUT /api/cluster/flexup      // Expands the size of the YARN cluster.
- 
+
 PUT /api/cluster/flexdown    // Shrinks the size of the YARN cluster.
 ```
 
@@ -56,25 +56,25 @@ constraints | (Optional) Array definition for a single constraint using the LIKE
 Curl request example to flexup two instances with the profile set to small:
 
 ```
-curl -X PUT http://10.10.100.19:8192/api/cluster/flexup 
-    -d instances=2 
+curl -X PUT http://10.10.100.19:8192/api/cluster/flexup
+    -d instances=2
     -d profile=small
 ```
 
 Curl request example to flexdown one instance with the profile set to small:
 
 ```
-curl -X PUT http://10.10.100.19:8192/api/cluster/flexdown 
-    -d instances=1 
+curl -X PUT http://10.10.100.19:8192/api/cluster/flexdown
+    -d instances=1
     -d profile=small
 ```
 
 Curl request example to launch two (2) Node Managers with profile set to large only on specific hosts, host-120 through host-129:
 
 ```
-curl -X PUT http://10.10.100.19:8192/api/cluster/flexdown 
-    -d instances=2 
-    -d profile=large 
+curl -X PUT http://10.10.100.19:8192/api/cluster/flexdown
+    -d instances=2
+    -d profile=large
     -d constraints=["hostname LIKE host-12[0-9].example.com"]
 ```
 
@@ -115,7 +115,7 @@ Launches a Node Manager with the profile set to medium on any host in the Mesos 
 ```
 {profile: "medium", instances:1}
 ```
- 
+
 Launches a Node Manager with the profile set to small on any host in the Mesos cluster:
 
 ```
@@ -136,7 +136,7 @@ Launches four (4) Node Managers with profile set to large only on specific hosts
 
 ```
 {
-    "instances":4, 
+    "instances":4,
     "profile": "large",
     "constraints": ["hostname LIKE host-12[0-9].example.com"]
 }
@@ -146,7 +146,7 @@ Launches two (2) Node Managers with profile set to zero only on hosts sharing a 
 
 ```
 {
-    "instances":2, 
+    "instances":2,
     "profile": "zero",
     "constraints": ["hdfs LIKE true"]
 }
@@ -169,10 +169,10 @@ The Cluster REST API uses the PUT /api/cluster/flexup and flexdown HTTP method a
 
 ```
 PUT /api/cluster/flexup      // Expands the size of the YARN cluster.
- 
+
 PUT /api/cluster/flexdown    // Shrinks the size of the YARN cluster.
 ```
- 
+
 Parameters include:
 
 
@@ -181,10 +181,10 @@ Parameter | Description |
 profile	  | (Required) If a profile value is not specified, the API returns an error. The profile indicates the amount of resources (CPU or memory) a Node Manager should advertise to the Resource Manager. Default profiles: zero, small, medium, large. These default profiles (zero, small, medium, and large) are defined in the myriad-config-default.yml file. The resources associated with these default profiles can be modified; additionally, new profiles can be defined. |
 instances| (Required) The number of Node Managers instances to launch. Each Node Manager instance advertises the amount of resources specified in the profile. The value is a number in the range of zero (0) to the number of Mesos slave nodes.|
 constraints	| (Optional) Array definition for a single constraint using the LIKE operator constraint format: <mesos_slave_attribute|hostname> LIKE <value_regex>. The hostname constraint is used to launch Node Managerss on nodes whose hostname matches the regex passed in as value. See common Mesos slave attributes (http://mesos.apache.org/documentation/attributes-resources) for more information. |
- 
- 
+
+
 ### Syntax
- 
+
  ```
  <resource_manager_host>:8192/api/cluster/flexup
     profile=<zero|small|medium|large>
@@ -202,28 +202,28 @@ constraints	| (Optional) Array definition for a single constraint using the LIKE
 Curl request example to flexup two instances with the profile set to small:
 
 ```
-curl -X PUT http://10.10.100.19:8192/api/cluster/flexup 
-    -d instances=2 
+curl -X PUT http://10.10.100.19:8192/api/cluster/flexup
+    -d instances=2
     -d profile=small
 ```
- 
+
 Curl request example to flexdown one instance with the profile set to small:
 
 ```
-curl -X PUT http://10.10.100.19:8192/api/cluster/flexdown 
-    -d instances=1 
+curl -X PUT http://10.10.100.19:8192/api/cluster/flexdown
+    -d instances=1
     -d profile=small
 ```
- 
+
 Curl request example to launch two (2) Node Managers with profile set to large only on specific hosts, host-120 through host-129:
 
 ```
-curl -X PUT http://10.10.100.19:8192/api/cluster/flexdown 
-    -d instances=2 
-    -d profile=large 
+curl -X PUT http://10.10.100.19:8192/api/cluster/flexdown
+    -d instances=2
+    -d profile=large
     -d constraints=["hostname LIKE host-12[0-9].example.com"]
 ```
- 
+
 Request header to flexup:
 
 ```
@@ -261,7 +261,7 @@ Launches a Node Manager with the profile set to medium on any host in the Mesos 
 ```
 {profile: "medium", instances:1}
 ```
- 
+
 Launches a Node Manager with the profile set to small on any host in the Mesos cluster:
 
 ```
@@ -282,7 +282,7 @@ Launches four (4) Node Managers with profile set to large only on specific hosts
 
 ```
 {
-    "instances":4, 
+    "instances":4,
     "profile": "large",
     "constraints": ["hostname LIKE host-12[0-9].example.com"]
 }
@@ -292,7 +292,7 @@ Launches two (2) Node Managers with profile set to zero only on hosts sharing a 
 
 ```
 {
-    "instances":2, 
+    "instances":2,
     "profile": "zero",
     "constraints": ["hdfs LIKE true"]
 }
@@ -331,13 +331,13 @@ URL request example:
 ```
 http://10.10.100.19:8192/api/config
 ```
- 
+
 Curl request example:
 
 ```
 curl http://10.10.100.19:8192/api/config | python -m json.tool
 ```
- 
+
 Request header:
 
 ```
@@ -374,7 +374,7 @@ Accept-Language: en-US,en;q=0.8
         },
         "nodeManagerUri": {
             "present": false
-        }, 
+        },
     "nativeLibrary": "/usr/local/lib/libmesos.so",
     "nmInstances": {
         "medium": 1
@@ -394,7 +394,7 @@ Accept-Language: en-US,en;q=0.8
         }
     }
     "profiles": {
- 
+
         "large": {
             "cpu": "10",
             "mem": "12288"
@@ -456,7 +456,7 @@ Curl request example:
 ```
 curl http://10.10.100.19:8192/api/state | python -m json.tool
 ```
- 
+
 Request header:
 
 ```
@@ -469,7 +469,7 @@ User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_4) AppleWebKit/537.36 (
 Accept-Encoding: gzip, deflate, sdch
 Accept-Language: en-US,en;q=0.8
 ```
- 
+
 ### Response Example
 
 ```
