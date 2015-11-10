@@ -59,7 +59,7 @@ YARN_HOME: hadoop-2.7.1                # This should be relative if nodeManagerU
 
 ### Step 4: Configure YARN to Use Myriad ###
 
-Modify the  **YARN_HOME/etc/hadoop/yarn-site.xml** file. See [Myriad yarn-site.xml file](myriad-yarn-site-sample.md)
+Modify the  **YARN_HOME/etc/hadoop/yarn-site.xml** file. See [Myriad yarn-site.xml file](sample-yarn-site.md)
 
 
 ### Step 5: Create the Tarball ###
