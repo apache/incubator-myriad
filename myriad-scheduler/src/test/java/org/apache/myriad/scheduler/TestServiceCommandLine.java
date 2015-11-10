@@ -37,12 +37,12 @@ public class TestServiceCommandLine {
   static MyriadConfiguration cfg;
 
   static String toJHSCompare =
-      "echo \"sudo tar -zxpf hadoop-2.5.0.tar.gz && sudo chown hduser . && cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml; " +
+      "echo \"sudo tar -zxpf hadoop-2.7.0.tar.gz && sudo chown hduser . && cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml; " +
       "sudo -E -u hduser -H $YARN_HOME/bin/mapred historyserver\";sudo tar -zxpf hadoop-2.5.0.tar.gz && sudo chown hduser . && cp" +
       " conf /usr/local/hadoop/etc/hadoop/yarn-site.xml; sudo -E -u hduser -H $YARN_HOME/bin/mapred historyserver";
 
   static String toCompare =
-      "echo \"sudo tar -zxpf hadoop-2.5.0.tar.gz && sudo chown hduser . && cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml;";
+      "echo \"sudo tar -zxpf hadoop-2.7.0.tar.gz && sudo chown hduser . && cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml;";
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -75,7 +75,7 @@ public class TestServiceCommandLine {
     ServiceResourceProfile profile = new ExtendedResourceProfile(new NMProfile("nm", 10L, 15L), 3.0, 5.0);
 
     ExecutorCommandLineGenerator clGenerator = new DownloadNMExecutorCLGenImpl(cfg,
-        "hdfs://namenode:port/dist/hadoop-2.5.0.tar.gz");
+        "hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz");
     NMTaskFactoryImpl nms = new NMTaskFactoryImpl(cfg, null, clGenerator);
 
     CommandInfo cInfo = nms.getCommandInfo(profile, nmPorts);

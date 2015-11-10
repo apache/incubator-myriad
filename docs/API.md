@@ -416,7 +416,7 @@ Accept-Language: en-US,en;q=0.8
     "haEnabled": false
     "restApiPort": 8192,
     "yarnEnvironment": {
-        "YARN_HOME": "/root/hadoop-2.7.1"
+        "YARN_HOME": "/root/hadoop-2.7.0"
     },
     "zkServers": "10.10.100.19:2181",
     "zkTimeout": 20000
