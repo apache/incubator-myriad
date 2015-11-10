@@ -188,8 +188,8 @@ public interface TaskFactory {
           offer.getSlaveId());
 
       return taskBuilder
-          .addAllResources(taskUtils.getScalarResource(offer, "cpus", taskCpus, taskUtils.getExecutorCpus()))
-          .addAllResources(taskUtils.getScalarResource(offer, "mem", taskMemory, taskUtils.getExecutorMemory()))
+          .addAllResources(taskUtils.getScalarResource(offer, "cpus", taskCpus, 0.0))
+          .addAllResources(taskUtils.getScalarResource(offer, "mem", taskMemory, 0.0))
           .addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(Value.Ranges.newBuilder()
               .addRange(Range.newBuilder().setBegin(ports.getRpcPort()).setEnd(ports.getRpcPort()).build())
               .addRange(Range.newBuilder().setBegin(ports.getLocalizerPort()).setEnd(ports.getLocalizerPort()).build())
