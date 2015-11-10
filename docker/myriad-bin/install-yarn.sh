@@ -20,7 +20,7 @@ under the License.
 ##
 # YARN installer script for Apache Myriad Deployment
 ##
-HADOOP_VER="2.7.1"
+HADOOP_VER="2.7.0"
 HADOOP_TARBALL_URL=http://apache.osuosl.org/hadoop/common/hadoop-${HADOOP_VER}/hadoop-${HADOOP_VER}.tar.gz
 
 echo "Installing Yarn...."

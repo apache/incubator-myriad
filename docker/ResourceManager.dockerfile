@@ -6,7 +6,7 @@ FROM debian
 MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
 
 ENV HADOOP_USER="yarn"
-ENV HADOOP_VER="2.7.1"
+ENV HADOOP_VER="2.7.0"
 
 # Setup mesosphere repositories
 RUN apt-get -y update
