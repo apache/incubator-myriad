@@ -15,7 +15,14 @@ To start the cluster run following:
 vagrant up
 ```
 
-At this point the VM will have a single node mesos cluster running.
+At this point the VM will have a single node Mesos cluster running and a single node
+HDFS cluster running. You can modify the Mesos and Hadoop versions by editing the
+corresponding variables in the `Vagrantfile`.
+
+Check that Mesos and Hadoop are running with a browser:
+
+[Hadoop/HDFS namenode](http://10.141.141.20:50070)
+[Mesos Master](http://10.141.141.20:5050/)
 
 To ssh in the cluster, run following:
 
@@ -23,50 +30,14 @@ To ssh in the cluster, run following:
 vagrant ssh
 ```
 
-The password for vagrant user is **vagrant'**
-
-## Setting Up YARN/Hadoop ##
-
-To setup YARN/Hadoop inside VM, run following YARN setup shell files:
-
-1 Run the first YARN setup shell command from the vagrant directory to create a user hduser in group hadoop. Be sure to remember the password that you provide for this user.
-```
-cd /vagrant
-./setup-yarn-1.sh
-```
-2.  Run the second YARN setup shell command as sudo.
+The password for vagrant user is **vagrant** if prompted
+You can switch to the hadoop user when needed to launch hadoop processes
 
 ```
 sudo su - hduser
-cd /vagrant
-./setup-yarn-2.sh
 ```
-
-The following processes should be running:
-
-```
-9844 Jps
-6709 NameNode
-6393 JobHistoryServer
-6874 DataNode
-```
-
-**NOTE:** The process IDS are different.
-
-## Installing Myriad ##
-
-Installing Myriad involves downloading the Myriad binaries from GitHub. The Myriad location is currently at [https://github.com/mesos/myriad](https://github.com/mesos/myriad).
-
-To install Myriad:
-
-1. Create a new myriad directory.
-2. Clone the Myriad GitHub.
-3. Pull the contents to the new directory.
-
 
 ## Configuring Myriad ##
-
-To configure Myriad:
 
 ### Step 1: Build Myriad ###
 
@@ -214,7 +185,7 @@ To shut down, from the vagrant ssh console, run the following:
 
 ```
 yarn-daemon.sh stop resourcemanager
-./shutdown.sh
+sh ./vagrant/shutdown.sh
 exit
 exit
 vagrant halt
