@@ -46,6 +46,7 @@ Install and configure Mesos-DNS for Myriad High Availability (if using HA).
 
 * **Myriad Scheduler** - This component plugs into Resource Manager process and negotiates resources from Mesos by implementing Mesos Scheduler and SchedulerDriver interfaces. It is responsible to launch Node Manager processes via Mesos.
 * **Myriad Executor** - This component plugs into the NodeManager process via the YARN AuxiliaryService interface.
+
 ---
 <sub>
 Licensed to the Apache Software Foundation (ASF) under one
