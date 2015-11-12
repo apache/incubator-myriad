@@ -18,8 +18,6 @@
 # under the License.
 #
 
-# $1 = mesos version number to install (e.g. 0.21.1)
-
 PREFIX="Mesos Provisioner: "
 set -e
 
@@ -37,7 +35,4 @@ apt-get -y install aria2
 apt-get -y install ssh
 apt-get -y install rsync
 
-
-export MESOS_VERSION=$1
-echo "${PREFIX}Installing mesos version: ${MESOS_VERSION}..."
-apt-get -y install mesos
+apt-get -y install mesos=0.24.1-0.2.35.ubuntu1404

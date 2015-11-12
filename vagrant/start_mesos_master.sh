@@ -20,9 +20,9 @@
 
 echo "zk://127.0.0.1:2181/mesos" > /etc/mesos/zk
 #echo "$@ master" >> /etc/hosts
-#echo "192.168.50.102 slave" >> /etc/hosts
-echo 127.0.0.1 | sudo tee /etc/mesos-master/ip
-echo localhost | sudo tee /etc/mesos-master/hostname
+echo "10.141.141.20 master" >> /etc/hosts
+echo 10.141.141.20 | sudo tee /etc/mesos-master/ip
+echo master | sudo tee /etc/mesos-master/hostname
 
 echo "export HADOOP_HOME=/usr/local/hadoop" >> /root/.bashrc
 echo "export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64" >> /root/.bashrc
