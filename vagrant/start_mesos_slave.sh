@@ -20,7 +20,7 @@
 
 set -e
 
-echo "127.0.0.1" > /etc/mesos-slave/ip
+echo "10.141.141.20" > /etc/mesos-slave/ip
 echo "cgroups/cpu,cgroups/mem" > /etc/mesos-slave/isolation
 echo "mesos" > /etc/mesos-slave/containerizers
 echo "/usr/local/hadoop" > /etc/mesos-slave/hadoop_home

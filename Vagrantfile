@@ -22,23 +22,21 @@
 
 VAGRANTFILE_API_VERSION = "2"
 
-MESOS_VERSION="0.21.1"
 HADOOP_VERSION="2.7.0"
-#PRIVATE_IP="10.141.141.20"
+PRIVATE_IP="10.141.141.20"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.box = "ubuntu/trusty64"
   config.vm.box_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64"
-  #config.vm.hostname = "master"
-  #config.vm.network :private_network, ip: "#{PRIVATE_IP}"
+  config.vm.network :private_network, ip: "#{PRIVATE_IP}"
 
   # Configure VM resources
   config.vm.provider :virtualbox do |vb|
     vb.name = "myriad-dev"
     vb.customize ["modifyvm", :id, "--memory", "4096"]
     vb.customize ["modifyvm", :id, "--cpus", "2"]
-    #vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
-    #vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
+    vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
+    vb.customize ["modifyvm", :id, "--natdnsproxy1", "on"]
   end
 
   if Vagrant.has_plugin?("vagrant-cachier")
@@ -47,26 +45,26 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   # Forward mesos master and slave ports
-  #config.vm.network "forwarded_port", guest: 5005, host: 5005
-  #config.vm.network "forwarded_port", guest: 5050, host: 5050
-  #config.vm.network "forwarded_port", guest: 5051, host: 5051
+  config.vm.network "forwarded_port", guest: 5005, host: 5005
+  config.vm.network "forwarded_port", guest: 5050, host: 5050
+  config.vm.network "forwarded_port", guest: 5051, host: 5051
 
   # Forward myriad web and admin ports
-  #config.vm.network "forwarded_port", guest: 8080, host: 8080
-  #config.vm.network "forwarded_port", guest: 8081, host: 8081
+  config.vm.network "forwarded_port", guest: 8080, host: 8080
+  config.vm.network "forwarded_port", guest: 8081, host: 8081
 
   # Forward YARN/Hadoop ports
-  #config.vm.network "forwarded_port", guest: 50070, host: 50070
-  #config.vm.network "forwarded_port", guest: 50075, host: 50075
-  #config.vm.network "forwarded_port", guest: 8088, host: 8088
-  #config.vm.network "forwarded_port", guest: 8042, host: 8042
-  #config.vm.network "forwarded_port", guest: 19888, host: 19888
-  #config.vm.network "forwarded_port", guest: 8192, host: 8192
-  #config.vm.network "forwarded_port", guest: 2181, host: 2181
+  config.vm.network "forwarded_port", guest: 50070, host: 50070
+  config.vm.network "forwarded_port", guest: 50075, host: 50075
+  config.vm.network "forwarded_port", guest: 8088, host: 8088
+  config.vm.network "forwarded_port", guest: 8042, host: 8042
+  config.vm.network "forwarded_port", guest: 19888, host: 19888
+  config.vm.network "forwarded_port", guest: 8192, host: 8192
+  config.vm.network "forwarded_port", guest: 2181, host: 2181
 
   # install software
   config.vm.provision "shell", path: "vagrant/install_default_jdk.sh"
-  config.vm.provision "shell", path: "vagrant/install_mesos.sh", args: ["#{MESOS_VERSION}"]
+  config.vm.provision "shell", path: "vagrant/install_mesos.sh"
   config.vm.provision "shell", path: "vagrant/install_docker.sh"
   config.vm.provision "shell", path: "vagrant/install_hadoop.sh", args: ["#{HADOOP_VERSION}"]
 
