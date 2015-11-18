@@ -43,7 +43,7 @@ ADD myriad-bin/install-yarn.sh /install-yarn.sh
 RUN sh /install-yarn.sh
 
 # Copy over myriad libraries
-ADD /libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
+ADD ./libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
 
 
 # Initialize hadoop confs with env vars
