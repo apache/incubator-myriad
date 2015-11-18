@@ -184,7 +184,7 @@ public interface TaskFactory {
       CommandInfo commandInfo = getCommandInfo(serviceProfile, ports);
       ExecutorInfo executorInfo = getExecutorInfoForSlave(frameworkId, offer, commandInfo);
 
-      TaskInfo.Builder taskBuilder = TaskInfo.newBuilder().setName(cfg.getFrameworkName() + "-task-" + taskId.getValue()).setTaskId(taskId).setSlaveId(
+      TaskInfo.Builder taskBuilder = TaskInfo.newBuilder().setName(cfg.getFrameworkName() + "-" + taskId.getValue()).setTaskId(taskId).setSlaveId(
           offer.getSlaveId());
 
       return taskBuilder
