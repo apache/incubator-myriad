@@ -21,6 +21,21 @@ allprojects {
     apply plugin: 'eclipse'
 }
 
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.bmuschko:gradle-docker-plugin:2.6.1'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
 idea {
     project {
         languageLevel = '1.7'

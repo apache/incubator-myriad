@@ -1,12 +1,14 @@
 # Using Myriad with Docker #
+Docker is the easiest way to from 0 to Yarn on Mesos within minutes. 
 
 ## Building the Resource Manager Docker
-
-`./build-myriad.sh` will run the gradle scripts from the root myriad folder and compile all necessary libraries.
+Run the following command:
+```./gradlew buildRMDocker```
+This will build the ResourceManager from src and save the image as *mesos/myriad*.
 
 #Configuration Guide#
 
-In order for the ResourceManager to operate correctly, you will need to provide 2 configuration files:
+In order for the ResourceManager to operate correctly, you will need to provide 2 configuration files. These files will need to mounted from a directory into */myriad-conf* within the docker container.
 
 * [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml)
 * modified [yarn-site.xml](https://github.com/mesos/myriad/blob/phase1/docs/myriad-dev.md)
@@ -17,19 +19,11 @@ In order for the ResourceManager to operate correctly, you will need to provide 
 ```bash
 docker run --net=host --name='myriad-resourcemanager' -t \
   -v /path/to/configs:/myriad-conf \
-  -e HADOOP_NAMENODE="10.100.3.237:9000" \
-  mesos/myriad-resourcemanager
+  mesos/myriad
   ```
 
 #Environment Variables#
-
-* *HADOOP_NAMENODE* : *Required*
-* *ALTERNATE_HADOOP_URL* : Optional - Allows user to override the hadoop distribution used by Myriad.
-
-
-If you already had a working Vagrant instance, you will need to run `vagrant reload` in order to allow zookeeper and hdfs port-forwarding.
-
-Still having problems connecting to Zookeeper? Be sure that your zkServer and MesosMaster values are correct in the [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml) file.
+* *ALTERNATE_HADOOP_URL* : Optional - Allows user to override the hadoop distribution used by Myriad. This will download the *.tar.gz file to be used as the hadoop distribution of choice for Myriad. 
 
 ---
 <sub>

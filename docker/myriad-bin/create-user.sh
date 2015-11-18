@@ -27,7 +27,7 @@ export GROUP_UID=${GROUP_GID:='112'}
 # Add hduser user
 echo "Creating $HADOOP_USER user.."
 groupadd $HADOOP_GROUP -g ${GROUP_UID}
-useradd $HADOOP_USER -g $HADOOP_GROUP -u ${USER_UID} -s /bin/bash
+useradd $HADOOP_USER -g $HADOOP_GROUP -u ${USER_UID} -s /bin/bash -d /home/${HADOOP_USER}
 mkdir /home/${HADOOP_USER}
 chown -R $HADOOP_USER:$HADOOP_GROUP /home/${HADOOP_USER}
 
