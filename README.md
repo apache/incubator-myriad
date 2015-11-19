@@ -10,9 +10,6 @@ The name _Myriad_ means, _countless or extremely great number_. In context of th
 
 ## Getting started
 
-For up-to-date documentation, see [Apache Myriad](https://cwiki.apache.org/confluence/display/MYRIAD/Myriad+Home) on the wiki.
-
-
 * [How Myriad works](docs/how-it-works.md)
 * [Developing Myriad](docs/myriad-dev.md)
 * [Local vagrant setup guide](docs/vagrant.md)
@@ -22,6 +19,11 @@ For up-to-date documentation, see [Apache Myriad](https://cwiki.apache.org/confl
 * [Fine Grained Scaling](docs/myriad-fine-grained-scaling.md)
 * [Deploying the Myriad Resource-Manger using Docker](docker/README.md)
 * [Mesos, YARN and cgroups](docs/cgroups.md)
+
+For up-to-date documentation, see [Apache Myriad](https://cwiki.apache.org/confluence/display/MYRIAD/Myriad+Home) on the wiki.
+
+## Build Myriad
+Please refer to the [build](docs/myriad-dev.md#step-1-build-myriad) section for steps to build Myriad.
 
 ## Roadmap
 Please keep checking this section for updates.
