@@ -37,6 +37,6 @@ fi
 
 # Copy over the Java Libraries
 cp -rf ../myriad-scheduler/build/libs/* libs/
-cp -rf ../myriad-executor/build/libs/myriad-executor-runnable-0.0.1.jar libs/
+cp -rf ../myriad-executor/build/libs/myriad-executor-runnable-0.1.0.jar libs/
 
 echo "Init complete! " #Modify config/myriad-default-config.yml to your liking before building the docker image"
