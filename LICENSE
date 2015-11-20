@@ -187,7 +187,7 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright 2012-present Apache Software Foundation
+   Copyright [yyyy] [name of copyright owner]
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -210,4 +210,10 @@ notices and license terms. Your use of the source code for the these
 subcomponents is subject to the terms and conditions of the following
 licenses.
 
+==============================================================================
+For normalize.css
+==============================================================================
+bootstrap-myriad.css bundles normalize.css which is available under a
+"MIT" license. For details, see
+https://github.com/necolas/normalize.css/blob/3.0.2/LICENSE.md
 
