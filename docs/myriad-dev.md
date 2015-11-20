@@ -1,62 +1,63 @@
 # Installing for Developers
 
-## Setting up Editor Support
-
-You are welcome to use any editor you like, however, many of the myriad developers use IntelliJ IDEA. The build process described below uses [gradle](https://gradle.org/).   The build script is configured with the [idea plugin](https://docs.gradle.org/current/userguide/idea_plugin.html) to create an intellij project structure.   This is accomplished with the following command:
-
-```
-./gradlew idea
-
-# to open on a mac
-open myriad.ipr
-```
-
-**NOTE:** If you are interested in using eclipse, there is a plugin for that.  Either send in a pull request, or send a message on the dev mail list that you would make use of it.
-
 ## Step 1: Build Myriad
- To build Myriad (both Myriad Scheduler and Executor), from the $PROJECT_HOME, run:
+
+### Requirements
+ - Linux/Unix/Mac OS X 
+ - JDK 7
+ - [gradle](http://gradle.org) 
+ 	- **Gradle installation is required to build Myriad from a source release download**
+ 	- If building Myriad from the project's git clone, gradle installation is *not required* 
+
+### Installing the gradle wrapper
+> These instructions apply to source release downloads only. 
+> If Myriad sources are checked out from the [git repository](https://github.com/apache/incubator-myriad), the gradle wrapper script will already be available.
+
+Myriad's source release tarball does not include gradle wrapper script. So you'll need to:
+
+- Install gradle:
+	- Please follow the instructions on [gradle's website](http://gradle.org) to install gradle. We tested Myriad with gradle 2.9.
+- Generate the gradle wrapper script:
+	- Once gradle is installed, execute ```gradle wrapper``` command from the $PROJECT_ROOT of the Myriad project. This generates a ```$PROJECT_ROOT/gradlew``` script, and also places a supporting jar at ```$PROJECT_ROOT/gradle/wrapper/gradle-wrapper.jar```.
+
+### Building the binaries
+
+ Ensure ```$PROJECT_ROOT/gradlew``` script is available. Run the following command from $PROJECT_ROOT to build Myriad (both Scheduler and Executor components):
 
 ```
 ./gradlew build
 ```
 
-At this point the jars are located in the following directories (relative to $PROJECT_HOME).
-
+At this point the jars will be located in the following directories:
 ```
 # scheduler jars
-./myriad-scheduler/build/libs/
+$PROJECT_HOME/myriad-scheduler/build/libs/
 
 # executor jar
-./myriad-executor/build/libs/
-
+$PROJECT_HOME/myriad-executor/build/libs/
 ```
 
 ### Building Myriad Scheduler Only
-Before building Myriad Scheduler, modify [myriad-config-default.yml](../myriad-scheduler/src/main/resources/myriad-config-default.yml) with the appropriate configuration properties. The build process`.gradlew build` command builds the myriad-x.x.x.jar file, download the runtime jars, and places them inside the **./build/libs/** directory (relative to the $PROJECT_HOME/myriad-scheduler directory).
 
-To build Myriad Scheduler, from $PROJECT_HOME/myriad-scheduler run:
+To build only the Scheduler, from $PROJECT_HOME, run:
 
 ```bash
-./gradlew build
+./gradlew :myriad-scheduler:build
 ```
-
 
 ### Building Myriad Executor Only
 
-The `./gradlew build` command builds the **myriad-executor-runnable-xxx.jar** and place it inside the **$PROJECT_HOME/myriad-executor/build/libs/** directory.
-
-To build Myriad Executor individually as a self-contained executor jar, from $PROJECT_HOME/myriad-executor, run:
+To build only the Executor, from $PROJECT_HOME, run:
 
 ```bash
-./gradlew build
+./gradlew :myriad-executor:build
 ```
 
+## Step 2: Deploy the Myriad Binaries
 
-## Step 2: Deploy the Myriad Files
+To deploy Myriad Scheduler and Executor Binaries:
 
-To deploy Myriad Scheduler and Executor files:
-
-1. Copy the Myriad Scheduler jar files from the $PROJECT_HOME/myriad-scheduler/build/libs/ directory to the $YARN_HOME/share/hadoop/yarn/lib/ directory on all nodes in your cluster.
+1. Copy the Myriad Scheduler jar and it's dependencies from the $PROJECT_HOME/myriad-scheduler/build/libs/ directory to the $YARN_HOME/share/hadoop/yarn/lib/ directory on all nodes in your cluster.
 2. Copy the Myriad Executor myriad-executor-xxx.jar file from the $PROJECT_HOME/myriad-executor/build/libs/ directory to each mesos slave's $YARN_HOME/share/hadoop/yarn/lib/ directory.
 3. Copy the myriad-config-default.yml file from $PROJECT_HOME/myriad-scheduler/build/src/main/resources/ directory to the $YARN_HOME/etc/hadoop directory.
 
@@ -147,7 +148,6 @@ export MESOS_NATIVE_JAVA_LIBRARY=/usr/local/lib/libmesos.so
 </property>
 ```
 
-
 ## Starting the Resource Manager
 Myriad Scheduler runs inside Resource Manager as a plugin. To start the Resource Manager:
 
@@ -155,9 +155,21 @@ Myriad Scheduler runs inside Resource Manager as a plugin. To start the Resource
 ./sbin/yarn-daemon.sh start resourcemanager
 ```
 
-
 ##  Running Myriad Executor and Node Managers
 Myriad Executor and Node Managers are launched automatically by Myriad Scheduler as a response to flexup and flex down behavior. See the [Myriad Cluster API](API.md).
+
+## Setting up Editor/IDE Support
+
+You are welcome to use any editor you like, however, many of the myriad developers use IntelliJ IDEA. The build process described below uses [gradle](https://gradle.org/).   The build script is configured with the [idea plugin](https://docs.gradle.org/current/userguide/idea_plugin.html) to create an intellij project structure.   This is accomplished with the following command:
+
+```
+./gradlew idea
+
+# to open on a mac
+open myriad.ipr
+```
+
+**NOTE:** If you are interested in using eclipse, there is a plugin for that.  Either send in a pull request, or send a message on the [dev mail list](dev@myriad.incubator.apache.org) that you would make use of it.
 
 ---
 <sub>
