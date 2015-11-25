@@ -24,6 +24,9 @@ MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
 
 ENV HADOOP_USER="yarn"
 ENV HADOOP_VER="2.7.0"
+ENV HADOOP_HOME=/usr/local/hadoop
+ENV JAVA_HOME=/usr
+ENV MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
 
 # Setup mesosphere repositories
 RUN apt-get -y update
@@ -36,20 +39,16 @@ ADD myriad-bin/create-user.sh /create-user.sh
 RUN sh /create-user.sh
 
 # Install Mesos
-RUN apt-get install -y mesos curl tar
+RUN apt-get install -y mesos=`apt-cache madison mesos | grep 0.25.0 | head -1 | awk '{print $3}'` && \
+apt-get install -y curl tar
 
 # Run local YARN install
 ADD myriad-bin/install-yarn.sh /install-yarn.sh
 RUN sh /install-yarn.sh
-
+RUN ln -s /tmp /usr/local/hadoop/logs
 # Copy over myriad libraries
 ADD ./libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
-
-
 # Initialize hadoop confs with env vars
-ADD myriad-bin/run-myriad.sh /run-myriad.sh
-RUN mkdir /myriad-conf/
-
-# Run the YARN resource manager
+ADD myriad-etc/* /usr/local/hadoop/etc/hadoop/
 USER yarn
-CMD sh /run-myriad.sh 
+CMD /usr/local/hadoop/bin/yarn resourcemanager

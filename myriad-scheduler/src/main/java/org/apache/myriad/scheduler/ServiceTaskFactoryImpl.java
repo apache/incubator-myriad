@@ -80,7 +80,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     final String rmHostName = System.getProperty(YARN_RESOURCEMANAGER_HOSTNAME);
     List<Long> additionalPortsNumbers = null;
 
-
+    AbstractPorts ports = new AbstractPorts();
     final StringBuilder strB = new StringBuilder("env ");
     if (serviceConfig.getServiceOpts() != null) {
       strB.append(serviceConfig.getServiceOpts()).append("=");
@@ -91,7 +91,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
       }
 
       Map<String, Long> portsMap = serviceConfig.getPorts().or(new HashMap<String, Long>());
-      AbstractPorts ports = taskUtils.getPortResources(offer, Lists.newArrayList(portsMap.values()), new HashSet<Long>());
+      ports = taskUtils.getPortResources(offer, Lists.newArrayList(portsMap.values()), new HashSet<Long>());
       int i = 0;
       for (String portProperty : portsMap.keySet()) {
         strB.append("-D" + portProperty + "=" + serviceHostName + ":" + ports.get(i) + " ");
@@ -110,11 +110,13 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
 
     TaskInfo.Builder taskBuilder = TaskInfo.newBuilder();
 
-    taskBuilder.setName(nodeTask.getTaskPrefix()).setTaskId(taskId).setSlaveId(offer.getSlaveId())
+    taskBuilder.setName(nodeTask.getTaskPrefix()).setTaskId(taskId).setSlaveId(offer.getSlaveId()).setCommand(commandInfo)
         .addAllResources(taskUtils.getScalarResource(offer, "cpus", nodeTask.getProfile().getCpus(), 0.0))
-        .addAllResources(taskUtils.getScalarResource(offer, "mem", nodeTask.getProfile().getMemory(), 0.0));
-
-    taskBuilder.setCommand(commandInfo);
+        .addAllResources(taskUtils.getScalarResource(offer, "mem", nodeTask.getProfile().getMemory(), 0.0))
+        .addAllResources(ports.createResourceList());
+    if (cfg.getContainerInfo().isPresent()) {
+      taskBuilder.setContainer(taskUtils.getContainerInfo());
+    }
     return taskBuilder.build();
   }
 
@@ -132,7 +134,6 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
       }
       commandInfo.mergeEnvironment(yarnHomeB.build());
     }
-
     if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
       //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
       if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
@@ -160,7 +161,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
       LOGGER.info("Slave will execute command:" + cmd);
       commandInfo.addUris(nmUri).addUris(configUri).setValue("echo \"" + cmd + "\";" + cmd);
       commandInfo.setUser(cfg.getFrameworkSuperUser().get());
-
+      commandInfo.setShell(true);
     } else {
       commandInfo.setValue(executorCmd);
     }
@@ -169,8 +170,6 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
 
   @Override
   public ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId, Offer offer, CommandInfo commandInfo) {
-    // TODO (yufeldman) if executor specified use it , otherwise return null
-    // nothing to implement here, since we are using default slave executor
     return null;
   }
 

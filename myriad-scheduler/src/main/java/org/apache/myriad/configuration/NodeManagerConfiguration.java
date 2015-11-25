@@ -90,4 +90,5 @@ public class NodeManagerConfiguration {
   public Optional<Boolean> getCgroups() {
     return Optional.fromNullable(cgroups);
   }
+
 }

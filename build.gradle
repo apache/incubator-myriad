@@ -77,6 +77,13 @@ subprojects {
 
     configurations.create('myriadExecutorConf')
 
+    //Keeping guava at the level of hadoop 2.6.0 so we don't get all the
+    //awesomeness in our IDE and fail at runtime.
+    configurations.all {
+        resolutionStrategy {
+            force 'com.google.guava:guava:11.0.2'
+        }
+    }
     configurations {
         provided
         capsule
@@ -97,6 +104,7 @@ subprojects {
         compile 'com.google.code.gson:gson:2.3.1'        // marshalling between the scheduler and executor
 
         testCompile 'org.apache.zookeeper:zookeeper:3.4.6' // to resolve temporary mavenlocal issue
+        runtime 'com.google.guava:guava:11.0.2'
         testCompile 'junit:junit:4.12'
         testCompile 'commons-collections:commons-collections:3.2.1'
     }

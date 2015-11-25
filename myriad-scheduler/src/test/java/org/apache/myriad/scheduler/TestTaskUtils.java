@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Range;
+import com.google.common.collect.Ranges;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -41,6 +42,7 @@ public class TestTaskUtils {
 
   static MyriadConfiguration cfg;
   static MyriadConfiguration cfgWithRole;
+  static MyriadConfiguration cfgWithDocker;
   static double epsilon = .0001;
 
   @BeforeClass
@@ -50,6 +52,9 @@ public class TestTaskUtils {
         MyriadConfiguration.class);
     cfgWithRole = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-framework-role.yml"),
         MyriadConfiguration.class);
+    cfgWithDocker = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-docker-info.yml"),
+            MyriadConfiguration.class);
+
   }
 
   @AfterClass
@@ -169,8 +174,8 @@ public class TestTaskUtils {
   }
   private void checkResourceList(Iterable<Protos.Resource> resources, String name, Double roleVal, Double defaultVal) {
     int i = 0;
-    Range defaultValueRange = Range.closed(defaultVal - epsilon, defaultVal + epsilon);
-    Range roleValueRange = Range.closed(roleVal - epsilon, roleVal + epsilon);
+    Range defaultValueRange = Ranges.closed(defaultVal - epsilon, defaultVal + epsilon);
+    Range roleValueRange = Ranges.closed(roleVal - epsilon, roleVal + epsilon);
 
     for (Protos.Resource resource: resources) {
       if (resource.hasRole() && resource.getRole().equals("test")) {
@@ -217,4 +222,25 @@ public class TestTaskUtils {
     assertTrue(!ports2.get(2).getRole().or("*").equals("test"));
   }
 
+  @Test
+  public void testContainerInfo() {
+    TaskUtils taskUtils = new TaskUtils(cfgWithDocker);
+    Protos.ContainerInfo containerInfo = taskUtils.getContainerInfo();
+    assertTrue("The container should have a docker", containerInfo.hasDocker());
+    assertTrue("There should be two volumes", containerInfo.getVolumesCount() == 2);
+    assertTrue("The first volume should be read only", containerInfo.getVolumes(0).getMode().equals(Protos.Volume.Mode.RO));
+    assertTrue("The first volume should be read write", containerInfo.getVolumes(1).getMode().equals(Protos.Volume.Mode.RW));
+  }
+
+  @Test public void testDockerInfo() {
+    TaskUtils taskUtils = new TaskUtils(cfgWithDocker);
+    Protos.ContainerInfo containerInfo = taskUtils.getContainerInfo();
+    assertTrue("The container should have a docker", containerInfo.hasDocker());
+    assertTrue("There should be two volumes", containerInfo.getVolumesList().size() == 2);
+    assertTrue("There should be a docker image", containerInfo.getDocker().hasImage());
+    assertTrue("The docker image should be mesos/myraid", containerInfo.getDocker().getImage().equals("mesos/myriad"));
+    assertTrue("Should be using host networking", containerInfo.getDocker().getNetwork().equals(Protos.ContainerInfo.DockerInfo.Network.HOST));
+    assertTrue("There should be two parameters", containerInfo.getDocker().getParametersList().size() == 2);
+    assertTrue("Privledged mode should be false", containerInfo.getDocker().getPrivileged() == false);
+  }
 }

@@ -36,6 +36,7 @@ if [ ! -d "libs" ]; then
 fi
 
 # Copy over the Java Libraries
-cp -rf ../myriad-scheduler/build/libs/* libs/
 
+cp -rf ../myriad-scheduler/build/libs/* libs/
+cp -rf ../myriad-executor/build/libs/* libs/
 echo "Init complete! " #Modify config/myriad-default-config.yml to your liking before building the docker image"

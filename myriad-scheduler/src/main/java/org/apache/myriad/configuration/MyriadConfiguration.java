@@ -54,16 +54,27 @@ import org.hibernate.validator.constraints.NotEmpty;
  * executor:
  * jvmMaxMemoryMB: 256
  * path: file://localhost/usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
- * containerConfiguration:
+ * containerInfo:
+ *   DockerInfo:
+ *     image: mesos/myriad
+ *     forcePullImage: false
+ *     parameters:
+ *       -
+ *         key: key
+ *         value: value
+ *       -
+ *         key: key
+ *         value: value
  *   volumes:
  *     -
  *       containerPath: path
  *       hostPath: path
+ *       mode: RW
  *     -
  *       containerPath: path
  *       hostPath: path
  * yarnEnvironment:
- * YARN_HOME: /usr/local/hadoop
+ *   YARN_HOME: /usr/local/hadoop
  */
 public class MyriadConfiguration {
   /**
@@ -102,7 +113,7 @@ public class MyriadConfiguration {
   private Boolean checkpoint;
 
   @JsonProperty
-  private MyriadContainerConfiguration containerConfiguration;
+  private MyriadContainerConfiguration containerInfo;
 
   @JsonProperty
   private Double frameworkFailoverTimeout;
@@ -168,12 +179,8 @@ public class MyriadConfiguration {
   @JsonProperty
   private String mesosAuthenticationSecretFilename;
 
-  @JsonProperty
-  private Boolean strictIPAddressing;
-
   public MyriadConfiguration() {
   }
-
 
   public String getMesosMaster() {
     return mesosMaster;
@@ -183,10 +190,9 @@ public class MyriadConfiguration {
     return this.checkpoint != null ? checkpoint : DEFAULT_CHECKPOINT;
   }
 
-  public Optional<MyriadContainerConfiguration> getContainerConfiguration() {
-    return Optional.fromNullable(containerConfiguration);
+  public Optional<MyriadContainerConfiguration> getContainerInfo() {
+    return Optional.fromNullable(containerInfo);
   }
-
 
   public Double getFrameworkFailoverTimeout() {
     return this.frameworkFailoverTimeout != null ? this.frameworkFailoverTimeout : DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS;
@@ -271,7 +277,4 @@ public class MyriadConfiguration {
     return mesosAuthenticationPrincipal;
   }
 
-  public Boolean getStrictIPAddressing() {
-    return this.strictIPAddressing != null ? this.strictIPAddressing : false;
-  }
 }

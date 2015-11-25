@@ -39,7 +39,6 @@ public class MyriadConfigurationTest {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
         MyriadConfiguration.class);
-
   }
 
   @AfterClass

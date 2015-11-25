@@ -20,6 +20,12 @@ package org.apache.myriad.scheduler;
 
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Ranges;
+import com.google.common.collect.Sets;
+import com.google.common.collect.DiscreteDomains;
+
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +50,6 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
 import org.apache.mesos.Protos;
 import org.apache.myriad.configuration.*;
 import org.apache.myriad.executor.MyriadExecutorDefaults;
@@ -228,7 +233,7 @@ public class TaskUtils {
       public Protos.Volume apply(Map<String, String> map) {
         Preconditions.checkArgument(map.containsKey(HOST_PATH_KEY) && map.containsKey(CONTAINER_PATH_KEY));
         Protos.Volume.Mode mode = Protos.Volume.Mode.RO;
-        if (map.containsKey(RW_MODE) && map.get(RW_MODE).equals("rw")) {
+        if (map.containsKey(RW_MODE) && map.get(RW_MODE).toLowerCase().equals("rw")) {
           mode = Protos.Volume.Mode.RW;
         }
         return Protos.Volume.newBuilder()
@@ -245,9 +250,9 @@ public class TaskUtils {
     return Iterables.transform(params, new Function<Map<String, String>, Protos.Parameter>() {
       @Override
       public Protos.Parameter apply(Map<String, String> parameter) {
-        Preconditions.checkNotNull(parameter);
-        Preconditions.checkState(parameter.containsKey(PARAMETER_KEY_KEY));
-        Preconditions.checkState(parameter.containsKey(PARAMETER_VALUE_KEY));
+        Preconditions.checkNotNull(parameter, "Null parameter");
+        Preconditions.checkState(parameter.containsKey(PARAMETER_KEY_KEY), "Missing key");
+        Preconditions.checkState(parameter.containsKey(PARAMETER_VALUE_KEY), "Missing value");
         return Protos.Parameter.newBuilder()
             .setKey(parameter.get(PARAMETER_KEY_KEY))
             .setValue(PARAMETER_VALUE_KEY)
@@ -256,44 +261,14 @@ public class TaskUtils {
     });
   }
 
-  public Iterable<Protos.ContainerInfo.DockerInfo.PortMapping> getPortMappings(List<Map<String, String>> portMappings, AbstractPorts ports) {
-    Preconditions.checkNotNull(portMappings, "portMappings is null");
-    Preconditions.checkNotNull(ports, "ports is null");
-    Preconditions.checkArgument(portMappings.size() == ports.size(), "Length Mismatch between portMappings and Ports");
-
-    ArrayList<Protos.ContainerInfo.DockerInfo.PortMapping> portMappingsList = Lists.newArrayList();
-
-    for (int i = 0; i <= ports.size(); i++) {
-      Protos.ContainerInfo.DockerInfo.PortMapping.Builder portMappingBuilder = Protos.ContainerInfo.DockerInfo.PortMapping.newBuilder();
-      Map portMapping = Maps.newHashMap(portMappings.get(i));
-      Preconditions.checkState(portMapping.containsKey(CONTAINER_PORT_KEY));
-      Preconditions.checkState(portMapping.containsKey(HOST_PORT_KEY));
-      Preconditions.checkState(portMapping.containsKey(PROTOCOL_KEY));
-
-      portMappingBuilder.setContainerPort(Integer.parseInt(portMapping.get(CONTAINER_PORT_KEY).toString()));
-      if (Integer.parseInt(portMapping.get(HOST_PORT_KEY).toString()) == 0) {
-        portMappingBuilder.setHostPort((int) ports.get(i).getPort());
-      } else if (Integer.parseInt(portMapping.get(HOST_PORT_KEY).toString()) == ports.get(i).getPort()) {
-        portMappingBuilder.setHostPort(Integer.parseInt(portMapping.get(HOST_PORT_KEY).toString()));
-      } else {
-        throw new RuntimeException("Port Mismatch");
-      }
-      portMappingBuilder.setProtocol(portMapping.get(PROTOCOL_KEY).toString());
-      portMappingsList.add(portMappingBuilder.build());
-    }
-    return portMappingsList;
-  }
-
-  public Protos.ContainerInfo.DockerInfo getDockerInfo(MyriadDockerConfiguration dockerConfiguration, AbstractPorts ports) {
-    Preconditions.checkArgument(dockerConfiguration.getNetwork().equals("host"), "Currently only host networking supported");
+  public Protos.ContainerInfo.DockerInfo getDockerInfo(MyriadDockerConfiguration dockerConfiguration) {
+    Preconditions.checkArgument(dockerConfiguration.getNetwork().equals("HOST"), "Currently only host networking supported");
     Protos.ContainerInfo.DockerInfo.Builder dockerBuilder = Protos.ContainerInfo.DockerInfo.newBuilder()
         .setImage(dockerConfiguration.getImage())
+        .setForcePullImage(dockerConfiguration.getForcePullImage())
         .setNetwork(Protos.ContainerInfo.DockerInfo.Network.valueOf(dockerConfiguration.getNetwork()))
         .setPrivileged(dockerConfiguration.getPrivledged())
         .addAllParameters(getParameters(dockerConfiguration.getParameters()));
-    if (!dockerConfiguration.getPortMappings().isEmpty()) {
-      dockerBuilder.addAllPortMappings(getPortMappings(dockerConfiguration.getPortMappings(), ports));
-    }
     return dockerBuilder.build();
   }
 
@@ -302,15 +277,15 @@ public class TaskUtils {
    *
    * @return ContainerInfo
    */
-  public Protos.ContainerInfo getContainerInfo(AbstractPorts ports) {
-    Preconditions.checkArgument(cfg.getContainerConfiguration().isPresent(), "ContainerConfiguration doesn't exist!");
-    MyriadContainerConfiguration containerConfiguration = cfg.getContainerConfiguration().get();
+  public Protos.ContainerInfo getContainerInfo() {
+    Preconditions.checkArgument(cfg.getContainerInfo().isPresent(), "ContainerConfiguration doesn't exist!");
+    MyriadContainerConfiguration containerConfiguration = cfg.getContainerInfo().get();
     Protos.ContainerInfo.Builder containerBuilder = Protos.ContainerInfo.newBuilder()
         .setType(Protos.ContainerInfo.Type.valueOf(containerConfiguration.getType()))
         .addAllVolumes(getVolumes(containerConfiguration.getVolumes()));
-    if (containerConfiguration.getDockerConfiguration().isPresent()) {
-      MyriadDockerConfiguration dockerConfiguration = containerConfiguration.getDockerConfiguration().get();
-      containerBuilder.setDocker(getDockerInfo(dockerConfiguration, ports));
+    if (containerConfiguration.getDockerInfo().isPresent()) {
+      MyriadDockerConfiguration dockerConfiguration = containerConfiguration.getDockerInfo().get();
+      containerBuilder.setDocker(getDockerInfo(dockerConfiguration));
     }
     return containerBuilder.build();
   }
@@ -321,7 +296,7 @@ public class TaskUtils {
     for (Protos.Resource resource : offer.getResourcesList()) {
       if (resource.hasRanges() && resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {
         for (Protos.Value.Range range : resource.getRanges().getRangeList()) {
-          allAvailablePorts.addAll(ContiguousSet.create(Range.closed(range.getBegin(), range.getEnd()), DiscreteDomain.longs()));
+          allAvailablePorts.addAll(Ranges.closed(range.getBegin(), range.getEnd()).asSet(DiscreteDomains.longs()));
         }
       }
     }
@@ -349,7 +324,7 @@ public class TaskUtils {
             } else if (values.get(i) >= begin && values.get(i) <= end) {
               ports.add(i, values.get(i));
             } else if (!resource.hasRole() || resource.getRole().equals("*")) {
-              allAvailablePorts.addAll(ContiguousSet.create(Range.closed(begin, end), DiscreteDomain.longs()));
+              allAvailablePorts.addAll(Ranges.closed(begin, end).asSet(DiscreteDomains.longs()));
             }
           }
         }

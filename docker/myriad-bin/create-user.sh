@@ -21,8 +21,8 @@ under the License.
 export HADOOP_GROUP=${HADOOP_GROUP:='hadoop'}
 export HADOOP_USER=${HADOOP_USER:='yarn'}
 export HADOOP_HOME=${HADOOP_HOME:='/usr/local/hadoop'}
-export USER_UID=${USER_UID:='113'}
-export GROUP_UID=${GROUP_GID:='112'}
+export USER_UID=${USER_UID:='107'}
+export GROUP_UID=${GROUP_GID:='113'}
 
 # Add hduser user
 echo "Creating $HADOOP_USER user.."
