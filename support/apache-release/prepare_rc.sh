@@ -39,6 +39,7 @@ git clone $GIT_URL ${TAG} --branch ${TAG} || \
 
 # Remove files/folders that shouldn't be included in the release artifacts
 rm -rf ${TAG}/website
+rm -rf ${TAG}/support
 rm -rf ${TAG}/gradlew.bat
 rm -rf ${TAG}/gradlew
 rm -rf ${TAG}/gradle/wrapper
