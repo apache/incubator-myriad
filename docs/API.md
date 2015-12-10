@@ -8,11 +8,11 @@ API | HTTP Method | URI | Description |
 ----|-------------|-----|-------------|
 [Cluster](#cluster-api) | PUT | /api/cluster/flexup | Expands the cluster size |
 [Cluster](#cluster-api) | PUT | /api/cluster/flexdown | Shrinks the cluster size |
-[Service](#service-api) | PUT | /api/cluster/flexservice | Increases the number of instances for a service. |
+[Service](#service-api) | PUT | /api/cluster/flexupservice | Increases the number of instances for a service. |
 [Service](#service-api) | PUT | /api/cluster/flexdownservice | Shrinks the number of instances for a service. |
 [Configuration](#configuration-api) | GET | /api/config | Retrieves the Myriad configuration. |
 [State](#state-api) | GET | /api/state | Retrieves a snapshot of the Myriad Scheduler state. |
-
+[Framework Shutdown](#framework-api) | GET | /api/framework/shutdown/framework | Shuts down Myriad framework. |
 
 
 
@@ -481,6 +481,46 @@ Accept-Language: en-US,en;q=0.8
     ],
     "stagingTasks": []
 }
+```
+
+
+## Framework API
+
+The Framework REST API uses the GET /api/framework/shutdown/framework HTTP method to shut down myriad framework which shutdown web-server after stopping myriad driver, stop/clean all myriad tasks and clean myriad state-store (if any).
+
+### HTTP Method and URI
+
+```
+GET /api/framework/shutdown/framework
+```
+
+### Syntax
+
+```
+<resource_manager_host>:8192/api/framework/shutdown/framework
+```
+
+### Request Example
+
+URL request example:
+
+```
+http://10.10.101.137:8192/api/framework/shutdown/framework
+```
+
+Curl request example:
+
+```
+curl http://10.10.101.137:8192/api/framework/shutdown/framework | python -m json.tool
+```
+
+Request header:
+
+```
+GET /api/framework/shutdown/framework HTTP/1.1
+User-Agent: curl/7.19.7 (x86_64-redhat-linux-gnu) libcurl/7.19.7 NSS/3.16.2.3 Basic ECC zlib/1.2.3 libidn/1.18 libssh2/1.4.2
+Host: 10.10.101.137:8192
+Accept: */*
 ```
 ---
 <sub>
