@@ -3,7 +3,7 @@ layout: big_card_for_md
 title: Documentation
 permalink: /docs/
 ---
-#### Myriad
+#### Apache Myriad (incubating)
 
 Myriad maintains a wiki [here.](https://cwiki.apache.org/myriad) Create an account and post to the dev list to help keep it up to date.
 
