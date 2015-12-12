@@ -3,13 +3,19 @@ layout: big_card_for_md
 title: Downloads
 permalink: /downloads/
 ---
-##### Under Incubation
+#####<a name="latest"></a> Download Myriad
+Download the most recent stable release: [myriad-0.1.0-incubating](http://www.apache.org/dist/incubator/myriad/myriad-0.1.0-incubating/) ([Release Notes](https://cwiki.apache.org/confluence/display/MYRIAD/Release+Notes#ReleaseNotes-myriad-0.1.0-incubating))
 
-Apache Myriad is currently under [incubation](http://incubator.apache.org/projects/myriad.html) and we have yet to produce an official release.
+Once you have downloaded Myriad, follow the [installation and configuration](https://cwiki.apache.org/confluence/display/MYRIAD/Installation+and+Configuration) instructions, and take a look at the rest of the [documentation](https://cwiki.apache.org/confluence/display/MYRIAD).
 
-You can download the [source code](https://git-wip-us.apache.org/repos/asf?p=incubator-myriad.git) and [help us!]({{ site.baseurl }}/community)
+##### Getting the latest code via source control
+The latest codebase can also be downloaded from the Apache git repository at:
+[https://git-wip-us.apache.org/repos/asf/incubator-myriad.git](https://git-wip-us.apache.org/repos/asf/incubator-myriad.git)
 
+A read-only git repository is also mirrored on Github at: [https://github.com/apache/incubator-myriad](https://github.com/apache/incubator-myriad)
 
+##### Previous releases
+[myriad-0.1.0-incubating](http://www.apache.org/dist/incubator/myriad/myriad-0.1.0-incubating/) ([Release Notes](https://cwiki.apache.org/confluence/display/MYRIAD/Release+Notes#ReleaseNotes-myriad-0.1.0-incubating))
 
 <br/>
 
