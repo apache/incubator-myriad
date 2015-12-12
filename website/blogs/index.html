@@ -1,3 +1,8 @@
+---
+layout: big_card_for_md
+title: Blogs
+permalink: /blogs/
+---
 {% comment %}
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -18,23 +23,18 @@ specific language governing permissions and limitations
 under the License.
 -->
 {% endcomment %}
-<div class="mdl-grid">
-<div class="mdl-cell--1-col"></div>
-<div class="mdl-cell mdl-cell--11-col">
-  <h3 class="mdl-typography--title"><a href="{{site.baseurl}}/news/">News</a></h3>
-
-  {% for post in site.categories.news %}
-  <div class="mdl-typography--body-2">
-    {{ post.title }}
-  </div>
-  <div class="mdl-typography--caption">
-    <em>{{ post.date | date: "%b %-d, %Y" }}</em>
-    <br/>
-    <span class="mdl-typography--body-1">
-      {{ post.blurb }}
-    </span>
-    <hr/>
-  </div>
-  {% endfor %}
+<div>
+  <h4>Apache Myriad Blogs</h4>
+  <ul>
+    {% for post in site.categories.blogs %}
+      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
 </div>
+<hr>
+{% for post in site.categories.blogs %}
+<div>
+  {% include blog.html %}
+  <hr>
 </div>
+{% endfor %}
