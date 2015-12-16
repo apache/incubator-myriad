@@ -47,8 +47,16 @@ task copyMyriadJars(dependsOn: ":myriad-scheduler:build") {
 task buildRMDocker(type: DockerBuildImage) {
 
     dependsOn(copyMyriadJars)
-  
-    docker.url = 'unix:///var/run/docker.sock'
+    if (System.env.DOCKER_HOST) {
+        url = "$System.env.DOCKER_HOST".replace("tcp","https")
+        if (System.env.DOCKER_CERT_PATH) {
+            certPath = new File(System.env.DOCKER_CERT_PATH)
+ 
+        }
+    }
+    else {
+        url = 'unix:///var/run/docker.sock'
+    }  
     inputDir = file('.')
-    tag = 'gradle/myriad'
+    tag = 'mesos/myriad'
 }

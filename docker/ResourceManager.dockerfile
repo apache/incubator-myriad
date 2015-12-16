@@ -32,7 +32,6 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv E56151BF
 RUN DISTRO=$(lsb_release -is | tr '[:upper:]' '[:lower:]') CODENAME=$(lsb_release -cs) && echo "deb http://repos.mesosphere.com/${DISTRO} ${CODENAME} main" | tee /etc/apt/sources.list.d/mesosphere.list
 RUN apt-get -y update
 
-# Create the yarn user
 ADD myriad-bin/create-user.sh /create-user.sh
 RUN sh /create-user.sh
 
@@ -44,8 +43,9 @@ ADD myriad-bin/install-yarn.sh /install-yarn.sh
 RUN sh /install-yarn.sh
 
 # Copy over myriad libraries
-ADD /libs/myriad-executor-runnable-0.1.0.jar /usr/local/libexec/mesos/
-ADD /libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
+ADD ./libs/myriad-executor-runnable-0.1.0.jar /usr/local/libexec/mesos/
+ADD ./libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
+
 
 # Initialize hadoop confs with env vars
 ADD myriad-bin/run-myriad.sh /run-myriad.sh
