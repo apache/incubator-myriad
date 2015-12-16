@@ -43,7 +43,7 @@ ADD myriad-bin/install-yarn.sh /install-yarn.sh
 RUN sh /install-yarn.sh
 
 # Copy over myriad libraries
-ADD ./libs/myriad-executor-runnable-0.0.1.jar /usr/local/libexec/mesos/
+ADD ./libs/myriad-executor-runnable-0.1.0.jar /usr/local/libexec/mesos/
 ADD ./libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
 
 
