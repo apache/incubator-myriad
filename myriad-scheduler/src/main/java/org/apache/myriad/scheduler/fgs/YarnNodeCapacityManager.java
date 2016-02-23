@@ -25,14 +25,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
+
 import org.apache.hadoop.yarn.api.records.Container;
+import org.apache.hadoop.yarn.api.records.ContainerId;
+import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceOption;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainer;
+import org.apache.hadoop.yarn.server.resourcemanager.rmcontainer.RMContainerEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerApplicationAttempt;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeAddedSchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeResourceUpdateSchedulerEvent;
@@ -43,6 +48,7 @@ import org.apache.mesos.Protos;
 import org.apache.myriad.configuration.NodeManagerConfiguration;
 import org.apache.myriad.executor.ContainerTaskStatusRequest;
 import org.apache.myriad.scheduler.MyriadDriver;
+import org.apache.myriad.scheduler.ResourceUtils;
 import org.apache.myriad.scheduler.SchedulerUtils;
 import org.apache.myriad.scheduler.TaskUtils;
 import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
@@ -64,14 +70,15 @@ import org.slf4j.LoggerFactory;
  */
 public class YarnNodeCapacityManager extends BaseInterceptor {
   private static final Logger LOGGER = LoggerFactory.getLogger(YarnNodeCapacityManager.class);
-
   private final AbstractYarnScheduler yarnScheduler;
   private final RMContext rmContext;
   private final MyriadDriver myriadDriver;
   private final OfferLifecycleManager offerLifecycleMgr;
   private final NodeStore nodeStore;
   private final SchedulerState state;
+  private static final Resource ZERO_RESOURCE = Resource.newInstance(0, 0);
   private TaskUtils taskUtils;
+
   @Inject
   public YarnNodeCapacityManager(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
                                  MyriadDriver myriadDriver, OfferLifecycleManager offerLifecycleMgr, NodeStore nodeStore,
@@ -96,6 +103,44 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         return SchedulerUtils.isEligibleForFineGrainedScaling(nodeManager.getHost(), state);
       }
     };
+  }
+
+  private Protos.TaskID containerToTaskId(RMContainer container) {
+    return Protos.TaskID.newBuilder().setValue("yarn_" + container.getContainerId()).build();
+  }
+
+  @Override
+  public void beforeReleaseContainers(List<ContainerId> containerIds, SchedulerApplicationAttempt attempt) {
+    //NOOP beforeCompletedContainer does this
+  }
+
+  @Override
+  public void beforeCompletedContainer(RMContainer rmContainer, ContainerStatus containerStatus, RMContainerEventType type) {
+    if (type.equals(RMContainerEventType.KILL) || type.equals(RMContainerEventType.RELEASED)) {
+      LOGGER.info("{} completed with exit status {}, killing cooresponding mesos task.", rmContainer.getContainerId().toString(), type);
+      removeYarnTask(rmContainer);
+    }
+  }
+
+  private synchronized void removeYarnTask(RMContainer rmContainer) {
+    if (rmContainer != null && rmContainer.getContainer() != null) {
+      Protos.TaskID taskId = containerToTaskId(rmContainer);
+      //TODO (darinj) Reliable messaging
+      state.makeTaskKillable(taskId);
+      myriadDriver.kill(taskId);
+      String hostname = rmContainer.getContainer().getNodeId().getHost();
+      Node node = nodeStore.getNode(hostname);
+      if (node != null) {
+        RMNode rmNode = node.getNode().getRMNode();
+        Resource resource = rmContainer.getContainer().getResource();
+        Resource diff = ResourceUtils.componentwiseMax(ZERO_RESOURCE, Resources.subtract(rmNode.getTotalCapability(), resource));
+        setNodeCapacity(rmNode, diff);
+        LOGGER.info("Removed task yarn_{} with exit status freeing {} cpu and {} mem.", rmContainer.getContainer().toString(),
+            rmContainer.getContainerExitStatus(), resource.getVirtualCores(), resource.getMemory());
+      } else {
+        LOGGER.warn(hostname + " not found");
+      }
+    }
   }
 
   @Override
@@ -196,13 +241,16 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
    */
   @SuppressWarnings("unchecked")
   public void setNodeCapacity(RMNode rmNode, Resource newCapacity) {
-    rmNode.getTotalCapability().setMemory(newCapacity.getMemory());
-    rmNode.getTotalCapability().setVirtualCores(newCapacity.getVirtualCores());
-    LOGGER.debug("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
-    // updates the scheduler with the new capacity for the NM.
-    // the event is handled by the scheduler asynchronously
-    rmContext.getDispatcher().getEventHandler().handle(new NodeResourceUpdateSchedulerEvent(rmNode, ResourceOption.newInstance(
-        rmNode.getTotalCapability(), RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT)));
+    //NOOP prevent YARN warning changing to same size
+    if (!Resources.equals(rmNode.getTotalCapability(), newCapacity)) {
+      rmNode.getTotalCapability().setMemory(newCapacity.getMemory());
+      rmNode.getTotalCapability().setVirtualCores(newCapacity.getVirtualCores());
+      LOGGER.debug("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
+      // updates the scheduler with the new capacity for the NM.
+      // the event is handled by the scheduler asynchronously
+      rmContext.getDispatcher().getEventHandler().handle(new NodeResourceUpdateSchedulerEvent(rmNode, ResourceOption.newInstance(
+          rmNode.getTotalCapability(), RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT)));
+    }
   }
 
   private Protos.TaskInfo getTaskInfoForContainer(RMContainer rmContainer, ConsumedOffer consumedOffer, Node node) {
