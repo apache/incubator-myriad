@@ -70,10 +70,11 @@ public class MyriadExecutor implements Executor {
 
   @Override
   public void killTask(ExecutorDriver driver, TaskID taskId) {
-    LOGGER.debug("killTask received for taskId: " + taskId.getValue());
+    String taskIdString = taskId.getValue();
+    LOGGER.debug("killTask received for taskId: " + taskIdString);
     TaskStatus status;
 
-    if (!taskId.toString().contains(MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX)) {
+    if (!taskIdString.contains(MyriadExecutorAuxService.YARN_CONTAINER_TASK_ID_PREFIX)) {
       // Inform mesos of killing all tasks corresponding to yarn containers that are
       // currently running 
       synchronized (containerIds) {
@@ -93,7 +94,16 @@ public class MyriadExecutor implements Executor {
       Runtime.getRuntime().exit(0);
 
     } else {
-      LOGGER.debug("Cannot delete tasks corresponding to yarn container " + taskId);
+      status = TaskStatus.newBuilder().setTaskId(taskId).setState(TaskState.TASK_KILLED).build();
+      driver.sendStatusUpdate(status);
+      synchronized (containerIds) {
+        //Likely the container isn't in here, but just in case remove it.
+        if (containerIds.remove(taskIdString.substring(MyriadExecutorAuxService.YARN_CONTAINER_FULL_PREFIX.length(),
+            taskIdString.length()))) {
+          LOGGER.debug("Removed task from containerIds");
+        }
+      }
+      LOGGER.debug("Killing " + taskId);
     }
   }
 
