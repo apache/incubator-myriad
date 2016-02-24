@@ -67,8 +67,8 @@ subprojects {
     }
 
     repositories {
-        mavenLocal()
         mavenCentral()
+        mavenLocal()
     }
 
     dependencies {
@@ -78,7 +78,7 @@ subprojects {
         compile "org.apache.mesos:mesos:${mesosVer}"
         compile 'com.google.code.gson:gson:2.3.1'        // marshalling between the scheduler and executor
 
-
+        testCompile 'org.apache.zookeeper:zookeeper:3.4.6' // to resolve temporary mavenlocal issue
         testCompile 'junit:junit:4.12'
         testCompile 'commons-collections:commons-collections:3.2.1'
     }
