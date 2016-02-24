@@ -49,7 +49,7 @@ public class ControllerResource {
    * @return a successful response.
    */
   @Timed
-  @GET
+  @POST
   @Path("/shutdown/framework")
   @Produces(MediaType.APPLICATION_JSON)
   public Response shutdownFramework() {
