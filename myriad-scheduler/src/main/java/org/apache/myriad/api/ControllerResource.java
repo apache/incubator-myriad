@@ -19,22 +19,23 @@
 package org.apache.myriad.api;
 
 import com.codahale.metrics.annotation.Timed;
+import org.apache.myriad.scheduler.MyriadOperations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.inject.Inject;
-import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import org.apache.myriad.scheduler.MyriadOperations;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * RESTful API to resource manager
  */
 @Path("/framework")
 public class ControllerResource {
-  private static final Logger LOGGER = LoggerFactory.getLogger(ControllerResource.class);
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
   private MyriadOperations myriadOperations;
 
@@ -53,7 +54,7 @@ public class ControllerResource {
   @Path("/shutdown/framework")
   @Produces(MediaType.APPLICATION_JSON)
   public Response shutdownFramework() {
-    LOGGER.info("shutdown....terminating framework... ");
+    logger.info("shutdown....terminating framework... ");
 
     myriadOperations.shutdownFramework();
 
