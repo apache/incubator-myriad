@@ -69,3 +69,6 @@ local.properties
 *.iws
 .idea/
 out
+
+# Node
+node_modules
