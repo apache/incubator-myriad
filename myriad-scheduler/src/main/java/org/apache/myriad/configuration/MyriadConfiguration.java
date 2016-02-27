@@ -156,6 +156,11 @@ public class MyriadConfiguration {
   @JsonProperty
   private String mesosAuthenticationSecretFilename;
 
+  @JsonProperty
+  private String yarnResourceManagerPortHTTPS;
+
+  @JsonProperty
+  private String yarnResourceManagerPortHTTP;
 
   public MyriadConfiguration() {
   }
@@ -252,4 +257,11 @@ public class MyriadConfiguration {
     return mesosAuthenticationPrincipal;
   }
 
+  public String getYarnResourceManagerPortHTTPS() {
+    return yarnResourceManagerPortHTTPS;
+  }
+
+  public String getYarnResourceManagerPortHTTP() {
+    return yarnResourceManagerPortHTTP;
+  }
 }

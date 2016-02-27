@@ -62,3 +62,5 @@ yarnEnvironment:
   #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary
 mesosAuthenticationPrincipal:
 mesosAuthenticationSecretFilename:
+yarnResourceManagerPortHTTPS: :8090
+yarnResourceManagerPortHTTP: :8088
