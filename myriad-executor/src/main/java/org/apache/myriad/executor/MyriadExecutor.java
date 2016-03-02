@@ -70,7 +70,7 @@ public class MyriadExecutor implements Executor {
 
   @Override
   public void killTask(ExecutorDriver driver, TaskID taskId) {
-    String taskIdString = taskId.getValue();
+    String taskIdString = taskId.toString();
     LOGGER.debug("killTask received for taskId: " + taskIdString);
     TaskStatus status;
 
@@ -89,8 +89,7 @@ public class MyriadExecutor implements Executor {
       // Now kill the node manager task
       status = TaskStatus.newBuilder().setTaskId(taskId).setState(TaskState.TASK_KILLED).build();
       driver.sendStatusUpdate(status);
-      LOGGER.info("NodeManager shutdown after receiving" +
-          " KillTask for taskId " + taskId.getValue());
+      LOGGER.info("NodeManager shutdown after receiving KILL_TASK for taskId {}", taskIdString);
       Runtime.getRuntime().exit(0);
 
     } else {
@@ -100,7 +99,7 @@ public class MyriadExecutor implements Executor {
         //Likely the container isn't in here, but just in case remove it.
         if (containerIds.remove(taskIdString.substring(MyriadExecutorAuxService.YARN_CONTAINER_FULL_PREFIX.length(),
             taskIdString.length()))) {
-          LOGGER.debug("Removed task from containerIds");
+          LOGGER.debug("Removed taskId {} from containerIds", taskIdString);
         }
       }
       LOGGER.debug("Killing " + taskId);

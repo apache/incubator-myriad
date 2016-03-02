@@ -118,11 +118,11 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   public void beforeCompletedContainer(RMContainer rmContainer, ContainerStatus containerStatus, RMContainerEventType type) {
     if (type.equals(RMContainerEventType.KILL) || type.equals(RMContainerEventType.RELEASED)) {
       LOGGER.info("{} completed with exit status {}, killing cooresponding mesos task.", rmContainer.getContainerId().toString(), type);
-      myKillContainer(rmContainer);
+      removeYarnTask(rmContainer);
     }
   }
 
-  private synchronized void myKillContainer(RMContainer rmContainer) {
+  private synchronized void removeYarnTask(RMContainer rmContainer) {
     if (rmContainer != null && rmContainer.getContainer() != null) {
       Protos.TaskID taskId = containerToTaskId(rmContainer);
       //TODO (darinj) Reliable messaging
@@ -134,7 +134,6 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         RMNode rmNode = node.getNode().getRMNode();
         Resource resource = rmContainer.getContainer().getResource();
         Resource diff = ResourceUtils.componentwiseMax(ZERO_RESOURCE, Resources.subtract(rmNode.getTotalCapability(), resource));
-        Resources.subtract(rmNode.getTotalCapability(), resource);
         setNodeCapacity(rmNode, diff);
         LOGGER.info("Removed task yarn_{} with exit status freeing {} cpu and {} mem.", rmContainer.getContainer().toString(),
             rmContainer.getContainerExitStatus(), resource.getVirtualCores(), resource.getMemory());
