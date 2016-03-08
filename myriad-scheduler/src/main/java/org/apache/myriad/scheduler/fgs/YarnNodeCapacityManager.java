@@ -70,6 +70,7 @@ import org.slf4j.LoggerFactory;
  */
 public class YarnNodeCapacityManager extends BaseInterceptor {
   private static final Logger LOGGER = LoggerFactory.getLogger(YarnNodeCapacityManager.class);
+
   private final AbstractYarnScheduler yarnScheduler;
   private final RMContext rmContext;
   private final MyriadDriver myriadDriver;
@@ -247,9 +248,14 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
       rmNode.getTotalCapability().setVirtualCores(newCapacity.getVirtualCores());
       LOGGER.debug("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
       // updates the scheduler with the new capacity for the NM.
-      // the event is handled by the scheduler asynchronously
-      rmContext.getDispatcher().getEventHandler().handle(new NodeResourceUpdateSchedulerEvent(rmNode, ResourceOption.newInstance(
-          rmNode.getTotalCapability(), RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT)));
+      synchronized (yarnScheduler) {
+        if (yarnScheduler.getSchedulerNode(rmNode.getNodeID()) != null) {
+          yarnScheduler.updateNodeResource(rmNode,
+              ResourceOption.newInstance(rmNode.getTotalCapability(), RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT));
+        } else {
+          LOGGER.info("Yarn Scheduler doesn't have node {}, probably UNHEALTHY", rmNode.getNodeID());
+        }
+      }
     }
   }
 

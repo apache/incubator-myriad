@@ -19,6 +19,8 @@
 package org.apache.myriad.scheduler.fgs
 
 import org.apache.hadoop.yarn.api.records.ContainerState
+import org.apache.hadoop.yarn.api.records.ResourceOption
+import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.NodeResourceUpdateSchedulerEvent
 import org.apache.hadoop.yarn.util.resource.Resources
 import org.apache.mesos.Protos
@@ -115,7 +117,7 @@ class YarnNodeCapacityManagerSpec extends FGSTestBaseSpec {
         then:
         zeroNM.getTotalCapability().getMemory() == 2048
         zeroNM.getTotalCapability().getVirtualCores() == 2
-        1 * rmContext.getDispatcher().getEventHandler().handle(_ as NodeResourceUpdateSchedulerEvent)
+        1 * yarnScheduler.updateNodeResource( _ as RMNode, _ as ResourceOption)
     }
 
     YarnNodeCapacityManager getYarnNodeCapacityManager() {
@@ -137,6 +139,5 @@ class YarnNodeCapacityManagerSpec extends FGSTestBaseSpec {
         def taskUtils = new TaskUtils(cfg)
         return new YarnNodeCapacityManager(registry, yarnScheduler, rmContext,
                 myriadDriver, offerLifecycleManager, nodeStore, state, taskUtils)
-
     }
 }
