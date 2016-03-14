@@ -20,6 +20,9 @@
 package org.apache.hadoop.yarn.server.resourcemanager.recovery;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -42,6 +45,8 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
 
   private Path myriadPathRoot = null;
   private byte[] myriadStateBytes = null;
+
+  private Method cachedUpdateFileMethod = null; //This is a cache Method so we do fewer reflection calls
 
   @Override
   public synchronized void initInternal(Configuration conf) throws Exception {
@@ -92,9 +97,36 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
 
     LOGGER.debug("Storing state information for Myriad at: " + myriadStatePath);
     try {
-      updateFile(myriadStatePath, sc.toSerializedContext().toByteArray());
+      reflectedUpdateFile(myriadStatePath, sc.toSerializedContext().toByteArray());
     } catch (Exception e) {
       LOGGER.error("State information for Myriad could not be stored at: " + myriadStatePath, e);
+    }
+  }
+
+  private synchronized void getCachedUpdateFileMethod() {
+    if (cachedUpdateFileMethod == null) {
+      Method[] methods = this.getClass().getDeclaredMethods();
+      for (Method m : methods) {
+        if (m.getName().equals("updateFile")) {
+          cachedUpdateFileMethod = m;
+          break;
+        }
+      }
+    }
+  }
+
+  protected void reflectedUpdateFile(Path outputPath, byte[] data) throws InvocationTargetException, IllegalAccessException {
+    if (cachedUpdateFileMethod == null) {
+      getCachedUpdateFileMethod();
+    }
+    Class [] parameters = cachedUpdateFileMethod.getParameterTypes();
+    if (parameters.length == 2 && parameters[0].equals(Path.class) && parameters[1].isArray()) {
+      cachedUpdateFileMethod.invoke(outputPath, data);
+    } else if (parameters.length == 3 && parameters[0].equals(Path.class) && parameters[1].isArray() && parameters[2].isPrimitive()) {
+      cachedUpdateFileMethod.invoke(outputPath, data, true);
+    } else {
+      //something is broken
+      throw new RuntimeException("updateFile Method has unexpected parameters");
     }
   }
 
