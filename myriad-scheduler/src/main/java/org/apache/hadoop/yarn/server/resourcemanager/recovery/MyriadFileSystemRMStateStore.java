@@ -20,6 +20,9 @@
 package org.apache.hadoop.yarn.server.resourcemanager.recovery;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -43,11 +46,28 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
   private Path myriadPathRoot = null;
   private byte[] myriadStateBytes = null;
 
+  private Method updateFileMethod = null; //This is a cache Method so we do fewer reflection calls
+
   @Override
   public synchronized void initInternal(Configuration conf) throws Exception {
     super.initInternal(conf);
     Path rootPath = new Path(fsWorkingPath, ROOT_NAME);
     myriadPathRoot = new Path(rootPath, RM_MYRIAD_ROOT);
+    updateFileMethod = getUpdateFileMethod();
+    if (updateFileMethod == null) {
+      //something is broken
+      throw new RuntimeException("Could not find valid updateFile Method");
+    }
+  }
+
+  private Method getUpdateFileMethod() {
+    Method[] methods = super.getClass().getSuperclass().getDeclaredMethods();
+    for (Method m : methods) {
+      if (m.getName().equals("updateFile")) {
+        return m;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -59,7 +79,6 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
   @Override
   public synchronized RMState loadState() throws Exception {
     RMState rmState = super.loadState();
-
     Path myriadStatePath = new Path(myriadPathRoot, MYRIAD_STATE_FILE);
     LOGGER.info("Loading state information for Myriad from: " + myriadStatePath);
 
@@ -92,9 +111,23 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
 
     LOGGER.debug("Storing state information for Myriad at: " + myriadStatePath);
     try {
-      updateFile(myriadStatePath, sc.toSerializedContext().toByteArray());
+      reflectedUpdateFile(myriadStatePath, sc.toSerializedContext().toByteArray());
     } catch (Exception e) {
       LOGGER.error("State information for Myriad could not be stored at: " + myriadStatePath, e);
+    }
+  }
+
+
+
+  protected void reflectedUpdateFile(Path outputPath, byte[] data) throws InvocationTargetException, IllegalAccessException {
+    Class [] parameters = updateFileMethod.getParameterTypes();
+    if (parameters.length == 2 && parameters[0].equals(Path.class) && parameters[1].isArray()) {
+      updateFileMethod.invoke(this, outputPath, data);
+    } else if (parameters.length == 3 && parameters[0].equals(Path.class) && parameters[1].isArray() && parameters[2].isPrimitive()) {
+      updateFileMethod.invoke(this, outputPath, data, true);
+    } else {
+      //something is broken
+      throw new RuntimeException("updateFile Method has unexpected parameters");
     }
   }
 
