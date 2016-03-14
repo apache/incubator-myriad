@@ -18,11 +18,14 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.ArrayList;
+import java.util.*;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -40,12 +43,10 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.*;
 import org.apache.mesos.Protos;
-import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.configuration.MyriadExecutorConfiguration;
-import org.apache.myriad.configuration.NodeManagerConfiguration;
-import org.apache.myriad.configuration.ServiceConfiguration;
+import org.apache.myriad.configuration.*;
 import org.apache.myriad.executor.MyriadExecutorDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,11 +61,19 @@ import org.xml.sax.SAXException;
  */
 public class TaskUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
-
   private static final String YARN_NODEMANAGER_RESOURCE_CPU_VCORES = "yarn.nodemanager.resource.cpu-vcores";
   private static final String YARN_NODEMANAGER_RESOURCE_MEMORY_MB = "yarn.nodemanager.resource.memory-mb";
+  private static final String CONTAINER_PATH_KEY = "containerPath";
+  private static final String HOST_PATH_KEY = "hostPath";
+  private static final String RW_MODE = "mode";
+  private static final String CONTAINER_PORT_KEY = "containerPort";
+  private static final String HOST_PORT_KEY = "hostPort";
+  private static final String PROTOCOL_KEY = "protocol";
+  private static final String PARAMETER_KEY_KEY = "key";
+  private static final String PARAMETER_VALUE_KEY = "value";
 
   private MyriadConfiguration cfg;
+  Random random = new Random();
 
   @Inject
   public TaskUtils(MyriadConfiguration cfg) {
@@ -208,14 +217,164 @@ public class TaskUtils {
     return auxConf.getJvmMaxMemoryMB().get();
   }
 
+  public TaskUtils() {
+    super();
+  }
+
+  public Iterable<Protos.Volume> getVolumes(Iterable<Map<String, String>> volume) {
+    return Iterables.transform(volume, new Function<Map<String, String>, Protos.Volume>() {
+      @Nullable
+      @Override
+      public Protos.Volume apply(Map<String, String> map) {
+        Preconditions.checkArgument(map.containsKey(HOST_PATH_KEY) && map.containsKey(CONTAINER_PATH_KEY));
+        Protos.Volume.Mode mode = Protos.Volume.Mode.RO;
+        if (map.containsKey(RW_MODE) && map.get(RW_MODE).equals("rw")) {
+          mode = Protos.Volume.Mode.RW;
+        }
+        return Protos.Volume.newBuilder()
+            .setContainerPath(map.get(CONTAINER_PATH_KEY))
+            .setHostPath(map.get(HOST_PATH_KEY))
+            .setMode(mode)
+            .build();
+      }
+    });
+  }
+
+  public Iterable<Protos.Parameter> getParameters(Iterable<Map<String, String>> params) {
+    Preconditions.checkNotNull(params);
+    return Iterables.transform(params, new Function<Map<String, String>, Protos.Parameter>() {
+      @Override
+      public Protos.Parameter apply(Map<String, String> parameter) {
+        Preconditions.checkNotNull(parameter);
+        Preconditions.checkState(parameter.containsKey(PARAMETER_KEY_KEY));
+        Preconditions.checkState(parameter.containsKey(PARAMETER_VALUE_KEY));
+        return Protos.Parameter.newBuilder()
+            .setKey(parameter.get(PARAMETER_KEY_KEY))
+            .setValue(PARAMETER_VALUE_KEY)
+            .build();
+      }
+    });
+  }
+
+  public Iterable<Protos.ContainerInfo.DockerInfo.PortMapping> getPortMappings(List<Map<String, String>> portMappings, AbstractPorts ports) {
+    Preconditions.checkNotNull(portMappings, "portMappings is null");
+    Preconditions.checkNotNull(ports, "ports is null");
+    Preconditions.checkArgument(portMappings.size() == ports.size(), "Length Mismatch between portMappings and Ports");
+
+    ArrayList<Protos.ContainerInfo.DockerInfo.PortMapping> portMappingsList = Lists.newArrayList();
+
+    for (int i = 0; i <= ports.size(); i++) {
+      Protos.ContainerInfo.DockerInfo.PortMapping.Builder portMappingBuilder = Protos.ContainerInfo.DockerInfo.PortMapping.newBuilder();
+      Map portMapping = Maps.newHashMap(portMappings.get(i));
+      Preconditions.checkState(portMapping.containsKey(CONTAINER_PORT_KEY));
+      Preconditions.checkState(portMapping.containsKey(HOST_PORT_KEY));
+      Preconditions.checkState(portMapping.containsKey(PROTOCOL_KEY));
+
+      portMappingBuilder.setContainerPort(Integer.parseInt(portMapping.get(CONTAINER_PORT_KEY).toString()));
+      if (Integer.parseInt(portMapping.get(HOST_PORT_KEY).toString()) == 0) {
+        portMappingBuilder.setHostPort((int) ports.get(i).getPort());
+      } else if (Integer.parseInt(portMapping.get(HOST_PORT_KEY).toString()) == ports.get(i).getPort()) {
+        portMappingBuilder.setHostPort(Integer.parseInt(portMapping.get(HOST_PORT_KEY).toString()));
+      } else {
+        throw new RuntimeException("Port Mismatch");
+      }
+      portMappingBuilder.setProtocol(portMapping.get(PROTOCOL_KEY).toString());
+      portMappingsList.add(portMappingBuilder.build());
+    }
+    return portMappingsList;
+  }
+
+  public Protos.ContainerInfo.DockerInfo getDockerInfo(MyriadDockerConfiguration dockerConfiguration, AbstractPorts ports) {
+    Preconditions.checkArgument(dockerConfiguration.getNetwork().equals("host"), "Currently only host networking supported");
+    Protos.ContainerInfo.DockerInfo.Builder dockerBuilder = Protos.ContainerInfo.DockerInfo.newBuilder()
+        .setImage(dockerConfiguration.getImage())
+        .setNetwork(Protos.ContainerInfo.DockerInfo.Network.valueOf(dockerConfiguration.getNetwork()))
+        .setPrivileged(dockerConfiguration.getPrivledged())
+        .addAllParameters(getParameters(dockerConfiguration.getParameters()));
+    if (!dockerConfiguration.getPortMappings().isEmpty()) {
+      dockerBuilder.addAllPortMappings(getPortMappings(dockerConfiguration.getPortMappings(), ports));
+    }
+    return dockerBuilder.build();
+  }
+
+  /**
+   * Builds a ContainerInfo Object
+   *
+   * @return ContainerInfo
+   */
+  public Protos.ContainerInfo getContainerInfo(AbstractPorts ports) {
+    Preconditions.checkArgument(cfg.getContainerConfiguration().isPresent(), "ContainerConfiguration doesn't exist!");
+    MyriadContainerConfiguration containerConfiguration = cfg.getContainerConfiguration().get();
+    Protos.ContainerInfo.Builder containerBuilder = Protos.ContainerInfo.newBuilder()
+        .setType(Protos.ContainerInfo.Type.valueOf(containerConfiguration.getType()))
+        .addAllVolumes(getVolumes(containerConfiguration.getVolumes()));
+    if (containerConfiguration.getDockerConfiguration().isPresent()) {
+      MyriadDockerConfiguration dockerConfiguration = containerConfiguration.getDockerConfiguration().get();
+      containerBuilder.setDocker(getDockerInfo(dockerConfiguration, ports));
+    }
+    return containerBuilder.build();
+  }
+
+  public AbstractPorts getRandomPortResources(Protos.Offer offer, Integer number, Set<Long> used) {
+    AbstractPorts ports = new AbstractPorts(number);
+    ArrayList<Long> allAvailablePorts = Lists.newArrayList();
+    for (Protos.Resource resource : offer.getResourcesList()) {
+      if (resource.hasRanges() && resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {
+        for (Protos.Value.Range range : resource.getRanges().getRangeList()) {
+          allAvailablePorts.addAll(ContiguousSet.create(Range.closed(range.getBegin(), range.getEnd()), DiscreteDomain.longs()));
+        }
+      }
+    }
+    allAvailablePorts.removeAll(used);
+    for (int i = 0; i < number; i++) {
+      int portIndex = random.nextInt(allAvailablePorts.size());
+      ports.add(allAvailablePorts.get(portIndex));
+      allAvailablePorts.remove(portIndex);
+    }
+    return ports;
+  }
+
+  public AbstractPorts getPortResources(Protos.Offer offer, List<Long> values, Set<Long> used) {
+    Preconditions.checkState(Sets.intersection(Sets.newHashSet(values), used).isEmpty());
+    AbstractPorts ports = new AbstractPorts(values.size());
+    ArrayList<Long> allAvailablePorts = Lists.newArrayList();
+    for (Protos.Resource resource : offer.getResourcesList()) {
+      if (resource.hasRanges() && resource.getName().equals("ports")) {
+        for (Protos.Value.Range range : resource.getRanges().getRangeList()) {
+          Long begin = range.getBegin();
+          Long end = range.getEnd();
+          for (int i = 0; i < values.size(); i++) {
+            if (values.get(i) >= begin && values.get(i) <= end && resource.hasRole()) {
+              ports.add(i, values.get(i), resource.getRole());
+            } else if (values.get(i) >= begin && values.get(i) <= end) {
+              ports.add(i, values.get(i));
+            } else if (!resource.hasRole() || resource.getRole().equals("*")) {
+              allAvailablePorts.addAll(ContiguousSet.create(Range.closed(begin, end), DiscreteDomain.longs()));
+            }
+          }
+        }
+      }
+    }
+    allAvailablePorts.removeAll(used);
+    for (int i = 0; i < values.size(); i++) {
+      if (values.get(i) == 0) {
+        int portIndex = random.nextInt(allAvailablePorts.size());
+        ports.add(allAvailablePorts.get(portIndex));
+        allAvailablePorts.remove(portIndex);
+      }
+    }
+    return ports;
+  }
+
   /**
    * Helper function that returns all scalar resources of a given name in an offer up to a given value.  Attempts to
    * take resource from the prescribed role first and then from the default role.  The variable used indicated any
    * resources previously requested.   Assumes enough resources are present.
+   *
    * @param offer - An offer by Mesos, assumed to have enough resources.
    * @param name  - The name of the SCALAR resource, i.e. cpus or mem
    * @param value - The amount of SCALAR resources needed.
-   * @param used - The amount of SCALAR resources already removed from this offer.
+   * @param used  - The amount of SCALAR resources already removed from this offer.
    * @return An Iterable containing one or two scalar resources of a given name in an offer up to a given value.
    */
   public Iterable<Protos.Resource> getScalarResource(Protos.Offer offer, String name, Double value, Double used) {

@@ -18,12 +18,11 @@
 package org.apache.myriad.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+
+import java.util.*;
 import javax.inject.Inject;
+
+import com.google.common.collect.Lists;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
@@ -81,6 +80,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     final String rmHostName = System.getProperty(YARN_RESOURCEMANAGER_HOSTNAME);
     List<Long> additionalPortsNumbers = null;
 
+
     final StringBuilder strB = new StringBuilder("env ");
     if (serviceConfig.getServiceOpts() != null) {
       strB.append(serviceConfig.getServiceOpts()).append("=");
@@ -90,28 +90,12 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
         strB.append("-D" + YARN_RESOURCEMANAGER_HOSTNAME + "=" + rmHostName + " ");
       }
 
-      Map<String, Long> ports = serviceConfig.getPorts().orNull();
-      if (ports != null && !ports.isEmpty()) {
-        int neededPortsCount = 0;
-        for (Map.Entry<String, Long> portEntry : ports.entrySet()) {
-          Long port = portEntry.getValue();
-          if (port == DEFAULT_PORT_NUMBER) {
-            neededPortsCount++;
-          }
-        }
-        // use provided ports
-        additionalPortsNumbers = getAvailablePorts(offer, neededPortsCount);
-        LOGGER.info("No specified ports found or number of specified ports is not enough. Using ports from Mesos Offers: {}",
-            additionalPortsNumbers);
-        int index = 0;
-        for (Map.Entry<String, Long> portEntry : ports.entrySet()) {
-          String portProperty = portEntry.getKey();
-          Long port = portEntry.getValue();
-          if (port == DEFAULT_PORT_NUMBER) {
-            port = additionalPortsNumbers.get(index++);
-          }
-          strB.append("-D" + portProperty + "=" + serviceHostName + ":" + port + " ");
-        }
+      Map<String, Long> portsMap = serviceConfig.getPorts().or(new HashMap<String, Long>());
+      AbstractPorts ports = taskUtils.getPortResources(offer, Lists.newArrayList(portsMap.values()), new HashSet<Long>());
+      int i = 0;
+      for (String portProperty : portsMap.keySet()) {
+        strB.append("-D" + portProperty + "=" + serviceHostName + ":" + ports.get(i) + " ");
+        i++;
       }
       strB.append(serviceEnv);
       strB.append("\"");
@@ -130,15 +114,6 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
         .addAllResources(taskUtils.getScalarResource(offer, "cpus", nodeTask.getProfile().getCpus(), 0.0))
         .addAllResources(taskUtils.getScalarResource(offer, "mem", nodeTask.getProfile().getMemory(), 0.0));
 
-    if (additionalPortsNumbers != null && !additionalPortsNumbers.isEmpty()) {
-      // set ports
-      Value.Ranges.Builder valueRanger = Value.Ranges.newBuilder();
-      for (Long port : additionalPortsNumbers) {
-        valueRanger.addRange(Value.Range.newBuilder().setBegin(port).setEnd(port));
-      }
-
-      taskBuilder.addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(valueRanger.build()));
-    }
     taskBuilder.setCommand(commandInfo);
     return taskBuilder.build();
   }

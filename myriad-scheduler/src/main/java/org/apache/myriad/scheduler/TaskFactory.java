@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import javax.inject.Inject;
+
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.ExecutorID;
@@ -35,7 +36,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.MyriadExecutorConfiguration;
@@ -132,7 +132,7 @@ public interface TaskFactory {
     }
 
     @VisibleForTesting
-    CommandInfo getCommandInfo(ServiceResourceProfile profile, NMPorts ports) {
+    CommandInfo getCommandInfo(ServiceResourceProfile profile, AbstractPorts ports) {
       MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
       CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
       String cmd;
@@ -144,7 +144,6 @@ public interface TaskFactory {
         }
         String nodeManagerUri = myriadExecutorConfiguration.getNodeManagerUri().get();
         cmd = clGenerator.generateCommandLine(profile, ports);
-
         //get the nodemanagerURI
         //We're going to extract ourselves, so setExtract is false
         LOGGER.info("Getting Hadoop distribution from:" + nodeManagerUri);
@@ -176,12 +175,12 @@ public interface TaskFactory {
 
       NMPorts ports = getPorts(offer);
       LOGGER.debug(ports.toString());
-
+      AbstractPorts aports = taskUtils.getRandomPortResources(offer, 4, new HashSet<Long>());
       ServiceResourceProfile serviceProfile = nodeTask.getProfile();
       Double taskMemory = serviceProfile.getAggregateMemory();
       Double taskCpus = serviceProfile.getAggregateCpu();
 
-      CommandInfo commandInfo = getCommandInfo(serviceProfile, ports);
+      CommandInfo commandInfo = getCommandInfo(serviceProfile, aports);
       ExecutorInfo executorInfo = getExecutorInfoForSlave(frameworkId, offer, commandInfo);
 
       TaskInfo.Builder taskBuilder = TaskInfo.newBuilder().setName(cfg.getFrameworkName() + "-" + taskId.getValue()).setTaskId(taskId).setSlaveId(
@@ -190,11 +189,7 @@ public interface TaskFactory {
       return taskBuilder
           .addAllResources(taskUtils.getScalarResource(offer, "cpus", taskCpus, taskUtils.getExecutorCpus()))
           .addAllResources(taskUtils.getScalarResource(offer, "mem", taskMemory, taskUtils.getExecutorMemory()))
-          .addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(Value.Ranges.newBuilder()
-              .addRange(Range.newBuilder().setBegin(ports.getRpcPort()).setEnd(ports.getRpcPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getLocalizerPort()).setEnd(ports.getLocalizerPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getWebAppHttpPort()).setEnd(ports.getWebAppHttpPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getShufflePort()).setEnd(ports.getShufflePort()).build())))
+          .addAllResources(aports.createResourceList())
           .setExecutor(executorInfo)
           .build();
     }

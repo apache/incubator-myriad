@@ -79,10 +79,10 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   }
 
   @Override
-  public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
+  public String generateCommandLine(ServiceResourceProfile profile, AbstractPorts ports) {
     StringBuilder cmdLine = new StringBuilder();
 
-    generateEnvironment(profile, (NMPorts) ports);
+    generateEnvironment(profile, ports);
     appendCgroupsCmds(cmdLine);
     appendYarnHomeExport(cmdLine);
     appendEnvForNM(cmdLine);
@@ -90,7 +90,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     return cmdLine.toString();
   }
 
-  protected void generateEnvironment(ServiceResourceProfile profile, NMPorts ports) {
+  protected void generateEnvironment(ServiceResourceProfile profile, AbstractPorts ports) {
     //yarnEnvironemnt configuration from yaml file
     Map<String, String> yarnEnvironmentMap = cfg.getYarnEnvironment();
     if (yarnEnvironmentMap != null) {
@@ -121,10 +121,10 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     }
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_CPU_VCORES, Integer.toString(profile.getCpus().intValue()));
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_MEM_MB, Integer.toString(profile.getMemory().intValue()));
-    addYarnNodemanagerOpt(KEY_NM_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getRpcPort()).toString());
-    addYarnNodemanagerOpt(KEY_NM_LOCALIZER_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getLocalizerPort()).toString());
-    addYarnNodemanagerOpt(KEY_NM_WEBAPP_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getWebAppHttpPort()).toString());
-    addYarnNodemanagerOpt(KEY_NM_SHUFFLE_PORT, Long.valueOf(ports.getShufflePort()).toString());
+    addYarnNodemanagerOpt(KEY_NM_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.toString(ports.get(0).getPort()));
+    addYarnNodemanagerOpt(KEY_NM_LOCALIZER_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.toString(ports.get(1).getPort()));
+    addYarnNodemanagerOpt(KEY_NM_WEBAPP_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.toString(ports.get(2).getPort()));
+    addYarnNodemanagerOpt(KEY_NM_SHUFFLE_PORT, Long.toString(ports.get(3).getPort()));
   }
 
   protected void appendEnvForNM(StringBuilder cmdLine) {

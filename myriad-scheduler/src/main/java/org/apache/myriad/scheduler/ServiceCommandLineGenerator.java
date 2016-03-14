@@ -30,7 +30,7 @@ public class ServiceCommandLineGenerator extends DownloadNMExecutorCLGenImpl {
   }
 
   @Override
-  public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
+  public String generateCommandLine(ServiceResourceProfile profile, AbstractPorts ports) {
     StringBuilder strB = new StringBuilder();
     appendDistroExtractionCommands(strB);
     appendUser(strB);

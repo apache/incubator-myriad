@@ -19,7 +19,7 @@ mesosMaster: 10.0.2.15:5050
 checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadTest
-#frameworkRole: test
+frameworkRole: test
 frameworkUser: hduser     # User the Node Manager runs as, required if nodeManagerURI set, otherwise defaults to the user
                           # running the resource manager.
 frameworkSuperUser: root  # To be depricated, currently permissions need set by a superuser due to Mesos-1790.  Must be
@@ -53,8 +53,6 @@ yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
   #YARN_HOME: hadoop-2.7.0 #this should be relative if nodeManagerUri is set
   #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary
-mesosAuthenticationPrincipal:
-mesosAuthenticationSecretFilename:
 services:
    jobhistory:
      jvmMaxMemoryMB: 1024
