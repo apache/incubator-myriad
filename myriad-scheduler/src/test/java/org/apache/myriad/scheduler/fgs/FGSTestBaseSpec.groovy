@@ -21,6 +21,7 @@ package org.apache.myriad.scheduler.fgs
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import org.apache.hadoop.yarn.api.records.*
+import org.apache.hadoop.yarn.conf.YarnConfiguration
 import org.apache.hadoop.yarn.event.Dispatcher
 import org.apache.hadoop.yarn.event.EventHandler
 import org.apache.hadoop.yarn.server.resourcemanager.MockNodes
@@ -108,6 +109,7 @@ class FGSTestBaseSpec extends Specification {
         getRMApplicationHistoryWriter() >> writer
         getSystemMetricsPublisher() >> publisher
         getRMNodes() >> rmNodes
+        getYarnConfiguration() >> new YarnConfiguration()
     }
 
     /******************* Offers Related ****************/
