@@ -2,7 +2,6 @@ task wrapper(type: Wrapper) {
     gradleVersion = '2.9'
 }
 
-
 buildscript {
     repositories {
         jcenter()
@@ -23,17 +22,9 @@ apply plugin: 'com.bmuschko.docker-remote-api'
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
-task copyExecutorJar(type:Copy){
-    from '../myriad-executor/build/libs/myriad-executor-runnable-0.1.0.jar'
-    into 'libs'
-}
-
-task copyMyriadSchedulerJars(type:Copy){
-    from '../myriad-scheduler/build/libs'
-    into 'libs'
-}
-
 task copySchedulerJars(type:Copy){
+    def subdir = new File(project.buildDir, "libs")
+    if( !subdir.exists() ) { subdir.mkdirs() }
     from '../myriad-scheduler/build/libs'
     into 'libs'
 }
@@ -41,17 +32,14 @@ task copySchedulerJars(type:Copy){
 task copyMyriadJars(dependsOn: ":myriad-scheduler:build") {
     dependsOn(":myriad-executor:build")
     dependsOn(copySchedulerJars)
-    dependsOn(copyExecutorJar)
 }
 
 task buildRMDocker(type: DockerBuildImage) {
-
     dependsOn(copyMyriadJars)
     if (System.env.DOCKER_HOST) {
         url = "$System.env.DOCKER_HOST".replace("tcp","https")
         if (System.env.DOCKER_CERT_PATH) {
             certPath = new File(System.env.DOCKER_CERT_PATH)
- 
         }
     }
     else {

@@ -36,8 +36,6 @@ repositories {
     mavenCentral()
 }
 
-
-
 idea {
     project {
         languageLevel = '1.7'
