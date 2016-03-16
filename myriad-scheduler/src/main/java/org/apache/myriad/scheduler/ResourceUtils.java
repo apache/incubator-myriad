@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -16,11 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-dependencies {
-    compile project(':myriad-commons')
-    compile 'org.slf4j:slf4j-log4j12:1.7.7'
+package org.apache.myriad.scheduler;
 
-    compile "org.apache.hadoop:hadoop-yarn-api:${hadoopVer}"
-    compile "org.apache.hadoop:hadoop-common:${hadoopVer}"
+import org.apache.hadoop.yarn.api.records.Resource;
+/**
+ * Small class of Yarn resource utils.  Some methods may be redundant with methods in
+ * org.apache.hadoop.yarn.util.resource.Resources as of 2.7.0 but are here for backwards compatibilty
+ * with 2.6.0
+ */
+public class ResourceUtils {
+  public static Resource componentwiseMax(Resource lhs, Resource rhs) {
+    int cores = Math.max(lhs.getVirtualCores(), rhs.getVirtualCores());
+    int mem = Math.max(lhs.getMemory(), rhs.getMemory());
+    return Resource.newInstance(cores, mem);
+  }
 }
-

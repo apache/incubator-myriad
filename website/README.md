@@ -1,4 +1,4 @@
-# Apache Myriad Website
+# Apache Myriad (incubating) Website
 
 This is the source for the Apache Myriad [site](http://myriad.incubator.apache.org). The site is a [Jekyll](http://jekyll.rb) blog with [Material Design Lite] (http://www.getmdl.io/) for the look and feel.
 

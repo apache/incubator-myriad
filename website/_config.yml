@@ -18,7 +18,7 @@
 #####
 
 # Site settings
-title: Apache Myriad
+title: Apache Myriad (incubating)
 email: dev@myriad.incubator.apache.org
 description: > # this means to ignore newlines until "baseurl:"
     Deploy Apache YARN Applications Using Apache Mesos

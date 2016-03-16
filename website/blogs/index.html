@@ -1,4 +1,8 @@
-<!DOCTYPE html>
+---
+layout: big_card_for_md
+title: Blogs
+permalink: /blogs/
+---
 {% comment %}
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
@@ -19,22 +23,18 @@ specific language governing permissions and limitations
 under the License.
 -->
 {% endcomment %}
-
-<html>
-  {% include head.html %}
-  <body>
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header mdl-color--myriad-contrast">
-
-      {% include header.html %}
-
-      <main class="mdl-layout__content">
-        <div class="myriad-content">
-          {{ content }}
-        </div>
-
-      </main>
-      <!-- footer should be included on page layouts -->
-    </div>
-
-  </body>
-</html>
+<div>
+  <h4>Apache Myriad Blogs</h4>
+  <ul>
+    {% for post in site.categories.blogs %}
+      <li><span>{{ post.date | date_to_string }}</span> &raquo; <a href="{{ post.url }}">{{ post.title }}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+<hr>
+{% for post in site.categories.blogs %}
+<div>
+  {% include blog.html %}
+  <hr>
+</div>
+{% endfor %}

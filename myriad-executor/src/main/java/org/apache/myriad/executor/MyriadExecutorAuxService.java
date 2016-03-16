@@ -44,6 +44,7 @@ public class MyriadExecutorAuxService extends AuxiliaryService {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyriadExecutor.class);
   private static final String SERVICE_NAME = "myriad_service";
   public static final String YARN_CONTAINER_TASK_ID_PREFIX = "yarn_";
+  public static final String YARN_CONTAINER_FULL_PREFIX = "yarn_task_";
 
   private MesosExecutorDriver driver;
   private Thread myriadExecutorThread;

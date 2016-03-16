@@ -33,6 +33,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNode
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerApplicationAttempt
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FSSchedulerNode
 import org.apache.hadoop.yarn.util.resource.Resources
 import org.apache.mesos.Protos
 import org.apache.mesos.SchedulerDriver
@@ -65,6 +66,7 @@ class FGSTestBaseSpec extends Specification {
 
     def rmNodes = new ConcurrentHashMap<NodeId, RMNode>()
 
+
     RMNode getRMNode(int cpu, int mem, String host, Protos.SlaveID slaveId) {
         RMNode rmNode = MockNodes.newNodeInfo(0, Resources.createResource(mem, cpu), 0, host)
         if (rmNodes[rmNode.getNodeID()]) {
@@ -80,17 +82,16 @@ class FGSTestBaseSpec extends Specification {
 
     SchedulerNode getSchedulerNode(RMNode rmNode) {
         SchedulerNode schedulerNode = new SchedulerNode(rmNode, false) {
-
             @Override
             void reserveResource(SchedulerApplicationAttempt attempt, Priority priority, RMContainer container) {
             }
-
             @Override
             void unreserveResource(SchedulerApplicationAttempt attempt) {
             }
         }
         return schedulerNode
     }
+
 
     /******************* RMContext Related ****************/
 
@@ -143,6 +144,8 @@ class FGSTestBaseSpec extends Specification {
 
     AbstractYarnScheduler yarnScheduler = Mock(AbstractYarnScheduler) {
         getRMContainer(_ as ContainerId) >> { ContainerId cid -> fgsContainers.get(cid).rmContainer }
+        getSchedulerNode(_ as NodeId) >> { NodeId nodeId -> getSchedulerNode(rmNodes.get(nodeId)) }
+        updateNodeResource(_ as RMNode, _ as ResourceOption) >> { }
     }
 
     FGSContainer getFGSContainer(RMNode node, int cid, int cpu, int mem, ContainerState state) {
