@@ -46,13 +46,18 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
   private Path myriadPathRoot = null;
   private byte[] myriadStateBytes = null;
 
-  private Method cachedUpdateFileMethod = null; //This is a cache Method so we do fewer reflection calls
+  private Method updateFileMethod = null; //This is a cache Method so we do fewer reflection calls
 
   @Override
   public synchronized void initInternal(Configuration conf) throws Exception {
     super.initInternal(conf);
     Path rootPath = new Path(fsWorkingPath, ROOT_NAME);
     myriadPathRoot = new Path(rootPath, RM_MYRIAD_ROOT);
+    updateFileMethod = getUpdateFileMethod();
+    if (updateFileMethod == null) {
+      //something is broken
+      throw new RuntimeException("Could not find valid updateFile Method");
+    }
   }
 
   @Override
@@ -103,27 +108,22 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
     }
   }
 
-  private synchronized void getCachedUpdateFileMethod() {
-    if (cachedUpdateFileMethod == null) {
-      Method[] methods = this.getClass().getDeclaredMethods();
-      for (Method m : methods) {
-        if (m.getName().equals("updateFile")) {
-          cachedUpdateFileMethod = m;
-          break;
-        }
+  private Method getUpdateFileMethod() {
+    Method[] methods = this.getClass().getDeclaredMethods();
+    for (Method m : methods) {
+      if (m.getName().equals("updateFile")) {
+        return m;
       }
     }
+    return null;
   }
 
   protected void reflectedUpdateFile(Path outputPath, byte[] data) throws InvocationTargetException, IllegalAccessException {
-    if (cachedUpdateFileMethod == null) {
-      getCachedUpdateFileMethod();
-    }
-    Class [] parameters = cachedUpdateFileMethod.getParameterTypes();
+    Class [] parameters = updateFileMethod.getParameterTypes();
     if (parameters.length == 2 && parameters[0].equals(Path.class) && parameters[1].isArray()) {
-      cachedUpdateFileMethod.invoke(outputPath, data);
+      updateFileMethod.invoke(outputPath, data);
     } else if (parameters.length == 3 && parameters[0].equals(Path.class) && parameters[1].isArray() && parameters[2].isPrimitive()) {
-      cachedUpdateFileMethod.invoke(outputPath, data, true);
+      updateFileMethod.invoke(outputPath, data, true);
     } else {
       //something is broken
       throw new RuntimeException("updateFile Method has unexpected parameters");
