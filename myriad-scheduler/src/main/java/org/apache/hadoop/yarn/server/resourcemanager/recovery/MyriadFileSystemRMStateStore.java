@@ -60,6 +60,16 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
     }
   }
 
+  private Method getUpdateFileMethod() {
+    Method[] methods = super.getClass().getSuperclass().getDeclaredMethods();
+    for (Method m : methods) {
+      if (m.getName().equals("updateFile")) {
+        return m;
+      }
+    }
+    return null;
+  }
+
   @Override
   protected synchronized void startInternal() throws Exception {
     super.startInternal();
@@ -69,7 +79,6 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
   @Override
   public synchronized RMState loadState() throws Exception {
     RMState rmState = super.loadState();
-
     Path myriadStatePath = new Path(myriadPathRoot, MYRIAD_STATE_FILE);
     LOGGER.info("Loading state information for Myriad from: " + myriadStatePath);
 
@@ -108,22 +117,14 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
     }
   }
 
-  private Method getUpdateFileMethod() {
-    Method[] methods = this.getClass().getDeclaredMethods();
-    for (Method m : methods) {
-      if (m.getName().equals("updateFile")) {
-        return m;
-      }
-    }
-    return null;
-  }
+
 
   protected void reflectedUpdateFile(Path outputPath, byte[] data) throws InvocationTargetException, IllegalAccessException {
     Class [] parameters = updateFileMethod.getParameterTypes();
     if (parameters.length == 2 && parameters[0].equals(Path.class) && parameters[1].isArray()) {
-      updateFileMethod.invoke(outputPath, data);
+      updateFileMethod.invoke(this, outputPath, data);
     } else if (parameters.length == 3 && parameters[0].equals(Path.class) && parameters[1].isArray() && parameters[2].isPrimitive()) {
-      updateFileMethod.invoke(outputPath, data, true);
+      updateFileMethod.invoke(this, outputPath, data, true);
     } else {
       //something is broken
       throw new RuntimeException("updateFile Method has unexpected parameters");
