@@ -164,13 +164,13 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     if (httpPolicy != null && httpPolicy.equals(TaskFactory.YARN_HTTP_POLICY_HTTPS_ONLY)) {
       String address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS);
       if (address == null || address.isEmpty()) {
-        address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + ":8090";
+        address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + cfg.getYarnResourceManagerPortHTTPS();
       }
       return "https://" + address + "/conf";
     } else {
       String address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_ADDRESS);
       if (address == null || address.isEmpty()) {
-        address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + ":8088";
+        address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + cfg.getYarnResourceManagerPortHTTP();
       }
       return "http://" + address + "/conf";
     }
