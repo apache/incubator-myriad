@@ -5,12 +5,12 @@ Docker is the easiest way to from 0 to Yarn on Mesos within minutes.
 
 #Configuration Guide#
 
-In order for the ResourceManager to operate correctly, you will need to provide 4 configuration files. These files will 
+In order for the ResourceManager to operate correctly, you will need to provide 5 configuration files. These files will 
 need to mounted from a directory into `./myriad-etc` of this folder.
 
-* [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml)
-* modified [yarn-site.xml](https://github.com/mesos/myriad/blob/phase1/docs/myriad-dev.md)
-* mapred-site.xml
+* [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml) (template provided)
+* [yarn-site.xml](https://github.com/mesos/myriad/blob/phase1/docs/myriad-dev.md) (template provided)
+* mapred-site.xml (template provided)
 * hdfs-site.xml (used for hdfs)
 * core-site.xml (used for hdfs)
 
