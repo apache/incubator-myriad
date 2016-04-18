@@ -25,6 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * MyriadDockerConfiguration
+ * Provides deserialization support for dockerInfo data stored in yaml config
+ */
 public class MyriadDockerConfiguration {
   @JsonProperty
   @NotEmpty

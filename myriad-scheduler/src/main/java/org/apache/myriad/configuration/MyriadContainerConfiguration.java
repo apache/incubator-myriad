@@ -26,6 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * MyriadContainerConfiguration
+ * Provides deserialization support for containerInfo data stored in yaml config
+ */
 public class MyriadContainerConfiguration {
   @JsonProperty
   @NotEmpty
