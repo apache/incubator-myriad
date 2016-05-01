@@ -20,7 +20,6 @@ package org.apache.myriad.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.Value.Range;
@@ -162,31 +161,6 @@ public interface TaskFactory {
         if (cfg.getFrameworkUser().isPresent()) {
           commandInfo.setUser(cfg.getFrameworkUser().get());
         }
-      }
-
-      List<Environment.Variable> environmentVariables = new LinkedList<>();
-      if (myriadExecutorConfiguration.getJvmPath().isPresent()) {
-        final String jvmPath = myriadExecutorConfiguration.getJvmPath().get();
-        final Environment.Variable javaHomeVariable = Environment.Variable.newBuilder()
-                .setName("JAVA_HOME")
-                .setValue(jvmPath)
-                .build();
-        environmentVariables.add(javaHomeVariable);
-        LOGGER.info("Setting JAVA_HOME:" + jvmPath);
-      }
-
-      if (myriadExecutorConfiguration.getJavaLibraryPath().isPresent()) {
-        final String javaLibraryPath = myriadExecutorConfiguration.getJavaLibraryPath().get();
-        final Environment.Variable javaLibraryPathVariable = Environment.Variable.newBuilder()
-                .setName("JAVA_LIBRARY_PATH")
-                .setValue(javaLibraryPath)
-                .build();
-        environmentVariables.add(javaLibraryPathVariable);
-        LOGGER.info("Setting JAVA_LIBRARY_PATH:" + javaLibraryPath);
-      }
-
-      if (CollectionUtils.isNotEmpty(environmentVariables)) {
-        commandInfo.setEnvironment(Environment.newBuilder().addAllVariables(environmentVariables).build());
       }
 
       return commandInfo.build();
