@@ -44,6 +44,32 @@ public class MyriadExecutorConfiguration {
   @JsonSerialize(using = OptionalSerializerString.class)
   private String nodeManagerUri;
 
+  /**
+   * Download URL for JRE.
+   * Ex: jvmUri: http://www.apache.org/myriad/jre-1.8.99.tar.gz
+   * If provided, Mesos fetcher will be used to download and extract it
+   * inside sandbox.
+   */
+  @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
+  private String jvmUri;
+
+  /**
+   * Path to JRE relative to Mesos sandbox. Ex: jvmPath: jre-1.8.99.
+   * If provided, JAVA_HOME will be set to this value.
+   */
+  @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
+  private String jvmPath;
+
+  /**
+   * If provided, executor process will be launched with
+   * JAVA_LIBRARY_PATH environment variable set to this value,
+   */
+  @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
+  private String javaLibraryPath;
+
   public Optional<Double> getJvmMaxMemoryMB() {
     return Optional.fromNullable(jvmMaxMemoryMB);
   }
@@ -54,5 +80,17 @@ public class MyriadExecutorConfiguration {
 
   public Optional<String> getNodeManagerUri() {
     return Optional.fromNullable(nodeManagerUri);
+  }
+
+  public Optional<String> getJvmUri() {
+    return Optional.fromNullable(jvmUri);
+  }
+
+  public Optional<String> getJvmPath() {
+    return Optional.fromNullable(jvmPath);
+  }
+
+  public Optional<String> getJavaLibraryPath() {
+    return Optional.fromNullable(javaLibraryPath);
   }
 }

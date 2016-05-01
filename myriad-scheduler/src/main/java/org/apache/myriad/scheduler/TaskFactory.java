@@ -20,28 +20,18 @@ package org.apache.myriad.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
-import javax.inject.Inject;
-import org.apache.mesos.Protos.CommandInfo;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.CommandInfo.URI;
-import org.apache.mesos.Protos.ExecutorID;
-import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.MyriadExecutorConfiguration;
 import org.apache.myriad.state.NodeTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
+import java.util.*;
 
 
 /**
@@ -137,6 +127,13 @@ public interface TaskFactory {
       CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
       String cmd;
 
+      if (myriadExecutorConfiguration.getJvmUri().isPresent()) {
+        final String jvmRemoteUri = myriadExecutorConfiguration.getJvmUri().get();
+        LOGGER.info("Getting JRE distribution from:" + jvmRemoteUri);
+        URI jvmUri = URI.newBuilder().setValue(jvmRemoteUri).setExtract(true).build();
+        commandInfo.addUris(jvmUri);
+      }
+
       if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
         //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
         if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
@@ -166,6 +163,32 @@ public interface TaskFactory {
           commandInfo.setUser(cfg.getFrameworkUser().get());
         }
       }
+
+      List<Environment.Variable> environmentVariables = new LinkedList<>();
+      if (myriadExecutorConfiguration.getJvmPath().isPresent()) {
+        final String jvmPath = myriadExecutorConfiguration.getJvmPath().get();
+        final Environment.Variable javaHomeVariable = Environment.Variable.newBuilder()
+                .setName("JAVA_HOME")
+                .setValue(jvmPath)
+                .build();
+        environmentVariables.add(javaHomeVariable);
+        LOGGER.info("Setting JAVA_HOME:" + jvmPath);
+      }
+
+      if (myriadExecutorConfiguration.getJavaLibraryPath().isPresent()) {
+        final String javaLibraryPath = myriadExecutorConfiguration.getJavaLibraryPath().get();
+        final Environment.Variable javaLibraryPathVariable = Environment.Variable.newBuilder()
+                .setName("JAVA_LIBRARY_PATH")
+                .setValue(javaLibraryPath)
+                .build();
+        environmentVariables.add(javaLibraryPathVariable);
+        LOGGER.info("Setting JAVA_LIBRARY_PATH:" + javaLibraryPath);
+      }
+
+      if (CollectionUtils.isNotEmpty(environmentVariables)) {
+        commandInfo.setEnvironment(Environment.newBuilder().addAllVariables(environmentVariables).build());
+      }
+
       return commandInfo.build();
     }
 
