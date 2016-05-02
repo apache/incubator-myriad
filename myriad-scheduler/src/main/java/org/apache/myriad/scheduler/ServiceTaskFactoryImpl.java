@@ -140,6 +140,9 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
       taskBuilder.addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(valueRanger.build()));
     }
     taskBuilder.setCommand(commandInfo);
+    if (cfg.getContainerInfo().isPresent()) {
+      taskBuilder.setContainer(taskUtils.getContainerInfo());
+    }
     return taskBuilder.build();
   }
 
