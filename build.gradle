@@ -67,7 +67,7 @@ subprojects {
     version = "0.1.0"
 
     ext {
-        mesosVer = "0.24.1"
+        mesosVer = "0.27.1"
         //Allows passing -PhadoopVer=2.6.0 from command line
         if(!project.hasProperty('hadoopVer')) {
             hadoopVer = "2.7.0"

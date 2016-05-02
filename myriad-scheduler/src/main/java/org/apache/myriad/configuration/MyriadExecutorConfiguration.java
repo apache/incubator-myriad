@@ -44,6 +44,10 @@ public class MyriadExecutorConfiguration {
   @JsonSerialize(using = OptionalSerializerString.class)
   private String nodeManagerUri;
 
+  @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
+  private String myriadConfigUri;
+
   public Optional<Double> getJvmMaxMemoryMB() {
     return Optional.fromNullable(jvmMaxMemoryMB);
   }
@@ -54,5 +58,9 @@ public class MyriadExecutorConfiguration {
 
   public Optional<String> getNodeManagerUri() {
     return Optional.fromNullable(nodeManagerUri);
+  }
+
+  public Optional<String> getConfigUri() {
+    return Optional.fromNullable(myriadConfigUri);
   }
 }
