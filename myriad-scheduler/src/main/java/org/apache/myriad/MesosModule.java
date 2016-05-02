@@ -83,7 +83,7 @@ public class MesosModule extends AbstractModule {
       credentialBuilder.setPrincipal(mesosAuthenticationPrincipal);
       if (StringUtils.isNotEmpty(mesosAuthenticationSecretFilename)) {
         try {
-          credentialBuilder.setSecret(ByteString.readFrom(new FileInputStream(mesosAuthenticationSecretFilename)));
+          credentialBuilder.setSecretBytes(ByteString.readFrom(new FileInputStream(mesosAuthenticationSecretFilename)));
         } catch (FileNotFoundException ex) {
           LOGGER.error("Mesos authentication secret file was not found", ex);
           throw new RuntimeException(ex);

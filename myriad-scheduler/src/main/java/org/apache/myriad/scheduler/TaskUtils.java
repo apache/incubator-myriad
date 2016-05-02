@@ -18,11 +18,15 @@
  */
 package org.apache.myriad.scheduler;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.Iterables;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.ArrayList;
+import java.util.*;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -40,12 +44,9 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import com.google.common.base.Preconditions;
 import org.apache.mesos.Protos;
-import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.configuration.MyriadExecutorConfiguration;
-import org.apache.myriad.configuration.NodeManagerConfiguration;
-import org.apache.myriad.configuration.ServiceConfiguration;
+import org.apache.myriad.configuration.*;
 import org.apache.myriad.executor.MyriadExecutorDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,11 +61,19 @@ import org.xml.sax.SAXException;
  */
 public class TaskUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(TaskUtils.class);
-
   private static final String YARN_NODEMANAGER_RESOURCE_CPU_VCORES = "yarn.nodemanager.resource.cpu-vcores";
   private static final String YARN_NODEMANAGER_RESOURCE_MEMORY_MB = "yarn.nodemanager.resource.memory-mb";
+  private static final String CONTAINER_PATH_KEY = "containerPath";
+  private static final String HOST_PATH_KEY = "hostPath";
+  private static final String RW_MODE = "mode";
+  private static final String CONTAINER_PORT_KEY = "containerPort";
+  private static final String HOST_PORT_KEY = "hostPort";
+  private static final String PROTOCOL_KEY = "protocol";
+  private static final String PARAMETER_KEY_KEY = "key";
+  private static final String PARAMETER_VALUE_KEY = "value";
 
   private MyriadConfiguration cfg;
+  Random random = new Random();
 
   @Inject
   public TaskUtils(MyriadConfiguration cfg) {
@@ -208,14 +217,84 @@ public class TaskUtils {
     return auxConf.getJvmMaxMemoryMB().get();
   }
 
+  public TaskUtils() {
+    super();
+  }
+
+  public Iterable<Protos.Volume> getVolumes(Iterable<Map<String, String>> volume) {
+    return Iterables.transform(volume, new Function<Map<String, String>, Protos.Volume>() {
+      @Nullable
+      @Override
+      public Protos.Volume apply(Map<String, String> map) {
+        Preconditions.checkArgument(map.containsKey(HOST_PATH_KEY) && map.containsKey(CONTAINER_PATH_KEY));
+        Protos.Volume.Mode mode = Protos.Volume.Mode.RO;
+        if (map.containsKey(RW_MODE) && map.get(RW_MODE).toLowerCase().equals("rw")) {
+          mode = Protos.Volume.Mode.RW;
+        }
+        return Protos.Volume.newBuilder()
+            .setContainerPath(map.get(CONTAINER_PATH_KEY))
+            .setHostPath(map.get(HOST_PATH_KEY))
+            .setMode(mode)
+            .build();
+      }
+    });
+  }
+
+  public Iterable<Protos.Parameter> getParameters(Iterable<Map<String, String>> params) {
+    Preconditions.checkNotNull(params);
+    return Iterables.transform(params, new Function<Map<String, String>, Protos.Parameter>() {
+      @Override
+      public Protos.Parameter apply(Map<String, String> parameter) {
+        Preconditions.checkNotNull(parameter, "Null parameter");
+        Preconditions.checkState(parameter.containsKey(PARAMETER_KEY_KEY), "Missing key");
+        Preconditions.checkState(parameter.containsKey(PARAMETER_VALUE_KEY), "Missing value");
+        return Protos.Parameter.newBuilder()
+            .setKey(parameter.get(PARAMETER_KEY_KEY))
+            .setValue(PARAMETER_VALUE_KEY)
+            .build();
+      }
+    });
+  }
+
+  private Protos.ContainerInfo.DockerInfo getDockerInfo(MyriadDockerConfiguration dockerConfiguration) {
+    Preconditions.checkArgument(dockerConfiguration.getNetwork().equals("HOST"), "Currently only host networking supported");
+    Protos.ContainerInfo.DockerInfo.Builder dockerBuilder = Protos.ContainerInfo.DockerInfo.newBuilder()
+        .setImage(dockerConfiguration.getImage())
+        .setForcePullImage(dockerConfiguration.getForcePullImage())
+        .setNetwork(Protos.ContainerInfo.DockerInfo.Network.valueOf(dockerConfiguration.getNetwork()))
+        .setPrivileged(dockerConfiguration.getPrivledged())
+        .addAllParameters(getParameters(dockerConfiguration.getParameters()));
+    return dockerBuilder.build();
+  }
+
+  /**
+   * Builds a ContainerInfo Object
+   *
+   * @return ContainerInfo
+   */
+  public Protos.ContainerInfo getContainerInfo() {
+    Preconditions.checkArgument(cfg.getContainerInfo().isPresent(), "ContainerConfiguration doesn't exist!");
+    MyriadContainerConfiguration containerConfiguration = cfg.getContainerInfo().get();
+    Protos.ContainerInfo.Builder containerBuilder = Protos.ContainerInfo.newBuilder()
+        .setType(Protos.ContainerInfo.Type.valueOf(containerConfiguration.getType()))
+        .addAllVolumes(getVolumes(containerConfiguration.getVolumes()));
+    if (containerConfiguration.getDockerInfo().isPresent()) {
+      MyriadDockerConfiguration dockerConfiguration = containerConfiguration.getDockerInfo().get();
+      containerBuilder.setDocker(getDockerInfo(dockerConfiguration));
+    }
+    return containerBuilder.build();
+  }
+
+
   /**
    * Helper function that returns all scalar resources of a given name in an offer up to a given value.  Attempts to
    * take resource from the prescribed role first and then from the default role.  The variable used indicated any
    * resources previously requested.   Assumes enough resources are present.
+   *
    * @param offer - An offer by Mesos, assumed to have enough resources.
    * @param name  - The name of the SCALAR resource, i.e. cpus or mem
    * @param value - The amount of SCALAR resources needed.
-   * @param used - The amount of SCALAR resources already removed from this offer.
+   * @param used  - The amount of SCALAR resources already removed from this offer.
    * @return An Iterable containing one or two scalar resources of a given name in an offer up to a given value.
    */
   public Iterable<Protos.Resource> getScalarResource(Protos.Offer offer, String name, Double value, Double used) {
