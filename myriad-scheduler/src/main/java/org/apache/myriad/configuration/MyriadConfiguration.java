@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import java.util.Map;
+
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -53,8 +54,27 @@ import org.hibernate.validator.constraints.NotEmpty;
  * executor:
  * jvmMaxMemoryMB: 256
  * path: file://localhost/usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
+ * containerInfo:
+ *   DockerInfo:
+ *     image: mesos/myriad
+ *     forcePullImage: false
+ *     parameters:
+ *       -
+ *         key: key
+ *         value: value
+ *       -
+ *         key: key
+ *         value: value
+ *   volumes:
+ *     -
+ *       containerPath: path
+ *       hostPath: path
+ *       mode: RW
+ *     -
+ *       containerPath: path
+ *       hostPath: path
  * yarnEnvironment:
- * YARN_HOME: /usr/local/hadoop
+ *   YARN_HOME: /usr/local/hadoop
  */
 public class MyriadConfiguration {
   /**
@@ -91,6 +111,9 @@ public class MyriadConfiguration {
 
   @JsonProperty
   private Boolean checkpoint;
+
+  @JsonProperty
+  private MyriadContainerConfiguration containerInfo;
 
   @JsonProperty
   private Double frameworkFailoverTimeout;
@@ -156,10 +179,14 @@ public class MyriadConfiguration {
   @JsonProperty
   private String mesosAuthenticationSecretFilename;
 
+  @JsonProperty
+  private String servedConfigPath;
+
+  @JsonProperty
+  private String servedBinaryPath;
 
   public MyriadConfiguration() {
   }
-
 
   public String getMesosMaster() {
     return mesosMaster;
@@ -167,6 +194,10 @@ public class MyriadConfiguration {
 
   public Boolean isCheckpoint() {
     return this.checkpoint != null ? checkpoint : DEFAULT_CHECKPOINT;
+  }
+
+  public Optional<MyriadContainerConfiguration> getContainerInfo() {
+    return Optional.fromNullable(containerInfo);
   }
 
   public Double getFrameworkFailoverTimeout() {
@@ -250,6 +281,14 @@ public class MyriadConfiguration {
 
   public String getMesosAuthenticationPrincipal() {
     return mesosAuthenticationPrincipal;
+  }
+
+  public Optional<String> getServedConfigPath() {
+    return Optional.fromNullable(servedConfigPath);
+  }
+
+  public Optional<String> getServedBinaryPath() {
+    return Optional.fromNullable(servedBinaryPath);
   }
 
 }

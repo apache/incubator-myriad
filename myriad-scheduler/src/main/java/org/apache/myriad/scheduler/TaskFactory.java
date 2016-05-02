@@ -19,24 +19,19 @@
 package org.apache.myriad.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import javax.inject.Inject;
+
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
-import org.apache.mesos.Protos.Value.Range;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.configuration.MyriadExecutorConfiguration;
 import org.apache.myriad.state.NodeTask;
@@ -83,56 +78,11 @@ public interface TaskFactory {
       this.cfg = cfg;
       this.taskUtils = taskUtils;
       this.clGenerator = clGenerator;
-      this.constraints = new NMTaskConstraints();
+      this.constraints = new NMTaskConstraints(cfg);
     }
 
     @VisibleForTesting
-    protected static HashSet<Long> getNMPorts(Resource resource) {
-      HashSet<Long> ports = new HashSet<>();
-      if (resource.getName().equals("ports")) {
-        /*
-        ranges.getRangeList() returns a list of ranges, each range specifies a begin and end only.
-        so must loop though each range until we get all ports needed.  We exit each loop as soon as all
-        ports are found so bounded by NMPorts.expectedNumPorts.
-        */
-        final List<Range> ranges = resource.getRanges().getRangeList();
-        final List<Long> allAvailablePorts = new ArrayList<>();
-        for (Range range : ranges) {
-          if (range.hasBegin() && range.hasEnd()) {
-            for (long i = range.getBegin(); i <= range.getEnd(); i++) {
-              allAvailablePorts.add(i);
-            }
-          }
-        }
-
-        Preconditions.checkState(allAvailablePorts.size() >= NMPorts.expectedNumPorts(), "Not enough ports in offer");
-
-        while (ports.size() < NMPorts.expectedNumPorts()) {
-          int portIndex = rand.nextInt(allAvailablePorts.size());
-          ports.add(allAvailablePorts.get(portIndex));
-          allAvailablePorts.remove(portIndex);
-        }
-      }
-      return ports;
-    }
-
-    //Utility function to get the first NMPorts.expectedNumPorts number of ports of an offer
-    @VisibleForTesting
-    protected static NMPorts getPorts(Offer offer) {
-      HashSet<Long> ports = new HashSet<>();
-      for (Resource resource : offer.getResourcesList()) {
-        if (resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {
-          ports = getNMPorts(resource);
-          break;
-        }
-      }
-
-      Long [] portArray = ports.toArray(new Long [ports.size()]);
-      return new NMPorts(portArray);
-    }
-
-    @VisibleForTesting
-    CommandInfo getCommandInfo(ServiceResourceProfile profile, NMPorts ports) {
+    CommandInfo getCommandInfo(ServiceResourceProfile profile, AbstractPorts ports) {
       MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
       CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
       String cmd;
@@ -144,7 +94,6 @@ public interface TaskFactory {
         }
         String nodeManagerUri = myriadExecutorConfiguration.getNodeManagerUri().get();
         cmd = clGenerator.generateCommandLine(profile, ports);
-
         //get the nodemanagerURI
         //We're going to extract ourselves, so setExtract is false
         LOGGER.info("Getting Hadoop distribution from:" + nodeManagerUri);
@@ -174,14 +123,12 @@ public interface TaskFactory {
       Objects.requireNonNull(offer, "Offer should be non-null");
       Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
-      NMPorts ports = getPorts(offer);
-      LOGGER.debug(ports.toString());
-
+      AbstractPorts aports = taskUtils.getRandomPortResources(offer, 4, new HashSet<Long>());
       ServiceResourceProfile serviceProfile = nodeTask.getProfile();
       Double taskMemory = serviceProfile.getAggregateMemory();
       Double taskCpus = serviceProfile.getAggregateCpu();
 
-      CommandInfo commandInfo = getCommandInfo(serviceProfile, ports);
+      CommandInfo commandInfo = getCommandInfo(serviceProfile, aports);
       ExecutorInfo executorInfo = getExecutorInfoForSlave(frameworkId, offer, commandInfo);
 
       TaskInfo.Builder taskBuilder = TaskInfo.newBuilder().setName(cfg.getFrameworkName() + "-" + taskId.getValue()).setTaskId(taskId).setSlaveId(
@@ -190,11 +137,7 @@ public interface TaskFactory {
       return taskBuilder
           .addAllResources(taskUtils.getScalarResource(offer, "cpus", taskCpus, taskUtils.getExecutorCpus()))
           .addAllResources(taskUtils.getScalarResource(offer, "mem", taskMemory, taskUtils.getExecutorMemory()))
-          .addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(Value.Ranges.newBuilder()
-              .addRange(Range.newBuilder().setBegin(ports.getRpcPort()).setEnd(ports.getRpcPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getLocalizerPort()).setEnd(ports.getLocalizerPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getWebAppHttpPort()).setEnd(ports.getWebAppHttpPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getShufflePort()).setEnd(ports.getShufflePort()).build())))
+          .addAllResources(aports.createResourceList())
           .setExecutor(executorInfo)
           .build();
     }
@@ -204,21 +147,13 @@ public interface TaskFactory {
       ExecutorID executorId = ExecutorID.newBuilder()
           .setValue(EXECUTOR_PREFIX + frameworkId.getValue() + offer.getId().getValue() + offer.getSlaveId().getValue())
           .build();
-      return ExecutorInfo.newBuilder().setCommand(commandInfo).setName(EXECUTOR_NAME).setExecutorId(executorId)
+      ExecutorInfo.Builder executorInfo = ExecutorInfo.newBuilder().setCommand(commandInfo).setName(EXECUTOR_NAME).setExecutorId(executorId)
           .addAllResources(taskUtils.getScalarResource(offer, "cpus", taskUtils.getExecutorCpus(), 0.0))
-          .addAllResources(taskUtils.getScalarResource(offer, "mem", taskUtils.getExecutorMemory(), 0.0))
-          .build();
-    }
-  }
-
-  /**
-   * Implement NM Task Constraints
-   */
-  public static class NMTaskConstraints implements TaskConstraints {
-
-    @Override
-    public int portsCount() {
-      return NMPorts.expectedNumPorts();
+          .addAllResources(taskUtils.getScalarResource(offer, "mem", taskUtils.getExecutorMemory(), 0.0));
+      if (cfg.getContainerInfo().isPresent()) {
+        executorInfo.setContainer(taskUtils.getContainerInfo());
+      }
+      return executorInfo.build();
     }
   }
 }

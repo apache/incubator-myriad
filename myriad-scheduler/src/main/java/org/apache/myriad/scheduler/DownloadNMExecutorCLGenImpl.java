@@ -41,11 +41,11 @@ public class DownloadNMExecutorCLGenImpl extends NMExecutorCLGenImpl {
   }
 
   @Override
-  public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
+  public String generateCommandLine(ServiceResourceProfile profile, AbstractPorts ports) {
     StringBuilder cmdLine = new StringBuilder();
     LOGGER.info("Using remote distribution");
 
-    generateEnvironment(profile, (NMPorts) ports);
+    generateEnvironment(profile, ports);
     appendDistroExtractionCommands(cmdLine);
     appendCgroupsCmds(cmdLine);
     appendYarnHomeExport(cmdLine);

@@ -42,18 +42,7 @@ import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.health.MesosDriverHealthCheck;
 import org.apache.myriad.health.MesosMasterHealthCheck;
 import org.apache.myriad.health.ZookeeperHealthCheck;
-import org.apache.myriad.scheduler.ExtendedResourceProfile;
-import org.apache.myriad.scheduler.MyriadDriverManager;
-import org.apache.myriad.scheduler.MyriadOperations;
-import org.apache.myriad.scheduler.NMProfile;
-import org.apache.myriad.scheduler.Rebalancer;
-import org.apache.myriad.scheduler.ServiceProfileManager;
-import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.scheduler.ServiceTaskConstraints;
-import org.apache.myriad.scheduler.TaskConstraintsManager;
-import org.apache.myriad.scheduler.TaskFactory;
-import org.apache.myriad.scheduler.TaskTerminator;
-import org.apache.myriad.scheduler.TaskUtils;
+import org.apache.myriad.scheduler.*;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.SchedulerState;
 import org.apache.myriad.webapp.MyriadWebServer;
@@ -145,11 +134,13 @@ public class Main {
   }
 
   private void initProfiles(Injector injector) {
+    MyriadConfiguration cfg = injector.getInstance(MyriadConfiguration.class);
+
     LOGGER.info("Initializing Profiles");
     ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
     TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
-    taskConstraintsManager.addTaskConstraints(NodeManagerConfiguration.NM_TASK_PREFIX, new TaskFactory.NMTaskConstraints());
-    Map<String, Map<String, String>> profiles = injector.getInstance(MyriadConfiguration.class).getProfiles();
+    taskConstraintsManager.addTaskConstraints(NodeManagerConfiguration.NM_TASK_PREFIX, new NMTaskConstraints(cfg));
+    Map<String, Map<String, String>> profiles = cfg.getProfiles();
     TaskUtils taskUtils = injector.getInstance(TaskUtils.class);
     if (MapUtils.isNotEmpty(profiles)) {
       for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {

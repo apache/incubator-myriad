@@ -16,11 +16,24 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 package org.apache.myriad.scheduler;
 
-/**
- * Generic interface to represent ports
- */
-public interface Ports {
+import org.apache.myriad.configuration.MyriadConfiguration;
 
+/**
+ * NMTaskConstraints is an implementation of TaskConstraints for a service
+ * at this point constraints are on ports
+ * Later on there may be other types of constraints added
+ */
+public class NMTaskConstraints implements TaskConstraints {
+  private int portsCount;
+
+  public NMTaskConstraints(MyriadConfiguration cfg) {
+    portsCount = cfg.getNodeManagerConfiguration().getPorts().size();
+  }
+  @Override
+  public int portsCount() {
+    return portsCount;
+  }
 }

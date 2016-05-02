@@ -25,6 +25,9 @@ import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerDoub
 import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Node Manager Configuration
  */
@@ -47,6 +50,16 @@ public class NodeManagerConfiguration {
   public static final String NM_TASK_PREFIX = "nm";
 
   /**
+   * Default ports to request
+   */
+
+  public static final String KEY_NM_ADDRESS = "myriad.yarn.nodemanager.port";
+  public static final String KEY_NM_LOCALIZER_ADDRESS = "myriad.yarn.nodemanager.localizer.port";
+  public static final String KEY_NM_WEBAPP_ADDRESS = "myriad.yarn.nodemanager.webapp.port";
+  public static final String KEY_NM_SHUFFLE_PORT = "myriad.mapreduce.shuffle.port";
+
+
+  /**
    * Translates to -Xmx for the NodeManager JVM.
    */
   @JsonProperty
@@ -60,6 +73,9 @@ public class NodeManagerConfiguration {
   @JsonProperty
   @JsonSerialize(using = OptionalSerializerDouble.class)
   private Double cpus;
+
+  @JsonProperty
+  private Map<String, Long> ports;
 
   /**
    * Translates to JAVA_OPTS for the NodeManager JVM.
@@ -89,5 +105,18 @@ public class NodeManagerConfiguration {
 
   public Optional<Boolean> getCgroups() {
     return Optional.fromNullable(cgroups);
+  }
+
+  public Map<String, Long> getPorts() {
+    if (ports == null) {
+      Map<String, Long> map = new HashMap<String, Long>();
+      map.put(KEY_NM_ADDRESS, 0L);
+      map.put(KEY_NM_LOCALIZER_ADDRESS, 0L);
+      map.put(KEY_NM_WEBAPP_ADDRESS, 0L);
+      map.put(KEY_NM_SHUFFLE_PORT, 0L);
+      return map;
+    } else {
+      return ports;
+    }
   }
 }

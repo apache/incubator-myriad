@@ -69,16 +69,19 @@ public class TestServiceCommandLine {
 
   @Test
   public void testNMCommandLineGeneration() throws Exception {
-    Long[] ports = new Long[]{1L, 2L, 3L, 4L};
-    NMPorts nmPorts = new NMPorts(ports);
-
+    //Long[] ports = new Long[]{1L, 2L, 3L, 4L};
+    AbstractPorts ports = new AbstractPorts(4);
+    ports.add(1L);
+    ports.add(2L);
+    ports.add(3L);
+    ports.add(4L);
     ServiceResourceProfile profile = new ExtendedResourceProfile(new NMProfile("nm", 10L, 15L), 3.0, 5.0);
 
     ExecutorCommandLineGenerator clGenerator = new DownloadNMExecutorCLGenImpl(cfg,
         "hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz");
     NMTaskFactoryImpl nms = new NMTaskFactoryImpl(cfg, null, clGenerator);
 
-    CommandInfo cInfo = nms.getCommandInfo(profile, nmPorts);
+    CommandInfo cInfo = nms.getCommandInfo(profile, ports);
 
     assertTrue(cInfo.getValue().startsWith(toCompare));
 
