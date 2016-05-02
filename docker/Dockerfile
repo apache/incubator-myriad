@@ -30,7 +30,6 @@ ENV MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
 
 
 # Setup mesosphere repositories
-RUN echo hello
 RUN apt-get -y update
 RUN apt-get install -y openjdk-7-jre-headless wget lsb-release
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv E56151BF
@@ -38,15 +37,12 @@ RUN DISTRO=$(lsb_release -is | tr '[:upper:]' '[:lower:]') CODENAME=$(lsb_releas
 RUN apt-get -y update
 
 # Install Mesos
-#RUN apt-get install -y mesos=`apt-cache madison mesos | grep 0.28.0 | head -1 | awk '{print $3}'` && \
-#apt-get install -y curl tar
 RUN apt-get install -y mesos curl tar
 # Run local YARN install
 ADD myriad-bin/install-yarn.sh /install-yarn.sh
 RUN sh /install-yarn.sh
 ADD myriad-bin/configure-yarn.sh /configure-yarn.sh
 RUN /configure-yarn.sh
-#RUN ln -s /tmp /usr/local/hadoop/logs
 # Copy over myriad libraries
 ADD ./libs/* /usr/local/hadoop/share/hadoop/yarn/lib/
 # Initialize hadoop confs with env vars

@@ -40,7 +40,7 @@ frameworkName: MyriadAlpha
 # User the Node Manager will run as (Defaults to user running the resource manager if absent,  necessary for remote distribution).
 frameworkUser: yarn
 # User that gets the nodeManagerUri and sets up the directories for Node Manager, must have passwordless sudo (Necessary only for remote distribution, otherwise ignored).
-frameworkSuperUser: root
+# frameworkSuperUser: root
 # Myriad's REST-ful services port mapping.
 restApiPort: 8192
 # Address of the ZK ensemble (separate by comma, if multiple zk servers are used)
