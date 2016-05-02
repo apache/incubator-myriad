@@ -61,5 +61,7 @@ yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
   #YARN_HOME: hadoop-2.7.0 #this should be relative if nodeManagerUri is set
   #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary
+  #JAVA_HOME: jre1.7.0_76 # Path to JRE distribution, relative to sandbox directory
+  #JAVA_LIBRARY_PATH: /opt/mycompany/lib
 mesosAuthenticationPrincipal:
 mesosAuthenticationSecretFilename:
