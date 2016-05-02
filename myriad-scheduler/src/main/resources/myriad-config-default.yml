@@ -57,8 +57,6 @@ executor:
   #nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz
   #path: hdfs://namenode:port/dist/myriad-executor-runnable-0.1.0.jar
   #jvmUri: https://downloads.mycompany.com/java/jre-7u76-linux-x64.tar.gz
-  #jvmPath: jre1.7.0_76
-  #javaLibraryPath: /opt/mycompany/lib
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
   #YARN_HOME: hadoop-2.7.0 #this should be relative if nodeManagerUri is set
