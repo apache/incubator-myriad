@@ -23,15 +23,25 @@ import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 
 task copySchedulerJars(type:Copy){
+    dependsOn(":myriad-scheduler:build")
     def subdir = new File(project.buildDir, "libs")
     if( !subdir.exists() ) { subdir.mkdirs() }
     from '../myriad-scheduler/build/libs'
     into 'libs'
 }
 
-task copyMyriadJars(dependsOn: ":myriad-scheduler:build") {
+task copyExecutorJars(type:Copy){
     dependsOn(":myriad-executor:build")
+    def subdir = new File(project.buildDir, "libs")
+    if( !subdir.exists() ) { subdir.mkdirs() }
+    from '../myriad-executor/build/libs'
+    into 'libs'
+}
+
+
+task copyMyriadJars(dependsOn: ":myriad-scheduler:build") {
     dependsOn(copySchedulerJars)
+    dependsOn(copyExecutorJars)
 }
 
 task buildRMDocker(type: DockerBuildImage) {
@@ -46,5 +56,9 @@ task buildRMDocker(type: DockerBuildImage) {
         url = 'unix:///var/run/docker.sock'
     }  
     inputDir = file('.')
-    tag = 'mesos/myriad'
+    if(!project.hasProperty('dockerTag')) {
+        tag = 'mesos/myriad'
+    } else {
+        tag = dockerTag
+    }
 }
