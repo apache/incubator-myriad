@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import java.util.Map;
+
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -156,10 +157,14 @@ public class MyriadConfiguration {
   @JsonProperty
   private String mesosAuthenticationSecretFilename;
 
+  @JsonProperty
+  private String servedConfigPath;
+
+  @JsonProperty
+  private String servedBinaryPath;
 
   public MyriadConfiguration() {
   }
-
 
   public String getMesosMaster() {
     return mesosMaster;
@@ -250,6 +255,14 @@ public class MyriadConfiguration {
 
   public String getMesosAuthenticationPrincipal() {
     return mesosAuthenticationPrincipal;
+  }
+
+  public Optional<String> getServedConfigPath() {
+    return Optional.fromNullable(servedConfigPath);
+  }
+
+  public Optional<String> getServedBinaryPath() {
+    return Optional.fromNullable(servedBinaryPath);
   }
 
 }
