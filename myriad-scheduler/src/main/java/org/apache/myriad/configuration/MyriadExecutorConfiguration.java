@@ -44,6 +44,10 @@ public class MyriadExecutorConfiguration {
   @JsonSerialize(using = OptionalSerializerString.class)
   private String nodeManagerUri;
 
+  @JsonProperty
+  @JsonSerialize(using = OptionalSerializerString.class)
+  private String configUri;
+
   /**
    * Download URL for JRE.
    * Ex: jvmUri: http://www.apache.org/myriad/jre-1.8.99.tar.gz
@@ -64,6 +68,10 @@ public class MyriadExecutorConfiguration {
 
   public Optional<String> getNodeManagerUri() {
     return Optional.fromNullable(nodeManagerUri);
+  }
+
+  public Optional<String> getConfigUri() {
+    return Optional.fromNullable(configUri);
   }
 
   public Optional<String> getJvmUri() {
