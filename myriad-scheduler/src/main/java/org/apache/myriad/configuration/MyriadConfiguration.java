@@ -179,6 +179,11 @@ public class MyriadConfiguration {
   @JsonProperty
   private String mesosAuthenticationSecretFilename;
 
+  @JsonProperty
+  private String servedConfigPath;
+
+  @JsonProperty
+  private String servedBinaryPath;
 
   public MyriadConfiguration() {
   }
@@ -276,6 +281,14 @@ public class MyriadConfiguration {
 
   public String getMesosAuthenticationPrincipal() {
     return mesosAuthenticationPrincipal;
+  }
+
+  public Optional<String> getServedConfigPath() {
+    return Optional.fromNullable(servedConfigPath);
+  }
+
+  public Optional<String> getServedBinaryPath() {
+    return Optional.fromNullable(servedBinaryPath);
   }
 
 }

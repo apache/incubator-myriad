@@ -133,6 +133,12 @@ public interface TaskFactory {
         commandInfo.addUris(jvmUri);
       }
 
+      if (myriadExecutorConfiguration.getConfigUri().isPresent()) {
+        String configURI = myriadExecutorConfiguration.getConfigUri().get();
+        LOGGER.info("Getting Hadoop distribution from: {}", configURI);
+        commandInfo.addUris(URI.newBuilder().setValue(configURI).build());
+      }
+
       if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
         //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
         if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
@@ -143,14 +149,14 @@ public interface TaskFactory {
 
         //get the nodemanagerURI
         //We're going to extract ourselves, so setExtract is false
-        LOGGER.info("Getting Hadoop distribution from:" + nodeManagerUri);
+        LOGGER.info("Getting Hadoop distribution from: {}", nodeManagerUri);
         URI nmUri = URI.newBuilder().setValue(nodeManagerUri).setExtract(false).build();
 
         //get configs directly from resource manager
         String configUrlString = clGenerator.getConfigurationUrl();
         LOGGER.info("Getting config from:" + configUrlString);
         URI configUri = URI.newBuilder().setValue(configUrlString).build();
-        LOGGER.info("Slave will execute command:" + cmd);
+        LOGGER.info("Slave will execute command: {}",  cmd);
         commandInfo.addUris(nmUri).addUris(configUri).setValue("echo \"" + cmd + "\";" + cmd);
         commandInfo.setUser(cfg.getFrameworkSuperUser().get());
 
@@ -162,7 +168,6 @@ public interface TaskFactory {
           commandInfo.setUser(cfg.getFrameworkUser().get());
         }
       }
-
       return commandInfo.build();
     }
 
