@@ -29,6 +29,8 @@ nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: localhost:2181
 zkTimeout: 20000
 restApiPort: 8192
+#servedConfigPath: dist/config.tgz
+#servedBinaryPath: dist/hadoop-2.6.0.tgz
 profiles:
   zero:  # NMs launched with this profile dynamically obtain cpu/mem from Mesos
     cpu: 0
@@ -55,10 +57,12 @@ executor:
   path: file:///usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
   #The following should be used for a remotely distributed URI, hdfs assumed but other URI types valid.
   #nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz
+  #configUri: http://127.0.0.1/api/arifacts/config.tgz
   #path: hdfs://namenode:port/dist/myriad-executor-runnable-0.1.0.jar
   #jvmUri: https://downloads.mycompany.com/java/jre-7u76-linux-x64.tar.gz
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
+  #HADOOP_CONF_DIR=config
   #YARN_HOME: hadoop-2.7.0 #this should be relative if nodeManagerUri is set
   #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary
   #JAVA_HOME: jre1.7.0_76 # Path to JRE distribution, relative to sandbox directory
