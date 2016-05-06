@@ -37,12 +37,12 @@ public class TestServiceCommandLine {
   static MyriadConfiguration cfg;
 
   static String toJHSCompare =
-      "echo \"sudo tar -zxpf hadoop-2.7.0.tar.gz && sudo chown hduser . && cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml; " +
-      "sudo -E -u hduser -H $YARN_HOME/bin/mapred historyserver\";sudo tar -zxpf hadoop-2.5.0.tar.gz && sudo chown hduser . && cp" +
+      "echo \" sudo tar -zxpf hadoop-2.7.0.tar.gz &&  sudo  cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml; " +
+      "export TASK_DIR=`basename $PWD`; sudo  chmod +wx /sys/fs/cgroup/cpu/mesos/$TASK_DIR;" +
+      "sudo -E -u hduser -H  $YARN_HOME/bin/mapred historyserver\"; sudo tar -zxpf hadoop-2.5.0.tar.gz &&  sudo  cp" +
       " conf /usr/local/hadoop/etc/hadoop/yarn-site.xml; sudo -E -u hduser -H $YARN_HOME/bin/mapred historyserver";
-
   static String toCompare =
-      "echo \"sudo tar -zxpf hadoop-2.7.0.tar.gz && sudo chown hduser . && cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml;";
+      "echo \" sudo tar -zxpf hadoop-2.7.0.tar.gz &&  sudo  cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml;";
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
@@ -63,6 +63,8 @@ public class TestServiceCommandLine {
     ServiceResourceProfile profile = new ServiceResourceProfile("jobhistory", 10.0, 15.0);
 
     CommandInfo cInfo = jhs.createCommandInfo(profile, executorCmd);
+    System.out.println(toJHSCompare);
+    System.out.println(cInfo.getValue());
 
     assertTrue(cInfo.getValue().startsWith(toCompare));
   }
@@ -79,7 +81,8 @@ public class TestServiceCommandLine {
     NMTaskFactoryImpl nms = new NMTaskFactoryImpl(cfg, null, clGenerator);
 
     CommandInfo cInfo = nms.getCommandInfo(profile, nmPorts);
-
+    System.out.println(toCompare);
+    System.out.println(cInfo.getValue());
     assertTrue(cInfo.getValue().startsWith(toCompare));
 
   }
