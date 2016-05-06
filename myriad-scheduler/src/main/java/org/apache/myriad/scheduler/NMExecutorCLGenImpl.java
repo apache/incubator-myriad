@@ -38,27 +38,10 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   public static final String KEY_YARN_RM_HOSTNAME = "yarn.resourcemanager.hostname";
 
   /**
-   * YARN container executor class.
-   */
-  public static final String KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS = "yarn.nodemanager.container-executor.class";
-  // TODO (mohit): Should it be configurable ?
-  public static final String VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS =
-      "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor";
-  public static final String DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS =
-      "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor";
-  /**
    * YARN class to help handle LCE resources
    */
-  public static final String KEY_YARN_NM_LCE_RH_CLASS = "yarn.nodemanager.linux-container-executor.resources-handler.class";
   // TODO (mohit): Should it be configurable ?
-  public static final String VAL_YARN_NM_LCE_RH_CLASS = "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler";
-  public static final String KEY_YARN_NM_LCE_CGROUPS_HIERARCHY = "yarn.nodemanager.linux-container-executor.cgroups.hierarchy";
-  public static final String VAL_YARN_NM_LCE_CGROUPS_HIERARCHY = "mesos/$TASK_DIR";
-  public static final String KEY_YARN_NM_LCE_CGROUPS_MOUNT = "yarn.nodemanager.linux-container-executor.cgroups.mount";
-  public static final String KEY_YARN_NM_LCE_CGROUPS_MOUNT_PATH = "yarn.nodemanager.linux-container-executor.cgroups.mount-path";
-  public static final String VAL_YARN_NM_LCE_CGROUPS_MOUNT_PATH = "/sys/fs/cgroup";
-  public static final String KEY_YARN_NM_LCE_GROUP = "yarn.nodemanager.linux-container-executor.group";
-  public static final String KEY_YARN_NM_LCE_PATH = "yarn.nodemanager.linux-container-executor.path";
+  public static final String KEY_YARN_NM_LCE_CGROUPS_HIERARCHY = "yarn.nodemanager.linux-container-executor.cgroups.hierachy";
   public static final String KEY_YARN_HOME = "yarn.home";
   public static final String KEY_NM_RESOURCE_CPU_VCORES = "nodemanager.resource.cpu-vcores";
   public static final String KEY_NM_RESOURCE_MEM_MB = "nodemanager.resource.memory-mb";
@@ -73,6 +56,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
   private Map<String, String> environment = new HashMap<>();
   protected MyriadConfiguration cfg;
+  protected YarnConfiguration conf = new YarnConfiguration();
 
   public NMExecutorCLGenImpl(MyriadConfiguration cfg) {
     this.cfg = cfg;
@@ -103,21 +87,10 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     }
 
     if (cfg.getNodeManagerConfiguration().getCgroups().or(Boolean.FALSE)) {
-      addYarnNodemanagerOpt(KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS, VAL_YARN_NM_CONTAINER_EXECUTOR_CLASS);
-      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_RH_CLASS, VAL_YARN_NM_LCE_RH_CLASS);
-
-      // TODO: Configure hierarchy
-      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, VAL_YARN_NM_LCE_CGROUPS_HIERARCHY);
-      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_MOUNT, "true");
-      // TODO: Make it configurable
-      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_MOUNT_PATH, VAL_YARN_NM_LCE_CGROUPS_MOUNT_PATH);
-      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_GROUP, "root");
+      addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "mesos/$TASK_DIR");
       if (environment.containsKey("YARN_HOME")) {
         addYarnNodemanagerOpt(KEY_YARN_HOME, environment.get("YARN_HOME"));
       }
-    } else {
-      // Otherwise configure to use Default
-      addYarnNodemanagerOpt(KEY_YARN_NM_CONTAINER_EXECUTOR_CLASS, DEFAULT_YARN_NM_CONTAINER_EXECUTOR_CLASS);
     }
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_CPU_VCORES, Integer.toString(profile.getCpus().intValue()));
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_MEM_MB, Integer.toString(profile.getMemory().intValue()));
@@ -135,15 +108,40 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   }
 
   protected void appendCgroupsCmds(StringBuilder cmdLine) {
-    if (cfg.getNodeManagerConfiguration().getCgroups().or(Boolean.FALSE)) {
-      cmdLine.append(" export TASK_DIR=`basename $PWD`;");
-      cmdLine.append(" chmod +x /sys/fs/cgroup/cpu/mesos/$TASK_DIR;");
+    if (cfg.getFrameworkSuperUser().isPresent()) {
+      cmdLine.append(" export TASK_DIR=`basename $PWD`&&");
+      appendSudo(cmdLine);
+      //The container executor script expects mount-path to exist and owned by the yarn user
+      //See: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html
+      //If YARN ever moves to cgroup/mem it will be necessary to add a mem version.
+      appendSudo(cmdLine);
+      cmdLine.append("chown " + cfg.getFrameworkUser().get() + " ");
+      cmdLine.append(cfg.getCGroupPath());
+      cmdLine.append("/cpu/mesos/$TASK_DIR &&");
+    } else {
+      LOGGER.info("frameworkSuperUser not enabled ignoring cgroup configuration");
     }
   }
 
   protected void appendYarnHomeExport(StringBuilder cmdLine) {
     if (environment.containsKey("YARN_HOME")) {
-      cmdLine.append(" export YARN_HOME=" + environment.get("YARN_HOME") + ";");
+      cmdLine.append(" export YARN_HOME=");
+      cmdLine.append(environment.get("YARN_HOME"));
+      cmdLine.append(";");
+    }
+  }
+
+  protected void appendSudo(StringBuilder cmdLine) {
+    if (cfg.getFrameworkSuperUser().isPresent()) {
+      cmdLine.append(" sudo ");
+    }
+  }
+
+  protected void appendUserSudo(StringBuilder cmdLine) {
+    if (cfg.getFrameworkSuperUser().isPresent()) {
+      cmdLine.append(" sudo -E -u ");
+      cmdLine.append(cfg.getFrameworkUser().get());
+      cmdLine.append(" -H ");
     }
   }
 
@@ -159,7 +157,6 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
   @Override
   public String getConfigurationUrl() {
-    YarnConfiguration conf = new YarnConfiguration();
     String httpPolicy = conf.get(TaskFactory.YARN_HTTP_POLICY);
     if (httpPolicy != null && httpPolicy.equals(TaskFactory.YARN_HTTP_POLICY_HTTPS_ONLY)) {
       String address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS);

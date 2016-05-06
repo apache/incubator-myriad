@@ -77,4 +77,5 @@ public class MyriadExecutorConfiguration {
   public Optional<String> getJvmUri() {
     return Optional.fromNullable(jvmUri);
   }
+
 }
