@@ -30,17 +30,34 @@ Enabling Cgroups for YARN NodeManager involves:
 * Modifying the $YARN_HOME/etc/hadoop/myriad-config-default.yml file.
 * Modifying the $YARN_HOME/etc/hadoop/yarn-site.xml file.
 
+### Modify container-executor.cfg
+```
+yarn.nodemanager.linux-container-executor.group=yarn #should match yarn.nodemanager.linux-container-executor.group in yarn-site.xml
+banned.users=
+min.user.id=1000
+```
+### Verify Permissions
+
+The paths to container-executor.cfg and container-executor must be owned and writable only by root.  The container-executor 
+should have user-ownership by root and group ownership by the user running YARN (often yarn or hduser), which should match the 
+yarn.nodemanager.linux-container-executor.group in yarn-site.xml and yarn.nodemanager.linux-container-executor.group in 
+container-executor.cfg. Further the permission of container-executor should be r-Sr-s---.  
+```
+chmod 6050 container-executor
+```
+If using remote distribution be sure to use the -p option of tar (as root) to perserve the suid bit.
+
 ### Modify Myriad-Config-default.yml ###
 
 Modify the $YARN_HOME/etc/hadoop/myriad-config-default.yml file by adding the following content:
 
 ```
 ...
+frameworkSuperUser: root  # Must be root or have passwordless sudo.
 nodemanager:
-cgroups: true
+  cgroupPath: /path/to/cgroup # default is /sys/fs/cgroup
 ...
 ```
-
 
 ### Modify yarn-site.yml
 Modify the `$YARN_HOME/etc/hadoop/yarn-site.xml` file by adding the following content:
@@ -50,33 +67,33 @@ Modify the `$YARN_HOME/etc/hadoop/yarn-site.xml` file by adding the following co
 <property>
 <description>who will execute(launch) the containers.</description>
 <name>yarn.nodemanager.container-executor.class</name>
-<value>${yarn.nodemanager.container-executor.class}</value>
+<value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>
 </property>
 <property>
 <description>The class which should help the LCE handle resources.</description>
 <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
-<value>${yarn.nodemanager.linux-container-executor.resources-handler.class}</value>
-</property>
-<property>
-<name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
-<value>${yarn.nodemanager.linux-container-executor.cgroups.hierarchy}</value>
-</property>
-<property>
-<name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
-<value>${yarn.nodemanager.linux-container-executor.cgroups.mount}</value>
-</property>
-<property>
-<name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
-<value>${yarn.nodemanager.linux-container-executor.cgroups.mount-path}</value>
+<value>org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler</value>
 </property>
 <property>
 <name>yarn.nodemanager.linux-container-executor.group</name>
-<value>${yarn.nodemanager.linux-container-executor.group}</value>
+<value>yarn</value>
 </property>
 <property>
 <name>yarn.nodemanager.linux-container-executor.path</name>
 <value>${yarn.home}/bin/container-executor</value>
 </property>
+
+<!-- Optional parameters, usually unnecessary
+<property>
+<name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
+<value>true</value>
+</property>
+<property>
+<name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
+<value>/sys/fs/cgroup</value>
+<description>/sys/fs/cgroup and /cgroup are most common values</description>
+</property>
+-->
 ```
 ---
 <sub>
