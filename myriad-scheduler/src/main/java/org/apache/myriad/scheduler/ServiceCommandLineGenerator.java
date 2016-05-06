@@ -33,7 +33,7 @@ public class ServiceCommandLineGenerator extends DownloadNMExecutorCLGenImpl {
   public String generateCommandLine(ServiceResourceProfile profile, Ports ports) {
     StringBuilder strB = new StringBuilder();
     appendDistroExtractionCommands(strB);
-    appendUser(strB);
+    appendUserSudo(strB);
     return strB.toString();
   }
 
