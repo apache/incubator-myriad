@@ -19,11 +19,12 @@ At this point the VM will have a single node Mesos cluster running and a single 
 HDFS cluster running. You can modify the Mesos and Hadoop versions by editing the
 corresponding variables in the `Vagrantfile`.
 
-Check that Mesos and Hadoop are running with a browser:
+Check that the Mesos master and the Hadoop/HDFS namenode are running with a browser. For example, with the 10.141.141.20 IP address:
 
-[Hadoop/HDFS namenode](http://10.141.141.20:50070)
-[Mesos Master](http://10.141.141.20:5050/)
-
+```
+http://10.141.141.20:50070     // Hadoop/HDFS namenode
+http://10.141.141.20:5050/)    // Mesos Master
+```
 To ssh in the cluster, run following:
 
 ```

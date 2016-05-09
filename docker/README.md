@@ -10,8 +10,10 @@ This will build the ResourceManager from src and save the image as *mesos/myriad
 
 In order for the ResourceManager to operate correctly, you will need to provide 2 configuration files. These files will need to mounted from a directory into */myriad-conf* within the docker container.
 
-* [myriad-config-default.yml](https://github.com/mesos/myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml)
-* modified [yarn-site.xml](https://github.com/mesos/myriad/blob/phase1/docs/myriad-dev.md)
+* [myriad-config-default.yml](./myriad-scheduler/src/main/resources/myriad-config-default.yml)
+* modified [yarn-site.xml](../docs/sample-yarn-site.md)
+
+The myriad-config-default.yml and yarn-site.xml files should be placed in $HADOOP_HOME/etc/hadoop/.
 
 
 ## Running the Resource Manager Docker
