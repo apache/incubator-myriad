@@ -24,6 +24,8 @@ import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.inject.Inject;
 
 import org.apache.hadoop.yarn.api.records.Container;
@@ -77,6 +79,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   private final OfferLifecycleManager offerLifecycleMgr;
   private final NodeStore nodeStore;
   private final SchedulerState state;
+  private static final Lock yarnSchedulerLock = new ReentrantLock();
   private static final Resource ZERO_RESOURCE = Resource.newInstance(0, 0);
   private TaskUtils taskUtils;
 
@@ -123,7 +126,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     }
   }
 
-  private synchronized void removeYarnTask(RMContainer rmContainer) {
+  private void removeYarnTask(RMContainer rmContainer) {
     if (rmContainer != null && rmContainer.getContainer() != null) {
       Protos.TaskID taskId = containerToTaskId(rmContainer);
       //TODO (darinj) Reliable messaging
@@ -134,8 +137,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
       if (node != null) {
         RMNode rmNode = node.getNode().getRMNode();
         Resource resource = rmContainer.getContainer().getResource();
-        Resource diff = ResourceUtils.componentwiseMax(ZERO_RESOURCE, Resources.subtract(rmNode.getTotalCapability(), resource));
-        setNodeCapacity(rmNode, diff);
+        decrementNodeCapacity(rmNode, resource);
         LOGGER.info("Removed task yarn_{} with exit status freeing {} cpu and {} mem.", rmContainer.getContainer().toString(),
             rmContainer.getContainerExitStatus(), resource.getVirtualCores(), resource.getMemory());
       } else {
@@ -206,8 +208,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
       for (Protos.Offer offer : consumedOffer.getOffers()) {
         offerLifecycleMgr.declineOffer(offer);
       }
-      setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(), OfferUtils.getYarnResourcesFromMesosOffers(
-          consumedOffer.getOffers())));
+      decrementNodeCapacity(rmNode, OfferUtils.getYarnResourcesFromMesosOffers(consumedOffer.getOffers()));
     } else {
       LOGGER.debug("Containers allocated using Mesos offers for host: {} count: {}", host, containersAllocatedByMesosOffer.size());
 
@@ -223,13 +224,21 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
       // Reduce node capacity to account for unused offers
       Resource resOffered = OfferUtils.getYarnResourcesFromMesosOffers(consumedOffer.getOffers());
       Resource resUnused = Resources.subtract(resOffered, resUsed);
-      setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(), resUnused));
-
+      decrementNodeCapacity(rmNode, resUnused);
       myriadDriver.getDriver().launchTasks(consumedOffer.getOfferIds(), tasks);
     }
 
     // No need to hold on to the snapshot anymore
     node.removeContainerSnapshot();
+  }
+
+
+  public void incrementNodeCapacity(RMNode rmNode, Resource addedCapacity) {
+    setNodeCapacity(rmNode, Resources.add(rmNode.getTotalCapability(), addedCapacity));
+  }
+
+  public void decrementNodeCapacity(RMNode rmNode, Resource removedCapacity) {
+    setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(), removedCapacity));
   }
 
   /**
@@ -243,19 +252,34 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   @SuppressWarnings("unchecked")
   public void setNodeCapacity(RMNode rmNode, Resource newCapacity) {
     //NOOP prevent YARN warning changing to same size
-    if (!Resources.equals(rmNode.getTotalCapability(), newCapacity)) {
-      rmNode.getTotalCapability().setMemory(newCapacity.getMemory());
-      rmNode.getTotalCapability().setVirtualCores(newCapacity.getVirtualCores());
-      LOGGER.debug("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
-      // updates the scheduler with the new capacity for the NM.
-      synchronized (yarnScheduler) {
-        if (yarnScheduler.getSchedulerNode(rmNode.getNodeID()) != null) {
-          yarnScheduler.updateNodeResource(rmNode,
-              ResourceOption.newInstance(rmNode.getTotalCapability(), RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT));
-        } else {
-          LOGGER.info("Yarn Scheduler doesn't have node {}, probably UNHEALTHY", rmNode.getNodeID());
+    if ((Resources.equals(rmNode.getTotalCapability(), newCapacity))) {
+      return;
+    }
+    if (yarnScheduler.getSchedulerNode(rmNode.getNodeID()) == null) {
+      LOGGER.info("Yarn Scheduler doesn't have node {}, probably UNHEALTHY", rmNode.getNodeID());
+      return;
+    }
+    yarnSchedulerLock.lock();
+    try {
+      if (newCapacity.getMemory() < 0 || newCapacity.getVirtualCores() < 0) {
+        Resource zeroed = ResourceUtils.componentwiseMax(ZERO_RESOURCE, newCapacity);
+        rmNode.getTotalCapability().setMemory(zeroed.getMemory());
+        rmNode.getTotalCapability().setVirtualCores(zeroed.getVirtualCores());
+        LOGGER.warn("Asked to set Node {} to a value less than zero!  Had {}, setting to {}.",
+            rmNode.getHttpAddress(), rmNode.getTotalCapability().toString(), zeroed.toString());
+      } else {
+        rmNode.getTotalCapability().setMemory(newCapacity.getMemory());
+        rmNode.getTotalCapability().setVirtualCores(newCapacity.getVirtualCores());
+        if (LOGGER.isInfoEnabled()) {
+          LOGGER.info("Setting capacity for node {} to {}", rmNode.getHostName(), newCapacity);
         }
       }
+      // updates the scheduler with the new capacity for the NM.
+      // the event is handled by the scheduler asynchronously
+      rmContext.getDispatcher().getEventHandler().handle(new NodeResourceUpdateSchedulerEvent(rmNode, ResourceOption.newInstance(
+          rmNode.getTotalCapability(), RMNode.OVER_COMMIT_TIMEOUT_MILLIS_DEFAULT)));
+    } finally {
+      yarnSchedulerLock.unlock();
     }
   }
 
