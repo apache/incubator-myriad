@@ -117,7 +117,7 @@ class YarnNodeCapacityManagerSpec extends FGSTestBaseSpec {
         then:
         zeroNM.getTotalCapability().getMemory() == 2048
         zeroNM.getTotalCapability().getVirtualCores() == 2
-        1 * yarnScheduler.updateNodeResource( _ as RMNode, _ as ResourceOption)
+        1 * rmContext.getDispatcher().getEventHandler().handle(_ as NodeResourceUpdateSchedulerEvent)
     }
 
     YarnNodeCapacityManager getYarnNodeCapacityManager() {
