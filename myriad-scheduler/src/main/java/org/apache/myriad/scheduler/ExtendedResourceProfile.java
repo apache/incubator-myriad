@@ -33,10 +33,23 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
    * @param cpu
    * @param mem          will throw NullPoiterException if childProfile is null
    */
+  public ExtendedResourceProfile(NMProfile childProfile, Double cpu, Double mem, Double execCpu, Double execMemory) {
+    super(childProfile.getName(), cpu, mem, execCpu, execMemory);
+
+    this.childProfile = childProfile;
+    this.className    = ExtendedResourceProfile.class.getName();
+  }
+
+ /**
+  * @param childProfile - should be null
+  * @param cpu
+  * @param mem          will throw NullPoiterException if childProfile is null
+  */
   public ExtendedResourceProfile(NMProfile childProfile, Double cpu, Double mem) {
     super(childProfile.getName(), cpu, mem);
+
     this.childProfile = childProfile;
-    this.className = ExtendedResourceProfile.class.getName();
+    this.className    = ExtendedResourceProfile.class.getName();
   }
 
   public NMProfile getChildProfile() {

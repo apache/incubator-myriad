@@ -21,6 +21,8 @@ package org.apache.myriad.state;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.inject.Inject;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
@@ -32,7 +34,7 @@ import org.apache.myriad.scheduler.constraints.Constraint;
  */
 public class NodeTask {
   @JsonProperty
-  private String hostname;
+  private String hostname = StringUtils.EMPTY;
   @JsonProperty
   private Protos.SlaveID slaveId;
   @JsonProperty
@@ -40,21 +42,22 @@ public class NodeTask {
   @JsonProperty
   private String taskPrefix;
   @JsonProperty
-  private ServiceResourceProfile serviceresourceProfile;
+  private ServiceResourceProfile profile;
 
   @Inject
   TaskUtils taskUtils;
+
   /**
    * Mesos executor for this node.
    */
   private Protos.ExecutorInfo executorInfo;
 
   private Constraint constraint;
+  
   private List<Attribute> slaveAttributes;
 
   public NodeTask(ServiceResourceProfile profile, Constraint constraint) {
-    this.serviceresourceProfile = profile;
-    this.hostname = "";
+    this.profile    = profile;
     this.constraint = constraint;
   }
 
@@ -111,10 +114,10 @@ public class NodeTask {
   }
 
   public ServiceResourceProfile getProfile() {
-    return serviceresourceProfile;
+    return profile;
   }
 
   public void setProfile(ServiceResourceProfile serviceresourceProfile) {
-    this.serviceresourceProfile = serviceresourceProfile;
+    this.profile = serviceresourceProfile;
   }
 }
