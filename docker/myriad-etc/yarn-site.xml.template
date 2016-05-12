@@ -17,8 +17,6 @@
 -->
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 
-
-
 <configuration>
 
   <!--The hostname of the Resource Manager, this MUST be changed! -->
@@ -76,6 +74,7 @@
     <name>yarn.nodemanager.resource.cpu-vcores</name>
     <value>${nodemanager.resource.cpu-vcores}</value>
    </property>
+
    <property>
      <name>yarn.scheduler.minimum-allocation-vcores</name>
      <value>0</value>
@@ -85,6 +84,7 @@
     <name>yarn.nodemanager.resource.memory-mb</name>
     <value>${nodemanager.resource.memory-mb}</value>
   </property>
+
   <property>
     <name>yarn.scheduler.minimum-allocation-mb</name>
     <value>0</value>
@@ -114,49 +114,4 @@
     <value>org.apache.myriad.scheduler.yarn.MyriadFairScheduler</value>
   </property>
 
-  <!-- Cgroups configuration -->
-  <!--
-  <property>
-    <description>who will execute(launch) the containers.</description>
-    <name>yarn.nodemanager.container-executor.class</name>
-    <value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>
-  </property>
-
-  <property>
-    <description>The class which should help the LCE handle resources.</description>
-    <name>yarn.nodemanager.linux-container-executor.resources-handler.class</name>
-    <value>org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler</value>
-  </property>
-
-  <property>
-    <description>The class which should help the LCE handle resources.</description>
-    <name>yarn.nodemanager.linux-container-executor.group</name>
-    <value>yarn</value>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
-    <value></value>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.linux-container-executor.cgroups.mount</name>
-    <value>true</value>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.linux-container-executor.cgroups.mount-path</name>
-    <value>${yarn.nodemanager.linux-container-executor.cgroups.mount-path}</value>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.linux-container-executor.group</name>
-    <value>root</value>
-  </property>
-
-  <property>
-    <name>yarn.nodemanager.linux-container-executor.path</name>
-    <value>${yarn.home}/bin/container-executor</value>
-  </property>
--->
 </configuration>

@@ -1,5 +1,5 @@
 # Configuring Cgroups
-
+** CGroups are currently not supported when using Docker, we are aware this feature may be of interest and will add soon ** 
 A node within a cluster is the location where tasks are run. The tasks are launched with help of a daemon which resides inside the node. This daemon, in the case of Mesos, is Mesos Slave, and in case of YARN, is NodeManager.
 
 The Cgroups Linux kernel feature allows aggregating or partitioning a set of tasks and their future children into hierarchical groups with respect to one or more subsystems. For example, when Cgroups is enabled for the CPU subsystem, and a task is launched by Mesos Slave, it goes under the following hierarchy:

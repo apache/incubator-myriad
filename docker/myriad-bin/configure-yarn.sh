@@ -22,20 +22,20 @@ under the License.
 ##
 
 # Put in env defaults if they are missing
-export HADOOP_GROUP=${HADOOP_GROUP:='hadoop'}
-
 export YARN_USER=${YARN_USER:='yarn'}
-export USER_UID=${USER_UID:='107'}
+export YARN_UID=${YARN_UID:='107'}
 export YARN_GROUP=${YARN_GROUP:='yarn'}
+export HADOOP_GROUP=${HADOOP_GROUP:='hadoop'}
 export HADOOP_GID=${HADOOP_GID:='112'}
 export YARN_GID=${YARN_GID:='113'}
 export HADOOP_HOME=${HADOOP_HOME:='/usr/local/hadoop'}
+export MESOS_NATIVE_LIBRARY=${MESOS_NATIVE_LIBRARY:='/usr/local/lib/libmesos.so'}
 
 # Add hduser user
 groupadd ${HADOOP_GROUP} -g ${HADOOP_GID}
 groupadd ${YARN_GROUP} -g ${YARN_GID}
-useradd ${YARN_USER} -g ${YARN_GROUP} -G ${HADOOP_GROUP} -u ${USER_UID} -s /bin/bash
-mkdir /home/${HADOOP_USER}
+useradd ${YARN_USER} -g ${YARN_GROUP} -G ${HADOOP_GROUP} -u ${YARN_UID} -s /bin/bash
+mkdir /home/${YARN_USER}
 chown -R ${YARN_USER}:${YARN_GROUP} /home/${YARN_USER}
 
 #set permissions
@@ -45,16 +45,16 @@ chown root:${YARN_GROUP} ${HADOOP_HOME}/bin/container-executor
 chmod 6050 ${HADOOP_HOME}/bin/container-executor
 
 # Init bashrc with hadoop env variables
-sh -c 'echo export JAVA_HOME=/usr >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export HADOOP_HOME=\${HADOOP_HOME} >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export PATH=\$PATH:\${HADOOP_HOME}/bin >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export PATH=\$PATH:\${HADOOP_HOME}/sbin >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export HADOOP_MAPRED_HOME=\${HADOOP_HOME} >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export HADOOP_COMMON_HOME=\${HADOOP_HOME} >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export HADOOP_HDFS_HOME=\${HADOOP_HOME} >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export YARN_HOME=\${HADOOP_HOME} >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export HADOOP_COMMON_LIB_NATIVE_DIR=\$\{HADOOP_HOME\}/lib/native >> /home/${HADOOP_USER}/.bashrc'
-sh -c 'echo export HADOOP_OPTS=\"-Djava.library.path=\${HADOOP_HOME}/lib\" >> /home/${HADOOP_USER}/.bashrc'
-
+sh -c 'echo export JAVA_HOME=/usr >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export MESOS_NATIVE_LIBRARY=/usr >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export HADOOP_HOME=\${HADOOP_HOME} >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export PATH=\$PATH:\${HADOOP_HOME}/bin >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export PATH=\$PATH:\${HADOOP_HOME}/sbin >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export HADOOP_MAPRED_HOME=\${HADOOP_HOME} >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export HADOOP_COMMON_HOME=\${HADOOP_HOME} >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export HADOOP_HDFS_HOME=\${HADOOP_HOME} >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export YARN_HOME=\${HADOOP_HOME} >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export HADOOP_COMMON_LIB_NATIVE_DIR=\$\{HADOOP_HOME\}/lib/native >> /home/${YARN_USER}/.bashrc'
+sh -c 'echo export HADOOP_OPTS=\"-Djava.library.path=\${HADOOP_HOME}/lib\" >> /home/${YARN_USER}/.bashrc'
 
 echo "end of configure-yarn.sh script"
