@@ -37,7 +37,8 @@ Please keep checking this section for updates.
 - [x] Framework checkpointing
 - [x] Launch Job History Server
 - [x] Constraints based Node Manager placement
-- [ ] Support multi-tenancy for Node Managers
+- [x] Docker support
+- [x] Support multi-tenancy for Node Managers
 - [ ] Configuration store for storing rules and policies for clusters managed by Myriad
 
 ## Mailing Lists

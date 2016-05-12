@@ -20,7 +20,8 @@ under the License.
 ##
 # YARN installer script for Apache Myriad Deployment
 ##
-HADOOP_VER="2.7.0"
+export HADOOP_VER=${HADOOP_VER:='2.7.0'}
+export HADOOP_HOME=${HADOOP_HOME:='/usr/local/hadoop'}
 
 echo "Installing Yarn...."
 if [ ! -z $1 ];then
@@ -30,7 +31,6 @@ else
 fi
 HADOOP_TGZ=`basename ${HADOOP_URL}`
 HADOOP_BASENAME=`basename ${HADOOP_URL} .tar.gz`
-export HADOOP_HOME=${HADOOP_HOME:='/usr/local/hadoop'}
 
 # Extract Hadoop
 echo "Downloading ${HADOOP_TGZ} from ${HADOOP_URL}"
