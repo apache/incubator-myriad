@@ -18,8 +18,6 @@ The following are assumptions about your environment:
 
 * You are using hadoop-2.7.0 downloaded from [hadoop.apache.org](http://hadoop.apache.org).  Specific vendor versions should work but may require additional steps.
 
-**NOTE:** The default location for $YARN_HOME is **/opt/hadoop-2.7.0**.
-
 ## Building the Myriad Remote Distribution Bundle ##
 Before building Myriad, configure the Resource Manager as you normally would.
 
@@ -49,12 +47,17 @@ Edit the **$YARN_HOME/etc/hadoop/myriad-config-default.yml** file to configure t
 frameworkSuperUser: admin              # Must be root or have passwordless sudo on all nodes!
 frameworkUser: hduser                  # Should be the same user running the resource manager.
                                        # Must exist on all nodes and be in the 'hadoop' group
+#servedConfigPath: /dist/config.tgz
+#servedBinaryPath: /dist/hadoop-2.7.0.tar.gz
 executor:
   nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz
+  #nodeManagerUri: http://resourcemanager/api/binary.tgz
+  #configUri: http://resourcemanager/api/config.tgz
 yarnEnvironment:
-YARN_HOME: hadoop-2.7.0                # This should be relative if nodeManagerUri is set
+  YARN_HOME: hadoop-2.7.0                # This should be relative if nodeManagerUri is set
+  JAVA_HOME: /usr/
+  #HADOOP_CONF_DIR: config
 ```
-
 
 
 ### Step 4: Configure YARN to Use Myriad ###
@@ -73,6 +76,19 @@ sudo rm ~/hadoop-2.7.0/etc/hadoop/yarn-site.xml
 sudo tar -zcpf ~/hadoop-2.7.0.tar.gz hadoop-2.7.0
 hadoop fs -put ~/hadoop-2.7.0.tar.gz /dist
 ```
+
+Alternatively, one can serve the tar ball directly from Myriad using the `servedBinaryPath` parameter (see the commented line in the code block of step 3).
+
+### Advanced Configuration ###
+
+By default Myriad has the Node Managers pull the yarn-site.xml from the resource managers configuration url.  While this is convenient,
+it is sometimes preferable to package and distribute the hadoop configuration files separately.  Myriad provides these facilities using 
+`servedConfigPath` and `configUri` options and using `yarnEnvironment` to pass `HADOOP_CONF_DIR` (see the commented lines in the code block of step 3).
+
+By default Myriad assumes that Java is preinstalled on each Mesos slave.  While this is convenient,
+it is sometimes preferable to package and distribute the JDK seperately.  Myriad provides this facility using 
+`jvmUri` option and using `yarnEnvironment` to pass `JAVA_HOME` (see the commented lines in the code block of step 3).
+
 
 ## Getting Started ##
 
