@@ -32,7 +32,7 @@ ENV HADOOP_VER="2.7.0"
 ENV HADOOP_HOME=/usr/local/hadoop
 ENV JAVA_HOME=/usr
 ENV MESOS_NATIVE_LIBRARY=/usr/local/lib/libmesos.so
-ENV MESOS_VER
+ENV MESOS_VER=0.28.1
 
 # Setup mesosphere repositories
 RUN apt-get -y update
