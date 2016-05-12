@@ -23,7 +23,7 @@ FROM debian
 MAINTAINER Apache Myriad dev@myriad.incubator.apache.org
 
 ENV YARN_USER="yarn"
-ENV YARN_UID="107"
+ENV YARN_UID="108"
 ENV HADOOP_GROUP="hadoop"
 ENV HADOOP_GID="112"
 ENV YARN_GROUP="yarn"
@@ -42,7 +42,7 @@ RUN DISTRO=$(lsb_release -is | tr '[:upper:]' '[:lower:]') CODENAME=$(lsb_releas
 RUN apt-get -y update
 
 # Install Mesos
-RUN apt-get install -y mesos=`apt-cache madison | grep $MESOS_VER | head -1 | awk {'print $3'}` curl tar
+RUN apt-get install -y mesos=`apt-cache madison mesos | grep $MESOS_VER | head -1 | awk {'print $3'}` curl tar
 # Run local YARN install
 ADD myriad-bin/install-yarn.sh /install-yarn.sh
 RUN sh /install-yarn.sh

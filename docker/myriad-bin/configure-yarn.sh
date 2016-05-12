@@ -25,7 +25,7 @@ under the License.
 export YARN_USER=${YARN_USER:='yarn'}
 export YARN_UID=${YARN_UID:='107'}
 export YARN_GROUP=${YARN_GROUP:='yarn'}
-export HADOOP_GROUP=${YARN_GROUP:='hadoop'}
+export HADOOP_GROUP=${HADOOP_GROUP:='hadoop'}
 export HADOOP_GID=${HADOOP_GID:='112'}
 export YARN_GID=${YARN_GID:='113'}
 export HADOOP_HOME=${HADOOP_HOME:='/usr/local/hadoop'}
