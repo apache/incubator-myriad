@@ -110,7 +110,6 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   protected void appendCgroupsCmds(StringBuilder cmdLine) {
     if (cfg.getFrameworkSuperUser().isPresent()) {
       cmdLine.append(" export TASK_DIR=`basename $PWD`&&");
-      appendSudo(cmdLine);
       //The container executor script expects mount-path to exist and owned by the yarn user
       //See: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html
       //If YARN ever moves to cgroup/mem it will be necessary to add a mem version.

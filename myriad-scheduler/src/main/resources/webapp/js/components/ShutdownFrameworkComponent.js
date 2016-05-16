@@ -81,7 +81,7 @@ var ShutdownFrameworkComponent = React.createClass({
 	},
   	onRequestShutdown: function() {
     		console.log( "shutting down Myriad .... ");
-    		request.get('/api/framework/shutdown/framework')
+    		request.post('/api/framework/shutdown/framework')
     			.set('Content-Type', 'application/json')
     			.end(function(err, res){
            			console.log("Result from /api/framework/shutdown/framework");

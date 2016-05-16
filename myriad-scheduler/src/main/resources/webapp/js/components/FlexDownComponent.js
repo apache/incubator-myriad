@@ -114,7 +114,7 @@ var FlexDownComponent = React.createClass({
    }
    for( var ii = 0; ii < keys.length; ii++) {
        var key = keys[ii];
-       var txt = key;
+       var txt = key + '\t' + JSON.stringify(this.props.profiles[key]);
        options.push( <option key={key} value={key}>{txt}</option> );
    }
 
