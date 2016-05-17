@@ -130,7 +130,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
 
             if (matches(offer, taskToLaunch, constraint) && SchedulerUtils.isUniqueHostname(offer, taskToLaunch, launchedTasks)) {
               try {
-                final TaskInfo task = taskFactoryMap.get(taskPrefix).createTask(offer, schedulerState.getFrameworkID(),
+                final TaskInfo task = taskFactoryMap.get(taskPrefix).createTask(offer, schedulerState.getFrameworkID().get(),
                     pendingTaskId, taskToLaunch);
                 List<OfferID> offerIds = new ArrayList<>();
                 offerIds.add(offer.getId());

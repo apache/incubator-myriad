@@ -18,14 +18,23 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
-import com.google.common.collect.Iterables;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.util.*;
+<<<<<<< HEAD
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
+import javax.annotation.Nullable;
+=======
+>>>>>>> 6fc1d54... MYRIAD-198 Code cleanup, added helper methods
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.xml.parsers.DocumentBuilder;
@@ -44,9 +53,13 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import com.google.common.base.Preconditions;
 import org.apache.mesos.Protos;
-import org.apache.myriad.configuration.*;
+import org.apache.myriad.configuration.MyriadBadConfigurationException;
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.configuration.MyriadContainerConfiguration;
+import org.apache.myriad.configuration.MyriadDockerConfiguration;
+import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.configuration.ServiceConfiguration;
 import org.apache.myriad.executor.MyriadExecutorDefaults;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +68,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 
 /**
  * utility class for working with tasks and node manager profiles
@@ -66,9 +84,6 @@ public class TaskUtils {
   private static final String CONTAINER_PATH_KEY = "containerPath";
   private static final String HOST_PATH_KEY = "hostPath";
   private static final String RW_MODE = "mode";
-  private static final String CONTAINER_PORT_KEY = "containerPort";
-  private static final String HOST_PORT_KEY = "hostPort";
-  private static final String PROTOCOL_KEY = "protocol";
   private static final String PARAMETER_KEY_KEY = "key";
   private static final String PARAMETER_VALUE_KEY = "value";
 
@@ -158,14 +173,11 @@ public class TaskUtils {
   }
 
   public double getNodeManagerMemory() {
-    NodeManagerConfiguration nmCfg = this.cfg.getNodeManagerConfiguration();
-    return (nmCfg.getJvmMaxMemoryMB().isPresent() ? nmCfg.getJvmMaxMemoryMB()
-        .get() : NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
+    return cfg.getNodeManagerConfiguration().getJvmMaxMemoryMB();
   }
-
+  
   public double getNodeManagerCpus() {
-    Optional<Double> cpus = this.cfg.getNodeManagerConfiguration().getCpus();
-    return cpus.isPresent() ? cpus.get() : NodeManagerConfiguration.DEFAULT_NM_CPUS;
+    return cfg.getNodeManagerConfiguration().getCpus();
   }
 
   public double getExecutorCpus() {
@@ -174,9 +186,7 @@ public class TaskUtils {
   }
 
   public double getExecutorMemory() {
-    MyriadExecutorConfiguration executorCfg = this.cfg.getMyriadExecutorConfiguration();
-    return (executorCfg.getJvmMaxMemoryMB().isPresent() ? executorCfg.getJvmMaxMemoryMB()
-        .get() : MyriadExecutorDefaults.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + MyriadExecutorDefaults.JVM_OVERHEAD);
+    return cfg.getMyriadExecutorConfiguration().getJvmMaxMemoryMB();
   }
 
   public double getTaskCpus(NMProfile profile) {
@@ -193,28 +203,33 @@ public class TaskUtils {
     if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
       return getAggregateCpus(profile);
     }
-    ServiceConfiguration auxConf = cfg.getServiceConfiguration(taskName);
-    if (auxConf == null) {
+
+    Optional<ServiceConfiguration> auxConf = cfg.getServiceConfiguration(taskName);
+    if (!auxConf.isPresent()) {
       throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
     }
-    if (!auxConf.getCpus().isPresent()) {
-      throw new MyriadBadConfigurationException("cpu is not defined for task with name: " + taskName);
-    }
-    return auxConf.getCpus().get();
+
+    return auxConf.get().getCpus();
   }
 
   public double getAuxTaskMemory(NMProfile profile, String taskName) throws MyriadBadConfigurationException {
     if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
       return getAggregateMemory(profile);
     }
-    ServiceConfiguration auxConf = cfg.getServiceConfiguration(taskName);
-    if (auxConf == null) {
+<<<<<<< HEAD
+
+    Optional<ServiceConfiguration> auxConfOption = cfg.getServiceConfiguration(taskName);
+    if (!auxConfOption.isPresent()) {
+      throw new MyriadBadConfigurationException("Cannot find profile for task name: " + taskName);
+    }
+
+=======
+    Optional<ServiceConfiguration> auxConfOption = cfg.getServiceConfiguration(taskName);
+    if (!auxConfOption.isPresent()) {
       throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
     }
-    if (!auxConf.getJvmMaxMemoryMB().isPresent()) {
-      throw new MyriadBadConfigurationException("memory is not defined for task with name: " + taskName);
-    }
-    return auxConf.getJvmMaxMemoryMB().get();
+>>>>>>> 6fb4095... MYRIAD-198 More ServiceConfiguraion Optional handling consolidation
+    return auxConfOption.get().getJvmMaxMemoryMB();
   }
 
   public TaskUtils() {
@@ -299,7 +314,8 @@ public class TaskUtils {
    */
   public Iterable<Protos.Resource> getScalarResource(Protos.Offer offer, String name, Double value, Double used) {
     String role = cfg.getFrameworkRole();
-    ArrayList<Protos.Resource> resources = new ArrayList<>();
+    List<Protos.Resource> resources = new ArrayList<Protos.Resource>();
+
     double resourceDifference = 0; //used to determine the resource difference of value and the resources requested from role *
     //Find role by name, must loop through resources
     for (Protos.Resource r : offer.getResourcesList()) {

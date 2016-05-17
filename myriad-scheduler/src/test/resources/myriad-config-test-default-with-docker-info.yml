@@ -38,8 +38,8 @@ profiles:
   large:
     cpu: 4
     mem: 4096
-rebalancer: false
-nodemanager:
+rebalancerEnabled: false
+nodeManager:
   jvmMaxMemoryMB: 1024
   cpus: 0.2
   cgroups: false

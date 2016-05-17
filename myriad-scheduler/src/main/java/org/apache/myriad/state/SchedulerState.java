@@ -18,7 +18,6 @@
  */
 package org.apache.myriad.state;
 
-import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +29,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
@@ -37,6 +37,9 @@ import org.apache.myriad.scheduler.ServiceResourceProfile;
 import org.apache.myriad.state.utils.StoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 /**
  * Represents the state of the Myriad scheduler
@@ -353,8 +356,8 @@ public class SchedulerState {
     return this.tasks.containsKey(taskID);
   }
 
-  public synchronized Protos.FrameworkID getFrameworkID() {
-    return this.frameworkId;
+  public synchronized Optional<Protos.FrameworkID> getFrameworkID() {
+    return Optional.fromNullable(frameworkId);
   }
 
   public synchronized void setFrameworkId(Protos.FrameworkID newFrameworkId) {

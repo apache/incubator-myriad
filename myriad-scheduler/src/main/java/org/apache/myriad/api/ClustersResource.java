@@ -32,6 +32,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.myriad.api.model.FlexDownClusterRequest;
 import org.apache.myriad.api.model.FlexDownServiceRequest;
 import org.apache.myriad.api.model.FlexUpClusterRequest;
@@ -88,7 +90,7 @@ public class ClustersResource {
 
     Response returnResponse = response.build();
     if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
-      String constraint = constraints != null && !constraints.isEmpty() ? constraints.get(0) : null;
+      String constraint = CollectionUtils.isNotEmpty(constraints) ? constraints.get(0) : null;
       this.myriadOperations.flexUpCluster(this.profileManager.get(profile), instances, ConstraintFactory.createConstraint(
           constraint));
     }
@@ -165,7 +167,7 @@ public class ClustersResource {
 
     Response returnResponse = response.build();
     if (returnResponse.getStatus() == Response.Status.ACCEPTED.getStatusCode()) {
-      String constraint = constraints != null && !constraints.isEmpty() ? constraints.get(0) : null;
+      String constraint = CollectionUtils.isNotEmpty(constraints) ? constraints.get(0) : null;
       this.myriadOperations.flexDownCluster(profileManager.get(profile), ConstraintFactory.createConstraint(constraint), instances);
     }
     return returnResponse;
@@ -199,7 +201,7 @@ public class ClustersResource {
   }
 
   private boolean validateConstraints(List<String> constraints, ResponseBuilder response) {
-    if (constraints != null && !constraints.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(constraints)) {
       boolean valid = validateConstraintsSize(constraints, response);
       valid = valid && validateLIKEConstraint(constraints.get(0), response);
       return valid;
