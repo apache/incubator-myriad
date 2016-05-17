@@ -75,7 +75,6 @@ public class MyriadExecutorConfiguration {
     return Optional.fromNullable(nodeManagerUri);
   }
 
-
   public Optional<String> getConfigUri() {
     return Optional.fromNullable(configUri);
   }

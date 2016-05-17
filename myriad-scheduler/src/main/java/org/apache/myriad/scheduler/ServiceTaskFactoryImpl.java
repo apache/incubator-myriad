@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import javax.inject.Inject;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
@@ -68,7 +69,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     this.taskUtils = taskUtils;
     this.clGenerator = new ServiceCommandLineGenerator(cfg, cfg.getMyriadExecutorConfiguration().getNodeManagerUri().orNull());
   }
-
+  
   @Override
   public TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, NodeTask nodeTask) {
     Objects.requireNonNull(offer, "Offer should be non-null");
@@ -85,8 +86,8 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     List<Long> additionalPortsNumbers = null;
 
     final StringBuilder strB = new StringBuilder("env ");
-    if (serviceConfig.getServiceOpts() != null) {
-      strB.append(serviceConfig.getServiceOpts()).append("=");
+    if (serviceConfig.getServiceOpts().isPresent()) {
+      strB.append(serviceConfig.getServiceOpts().get()).append("=");
 
       strB.append("\"");
       if (StringUtils.isNotEmpty(rmHostName)) {
@@ -134,7 +135,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
         .addAllResources(taskUtils.getScalarResource(offer, "cpus", nodeTask.getProfile().getCpus(), 0.0))
         .addAllResources(taskUtils.getScalarResource(offer, "mem", nodeTask.getProfile().getMemory(), 0.0));
 
-    if (additionalPortsNumbers != null && !additionalPortsNumbers.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(additionalPortsNumbers)) {
       // set ports
       Value.Ranges.Builder valueRanger = Value.Ranges.newBuilder();
       for (Long port : additionalPortsNumbers) {
@@ -155,7 +156,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
     CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
     Map<String, String> envVars = cfg.getYarnEnvironment();
-    if (envVars != null && !envVars.isEmpty()) {
+    if (MapUtils.isNotEmpty(envVars)) {
       Protos.Environment.Builder yarnHomeB = Protos.Environment.newBuilder();
       for (Map.Entry<String, String> envEntry : envVars.entrySet()) {
         Protos.Environment.Variable.Builder yarnEnvB = Protos.Environment.Variable.newBuilder();
@@ -224,7 +225,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     
     final List<Long> returnedPorts = new ArrayList<>();
     for (Resource resource : offer.getResourcesList()) {
-      if (resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {
+      if (resource.getName().equals("ports") && (isDefaultRole(resource))) {
         Iterator<Value.Range> itr = resource.getRanges().getRangeList().iterator();
         while (itr.hasNext()) {
           Value.Range range = itr.next();
@@ -241,7 +242,12 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
         }
       }
     }
-    // this is actually an error condition - we did not have enough ports to use
+    //this is actually an error condition - we did not have enough ports to use
+    //TODO (hokiegeek2) does this need error handling then?
     return returnedPorts;
+  }
+  
+  private boolean isDefaultRole(Resource resource) {
+    return !resource.hasRole() || resource.getRole().equals("*");
   }
 }

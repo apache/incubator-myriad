@@ -97,7 +97,6 @@ public class NodeManagerConfiguration {
   
   public Double getCpus() {
     return Optional.fromNullable(cpus).or(DEFAULT_NM_CPUS);
-
   }
 
   public boolean getCgroups() {

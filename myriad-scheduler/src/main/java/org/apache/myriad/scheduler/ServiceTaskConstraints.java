@@ -33,12 +33,12 @@ public class ServiceTaskConstraints implements TaskConstraints {
 
   public ServiceTaskConstraints(MyriadConfiguration cfg, String taskPrefix) {
     Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
-	ServiceConfiguration serviceConfig           = auxConfigs.get(taskPrefix);
-	if (serviceConfig != null) {
-	  if (serviceConfig.getPorts().isPresent()) {
-	    portsCount = serviceConfig.getPorts().get().size();
-	  }
-	}
+    ServiceConfiguration serviceConfig           = auxConfigs.get(taskPrefix);
+    if (serviceConfig != null) {
+      if (serviceConfig.getPorts().isPresent()) {
+        portsCount = serviceConfig.getPorts().get().size();
+      }
+    }
   }
 
   @Override

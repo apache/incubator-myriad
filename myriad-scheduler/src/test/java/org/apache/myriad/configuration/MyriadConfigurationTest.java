@@ -21,9 +21,12 @@ package org.apache.myriad.configuration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
 import java.util.Map;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
@@ -44,9 +47,7 @@ public class MyriadConfigurationTest {
 
   @Test
   public void serviceConfigurationTest() throws Exception {  
-    assertTrue(cfg.getServiceConfigurations().isPresent());
-
-    Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations().get();
+    Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
 
     assertEquals(auxConfigs.size(), 2);
 

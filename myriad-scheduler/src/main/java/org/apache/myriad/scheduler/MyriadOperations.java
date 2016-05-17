@@ -121,7 +121,6 @@ public class MyriadOperations {
       int totalflexInstances = instances + getFlexibleInstances(serviceName);
       Integer maxInstances = auxTaskConf.getMaxInstances().get();
       if (maxInstances > 0) {
-    	// check number of instances- > sum of active, staging, pending should be < maxInstances
         if (totalflexInstances > maxInstances) {
           LOGGER.error("Current number of active, staging, pending and requested instances: {}" +
                        ", while it is greater then max instances allowed: {}", totalflexInstances, maxInstances);

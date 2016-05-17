@@ -79,14 +79,12 @@ public interface TaskFactory {
     private MyriadConfiguration cfg;
     private TaskUtils taskUtils;
     private ExecutorCommandLineGenerator clGenerator;
-    private TaskConstraints constraints;
 
     @Inject
     public NMTaskFactoryImpl(MyriadConfiguration cfg, TaskUtils taskUtils, ExecutorCommandLineGenerator clGenerator) {
       this.cfg = cfg;
       this.taskUtils = taskUtils;
       this.clGenerator = clGenerator;
-      this.constraints = new NMTaskConstraints();
     }
 
     @VisibleForTesting
