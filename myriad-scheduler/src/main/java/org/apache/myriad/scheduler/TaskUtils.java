@@ -21,15 +21,6 @@ package org.apache.myriad.scheduler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-<<<<<<< HEAD
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import javax.annotation.Nullable;
-=======
->>>>>>> 6fc1d54... MYRIAD-198 Code cleanup, added helper methods
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -216,20 +207,13 @@ public class TaskUtils {
     if (taskName.startsWith(NodeManagerConfiguration.NM_TASK_PREFIX)) {
       return getAggregateMemory(profile);
     }
-<<<<<<< HEAD
-
-    Optional<ServiceConfiguration> auxConfOption = cfg.getServiceConfiguration(taskName);
-    if (!auxConfOption.isPresent()) {
+  
+    Optional<ServiceConfiguration> auxConf = cfg.getServiceConfiguration(taskName);    
+    if (!auxConf.isPresent()) {
       throw new MyriadBadConfigurationException("Cannot find profile for task name: " + taskName);
     }
 
-=======
-    Optional<ServiceConfiguration> auxConfOption = cfg.getServiceConfiguration(taskName);
-    if (!auxConfOption.isPresent()) {
-      throw new MyriadBadConfigurationException("Can not find profile for task name: " + taskName);
-    }
->>>>>>> 6fb4095... MYRIAD-198 More ServiceConfiguraion Optional handling consolidation
-    return auxConfOption.get().getJvmMaxMemoryMB();
+    return auxConf.get().getJvmMaxMemoryMB();
   }
 
   public TaskUtils() {

@@ -68,9 +68,11 @@ public class MesosModule extends AbstractModule {
         cfg.isCheckpoint()).setFailoverTimeout(cfg.getFrameworkFailoverTimeout());
 
     frameworkInfoBuilder.setRole(cfg.getFrameworkRole());
+
+    Optional<FrameworkID> optFrameId = schedulerState.getFrameworkID();
     
-    if (schedulerState.getFrameworkID().isPresent()) {
-      FrameworkID frameworkId = schedulerState.getFrameworkID().get();
+    if (optFrameId.isPresent()) {
+      FrameworkID frameworkId = optFrameId.get();
       LOGGER.info("Attempting to re-register with frameworkId: {}", frameworkId.getValue());
       frameworkInfoBuilder.setId(frameworkId);
     }

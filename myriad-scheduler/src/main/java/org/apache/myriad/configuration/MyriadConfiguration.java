@@ -110,6 +110,8 @@ public class MyriadConfiguration {
   
   public static final String DEFAULT_ZK_SERVERS = "localhost:2181";
   
+  public static final String DEFAULT_CGROUP_PATH = "/sys/fs/cgroup";
+  
   public static final Map<String, ServiceConfiguration> EMPTY_SERVICE_CONFIGURATION = Collections.emptyMap();
 
   @JsonProperty
@@ -195,6 +197,7 @@ public class MyriadConfiguration {
   @JsonProperty
   private String cgroupPath;
 
+
   public MyriadConfiguration() {
   }
 
@@ -210,16 +213,16 @@ public class MyriadConfiguration {
     return Optional.fromNullable(containerInfo);
   }
 
-  public Double getFrameworkFailoverTimeout() {
-    return Optional.fromNullable(frameworkFailoverTimeout).or(DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS);
+  public String getFrameworkRole() {
+    return Optional.fromNullable(frameworkRole).or("*");
   }
 
   public String getFrameworkName() {
     return Optional.fromNullable(frameworkName).or(DEFAULT_FRAMEWORK_NAME);
   }
-
-  public String getFrameworkRole() {
-    return Optional.fromNullable(frameworkRole).or("*");
+  
+  public Double getFrameworkFailoverTimeout() {
+    return Optional.fromNullable(frameworkFailoverTimeout).or(DEFAULT_FRAMEWORK_FAILOVER_TIMEOUT_MS);
   }
 
   public Optional<String> getFrameworkUser() {
@@ -299,6 +302,6 @@ public class MyriadConfiguration {
   }
 
   public String getCGroupPath() {
-    return cgroupPath == null ? "/sys/fs/cgroup" : cgroupPath;
+    return Optional.fromNullable(cgroupPath).or(DEFAULT_CGROUP_PATH);
   }
 }

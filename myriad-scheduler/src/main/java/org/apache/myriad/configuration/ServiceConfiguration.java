@@ -143,7 +143,7 @@ public class ServiceConfiguration {
     return Optional.fromNullable(command);
   }
 
-  public String getServiceOpts() {
-    return serviceOptsName;
+  public Optional<String> getServiceOpts() {
+    return Optional.fromNullable(serviceOptsName);
   }
 }

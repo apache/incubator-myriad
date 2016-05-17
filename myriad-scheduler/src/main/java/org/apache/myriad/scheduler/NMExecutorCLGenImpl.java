@@ -90,19 +90,17 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
     if (cfg.getNodeManagerConfiguration().getCgroups()) {
       addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "mesos/$TASK_DIR");
-      if (environment.containsKey("YARN_HOME")) {
-        addYarnNodemanagerOpt(KEY_YARN_HOME, environment.get("YARN_HOME"));
-      }
+	  if (environment.containsKey("YARN_HOME")) {
+	    addYarnNodemanagerOpt(KEY_YARN_HOME, environment.get("YARN_HOME"));
+	  }
     }
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_CPU_VCORES, Integer.toString(profile.getCpus().intValue()));
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_MEM_MB, Integer.toString(profile.getMemory().intValue()));
     addYarnNodemanagerOpt(KEY_NM_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getRpcPort()).toString());
     addYarnNodemanagerOpt(KEY_NM_LOCALIZER_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getLocalizerPort()).toString());
     addYarnNodemanagerOpt(KEY_NM_WEBAPP_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getWebAppHttpPort()).toString());
-    addYarnNodemanagerOpt(KEY_NM_SHUFFLE_PORT, Long.valueOf(ports.getShufflePort()).toString());
   }
   
-
   protected void appendEnvForNM(StringBuilder cmdLine) {
     cmdLine.append(" env ");
     for (Map.Entry<String, String> env : environment.entrySet()) {
@@ -113,18 +111,18 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   protected void appendCgroupsCmds(StringBuilder cmdLine) {
     if (cfg.getFrameworkSuperUser().isPresent()) {
       cmdLine.append(" export TASK_DIR=`basename $PWD`&&");
-      //The container executor script expects mount-path to exist and owned by the yarn user
-      //See: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html
-      //If YARN ever moves to cgroup/mem it will be necessary to add a mem version.
-      appendSudo(cmdLine);
-      cmdLine.append("chown " + cfg.getFrameworkUser().get() + " ");
-      cmdLine.append(cfg.getCGroupPath());
-      cmdLine.append("/cpu/mesos/$TASK_DIR &&");
-    } else {
-      LOGGER.info("frameworkSuperUser not enabled ignoring cgroup configuration");
+	  //The container executor script expects mount-path to exist and owned by the yarn user
+	  //See: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html
+	  //If YARN ever moves to cgroup/mem it will be necessary to add a mem version.
+	  appendSudo(cmdLine);
+	  cmdLine.append("chown " + cfg.getFrameworkUser().get() + " ");
+	  cmdLine.append(cfg.getCGroupPath());
+	  cmdLine.append("/cpu/mesos/$TASK_DIR &&");
+	} else {
+	  LOGGER.info("frameworkSuperUser not enabled ignoring cgroup configuration");
     }
   }
-
+  
   protected void appendYarnHomeExport(StringBuilder cmdLine) {
     if (environment.containsKey("YARN_HOME")) {
       cmdLine.append(" export YARN_HOME=");

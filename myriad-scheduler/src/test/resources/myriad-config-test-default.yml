@@ -39,10 +39,7 @@ profiles:
   large:
     cpu: 4
     mem: 4096
-<<<<<<< HEAD
 
-=======
->>>>>>> 6f64009... MYRIAD-198 Fixed error Darin pointed out that would have resulted in and
 rebalancerEnabled: 
 nodeManager:
   jvmMaxMemoryMB: 1024
