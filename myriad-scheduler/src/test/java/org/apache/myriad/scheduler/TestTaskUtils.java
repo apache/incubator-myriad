@@ -17,21 +17,23 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.common.collect.Range;
-import com.google.common.collect.Ranges;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Value.Ranges;
 import org.apache.myriad.configuration.MyriadBadConfigurationException;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.common.collect.Range;
+import com.google.common.collect.Ranges;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * Tests for TaskUtils
@@ -134,8 +136,8 @@ public class TestTaskUtils {
 
   private void checkResourceList(Iterable<Protos.Resource> resources, String name, Double roleVal, Double defaultVal) {
     int i = 0;
-    Range defaultValueRange = Ranges.closed(defaultVal - epsilon, defaultVal + epsilon);
-    Range roleValueRange = Ranges.closed(roleVal - epsilon, roleVal + epsilon);
+    Range<Double> defaultValueRange = Ranges.closed(defaultVal - epsilon, defaultVal + epsilon);
+    Range<Double> roleValueRange    = Ranges.closed(roleVal - epsilon, roleVal + epsilon);
 
     for (Protos.Resource resource: resources) {
       if (resource.hasRole() && resource.getRole().equals("test")) {

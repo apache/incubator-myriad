@@ -26,7 +26,7 @@ import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerStri
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
- * Node Manager Configuration
+ * YARN NodeManager Configuration
  */
 public class NodeManagerConfiguration {
   /**
@@ -40,10 +40,18 @@ public class NodeManagerConfiguration {
   public static final double DEFAULT_JVM_MAX_MEMORY_MB = 2048;
 
   /**
-   * Default cpu for NodeManager JVM.
+   * Default CPU cores for NodeManager JVM.
    */
   public static final double DEFAULT_NM_CPUS = 1;
 
+  /**
+   * CGroups disabled by default
+   */
+  public static final Boolean DEFAULT_NM_CGROUPS = false;
+  
+  /**
+   * Default NodeManager Mesos task prefix
+   */
   public static final String NM_TASK_PREFIX = "nm";
 
   /**
@@ -54,7 +62,7 @@ public class NodeManagerConfiguration {
   private Double jvmMaxMemoryMB;
 
   /**
-   * Amount of CPU share given to NodeManger JVM. This is critical specially
+   * Amount of CPU share given to NodeManger JVM. This is critical especially
    * for NodeManager auxiliary services.
    */
   @JsonProperty
@@ -67,27 +75,32 @@ public class NodeManagerConfiguration {
   @JsonProperty
   @JsonSerialize(using = OptionalSerializerString.class)
   private String jvmOpts;
-
+  
   /**
-   * Determines if cgroups are enabled for NM or not.
+   * Determines if cgroups are enabled for the NodeManager
    */
   @JsonProperty
   @JsonSerialize(using = OptionalSerializerBoolean.class)
   private Boolean cgroups;
 
-  public Optional<Double> getJvmMaxMemoryMB() {
-    return Optional.fromNullable(jvmMaxMemoryMB);
+  private Double generateNodeManagerMemory() {
+    return (NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
   }
-
+  
+  public Double getJvmMaxMemoryMB() {
+    return Optional.fromNullable(jvmMaxMemoryMB).or(generateNodeManagerMemory());
+  }
+  
   public Optional<String> getJvmOpts() {
     return Optional.fromNullable(jvmOpts);
   }
+  
+  public Double getCpus() {
+    return Optional.fromNullable(cpus).or(DEFAULT_NM_CPUS);
 
-  public Optional<Double> getCpus() {
-    return Optional.fromNullable(cpus);
   }
 
-  public Optional<Boolean> getCgroups() {
-    return Optional.fromNullable(cgroups);
+  public boolean getCgroups() {
+    return Optional.fromNullable(cgroups).or(DEFAULT_NM_CGROUPS);
   }
 }

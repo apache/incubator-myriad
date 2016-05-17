@@ -18,14 +18,14 @@
 
 package org.apache.myriad.configuration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import java.util.Map;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
  * AuxServices/tasks test
@@ -42,16 +42,12 @@ public class MyriadConfigurationTest {
 
   }
 
-  @AfterClass
-  public static void tearDownAfterClass() throws Exception {
-  }
-
   @Test
-  public void additionalPropertiestest() throws Exception {
+  public void serviceConfigurationTest() throws Exception {  
+    assertTrue(cfg.getServiceConfigurations().isPresent());
 
-    Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
+    Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations().get();
 
-    assertNotNull(auxConfigs);
     assertEquals(auxConfigs.size(), 2);
 
     for (Map.Entry<String, ServiceConfiguration> entry : auxConfigs.entrySet()) {
@@ -62,4 +58,78 @@ public class MyriadConfigurationTest {
     }
   }
 
+  @Test
+  public void coreConfigurationTest() throws Exception {
+    assertEquals("MyriadTest", cfg.getFrameworkName());
+
+    //authorization parameters
+    assertEquals("*", cfg.getFrameworkRole());
+    assertEquals("hduser", cfg.getFrameworkUser().get());
+    assertEquals("root", cfg.getFrameworkSuperUser().get());
+
+    //ports and directory paths
+    assertEquals("10.0.2.15:5050", cfg.getMesosMaster());
+    assertEquals("/usr/local/lib/libmesos.so", cfg.getNativeLibrary());
+    assertEquals(new Integer(8192), cfg.getRestApiPort());
+    assertEquals("10.0.2.15:2181", cfg.getZkServers());
+  
+    //timeouts
+    assertEquals(new Double(44200000), cfg.getFrameworkFailoverTimeout());
+    assertEquals(new Integer(25000), cfg.getZkTimeout());
+  
+    //checkpoints
+    assertEquals(false, cfg.isCheckpoint());
+    assertEquals(true, cfg.isHAEnabled());
+    assertEquals(true, cfg.isRebalancerEnabled());
+  }
+  
+  @Test
+  public void executorConfigurationTest() throws Exception {
+    MyriadExecutorConfiguration conf = cfg.getMyriadExecutorConfiguration();
+
+    assertEquals(new Double(256), conf.getJvmMaxMemoryMB());
+    assertEquals("hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz", conf.getNodeManagerUri().get());
+    assertEquals("file:///usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar", conf.getPath());
+  }
+
+  @Test
+  public void nodeManagerConfigurationTest() throws Exception {
+    NodeManagerConfiguration config = cfg.getNodeManagerConfiguration();
+
+    assertFalse(config.getCgroups());
+    assertEquals(new Double(0.2), config.getCpus());
+    assertEquals(new Double(1024.0), config.getJvmMaxMemoryMB());
+  }
+  
+  @Test
+  public void profilesConfigurationTest() throws Exception {
+    Map<String, Map<String, String>> profiles = cfg.getProfiles();
+
+    for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {
+      assertTrue(validateProfile(profile));
+    }
+  }
+  
+  private boolean validateProfile(Map.Entry<String, Map<String, String>> entry) {
+    String key                 = entry.getKey();
+    Map<String, String> value = entry.getValue();
+    
+    switch (key) {
+      case "small" : {
+        return value.get("cpu").equals("1") && value.get("mem").equals("1100");
+      }
+
+      case "medium" : {
+        return value.get("cpu").equals("2") && value.get("mem").equals("2048");
+      }
+
+      case "large" : {
+        return value.get("cpu").equals("4") && value.get("mem").equals("4096");
+      } 
+
+      default : {
+        return true;
+      }
+    }
+  }
 }

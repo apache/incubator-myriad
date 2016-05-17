@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.inject.Inject;
+
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
@@ -71,7 +74,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     Objects.requireNonNull(offer, "Offer should be non-null");
     Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
-    ServiceConfiguration serviceConfig = cfg.getServiceConfiguration(nodeTask.getTaskPrefix());
+    ServiceConfiguration serviceConfig = cfg.getServiceConfiguration(nodeTask.getTaskPrefix()).get();
 
     Objects.requireNonNull(serviceConfig, "ServiceConfig should be non-null");
     Objects.requireNonNull(serviceConfig.getCommand().orNull(), "command for ServiceConfig should be non-null");
@@ -86,12 +89,13 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
       strB.append(serviceConfig.getServiceOpts()).append("=");
 
       strB.append("\"");
-      if (rmHostName != null && !rmHostName.isEmpty()) {
+      if (StringUtils.isNotEmpty(rmHostName)) {
         strB.append("-D" + YARN_RESOURCEMANAGER_HOSTNAME + "=" + rmHostName + " ");
       }
 
       Map<String, Long> ports = serviceConfig.getPorts().orNull();
-      if (ports != null && !ports.isEmpty()) {
+      
+      if (MapUtils.isNotEmpty(ports)) {
         int neededPortsCount = 0;
         for (Map.Entry<String, Long> portEntry : ports.entrySet()) {
           Long port = portEntry.getValue();
@@ -163,7 +167,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
 
     if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
       //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
-      if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
+      if (!minimumUserSet(cfg)) {
         throw new RuntimeException("Trying to use remote distribution, but frameworkUser" + "and/or frameworkSuperUser not set!");
       }
 
@@ -195,6 +199,10 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     return commandInfo.build();
   }
 
+  private Boolean minimumUserSet(MyriadConfiguration conf) {
+    return (cfg.getFrameworkUser().isPresent() || cfg.getFrameworkSuperUser().isPresent());
+  }
+  
   @Override
   public ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId, Offer offer, CommandInfo commandInfo) {
     // TODO (yufeldman) if executor specified use it , otherwise return null
@@ -213,6 +221,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     if (requestedPorts == 0) {
       return null;
     }
+    
     final List<Long> returnedPorts = new ArrayList<>();
     for (Resource resource : offer.getResourcesList()) {
       if (resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {

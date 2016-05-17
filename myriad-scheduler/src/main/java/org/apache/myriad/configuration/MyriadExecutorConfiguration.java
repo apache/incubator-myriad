@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Optional;
 import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerDouble;
 import org.apache.myriad.configuration.OptionalSerializer.OptionalSerializerString;
+import org.apache.myriad.executor.MyriadExecutorDefaults;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -58,8 +59,12 @@ public class MyriadExecutorConfiguration {
   @JsonSerialize(using = OptionalSerializerString.class)
   private String jvmUri;
 
-  public Optional<Double> getJvmMaxMemoryMB() {
-    return Optional.fromNullable(jvmMaxMemoryMB);
+  private Double generateMaxMemory() {
+    return (MyriadExecutorDefaults.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + MyriadExecutorDefaults.JVM_OVERHEAD);
+  }
+  
+  public Double getJvmMaxMemoryMB() {
+    return Optional.fromNullable(jvmMaxMemoryMB).or(generateMaxMemory());
   }
 
   public String getPath() {
@@ -70,6 +75,7 @@ public class MyriadExecutorConfiguration {
     return Optional.fromNullable(nodeManagerUri);
   }
 
+
   public Optional<String> getConfigUri() {
     return Optional.fromNullable(configUri);
   }
@@ -77,5 +83,4 @@ public class MyriadExecutorConfiguration {
   public Optional<String> getJvmUri() {
     return Optional.fromNullable(jvmUri);
   }
-
 }

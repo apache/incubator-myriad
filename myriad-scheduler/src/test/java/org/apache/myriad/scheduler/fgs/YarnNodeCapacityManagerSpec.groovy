@@ -119,7 +119,7 @@ class YarnNodeCapacityManagerSpec extends FGSTestBaseSpec {
         zeroNM.getTotalCapability().getVirtualCores() == 2
         1 * rmContext.getDispatcher().getEventHandler().handle(_ as NodeResourceUpdateSchedulerEvent)
     }
-
+	
     YarnNodeCapacityManager getYarnNodeCapacityManager() {
         def registry = Mock(InterceptorRegistry)
         def executorInfo = Protos.ExecutorInfo.newBuilder()
@@ -133,9 +133,9 @@ class YarnNodeCapacityManagerSpec extends FGSTestBaseSpec {
             getNodeTask(_, NodeManagerConfiguration.NM_TASK_PREFIX) >> nodeTask
         }
         def cfg = Mock(MyriadConfiguration) {
-            getFrameworkRole() >> "some_role"
+        	getFrameworkName() >> "MyriadTest"
         }
-        print(cfg.getFrameworkRole())
+       
         def taskUtils = new TaskUtils(cfg)
         return new YarnNodeCapacityManager(registry, yarnScheduler, rmContext,
                 myriadDriver, offerLifecycleManager, nodeStore, state, taskUtils)

@@ -18,8 +18,6 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +39,9 @@ import org.apache.myriad.state.SchedulerState;
 import org.apache.myriad.webapp.MyriadWebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 /**
  * Myriad scheduler operations
@@ -108,26 +109,31 @@ public class MyriadOperations {
    *
    * @param instances
    * @param serviceName
+   * 
+   * @throws MyriadBadConfigurationException if total number of instances in active, staging, and pending
+   *                                         states exceeds the ServiceConfiguration.maxInstances
    */
   public void flexUpAService(int instances, String serviceName) throws MyriadBadConfigurationException {
-    final ServiceConfiguration auxTaskConf = cfg.getServiceConfiguration(serviceName);
+    final ServiceConfiguration auxTaskConf = cfg.getServiceConfiguration(serviceName).get();
 
-    int totalflexInstances = instances + getFlexibleInstances(serviceName);
-    Integer maxInstances = auxTaskConf.getMaxInstances().orNull();
-    if (maxInstances != null && maxInstances > 0) {
-      // check number of instances
-      // sum of active, staging, pending should be < maxInstances
-      if (totalflexInstances > maxInstances) {
-        LOGGER.error("Current number of active, staging, pending and requested instances: {}" +
-                     ", while it is greater then max instances allowed: {}", totalflexInstances, maxInstances);
-        throw new MyriadBadConfigurationException(
-            "Current number of active, staging, pending instances and requested: " + totalflexInstances +
-            ", while it is greater then max instances allowed: " + maxInstances);
+    if (auxTaskConf.getMaxInstances().isPresent()) {
+      //If total number of current and flex instances exceed maxInstances, throw an exception
+      int totalflexInstances = instances + getFlexibleInstances(serviceName);
+      Integer maxInstances = auxTaskConf.getMaxInstances().get();
+      if (maxInstances > 0) {
+    	// check number of instances- > sum of active, staging, pending should be < maxInstances
+        if (totalflexInstances > maxInstances) {
+          LOGGER.error("Current number of active, staging, pending and requested instances: {}" +
+                       ", while it is greater then max instances allowed: {}", totalflexInstances, maxInstances);
+          throw new MyriadBadConfigurationException(
+              "Current number of active, staging, pending instances and requested: " + totalflexInstances +
+              ", while it is greater then max instances allowed: " + maxInstances);
+        }
       }
     }
 
-    final Double cpu = auxTaskConf.getCpus().or(ServiceConfiguration.DEFAULT_CPU);
-    final Double mem = auxTaskConf.getJvmMaxMemoryMB().or(ServiceConfiguration.DEFAULT_MEMORY);
+    final Double cpu = auxTaskConf.getCpus();
+    final Double mem = auxTaskConf.getJvmMaxMemoryMB();
 
     Collection<NodeTask> nodes = new HashSet<>();
     for (int i = 0; i < instances; i++) {
@@ -177,6 +183,7 @@ public class MyriadOperations {
         }
       }
     }
+
     int numStagingTasksScaledDown = numScaledDown - numPendingTasksScaledDown;
 
     Set<NodeTask> activeTasks = this.schedulerState.getActiveTasksByType(serviceName);

@@ -240,16 +240,15 @@ public class Main {
     TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
 
     Map<String, ServiceConfiguration> servicesConfigs = injector.getInstance(MyriadConfiguration.class).getServiceConfigurations();
-    if (servicesConfigs != null) {
-      for (Map.Entry<String, ServiceConfiguration> entry : servicesConfigs.entrySet()) {
-        final String taskPrefix = entry.getKey();
-        ServiceConfiguration config = entry.getValue();
-        final Double cpu = config.getCpus().or(ServiceConfiguration.DEFAULT_CPU);
-        final Double mem = config.getJvmMaxMemoryMB().or(ServiceConfiguration.DEFAULT_MEMORY);
 
-        profileManager.add(new ServiceResourceProfile(taskPrefix, cpu, mem));
-        taskConstraintsManager.addTaskConstraints(taskPrefix, new ServiceTaskConstraints(cfg, taskPrefix));
-      }
+    for (Map.Entry<String, ServiceConfiguration> entry : servicesConfigs.entrySet()) {
+      final String taskPrefix = entry.getKey();
+      ServiceConfiguration config = entry.getValue();
+      final Double cpu = config.getCpus();
+      final Double mem = config.getJvmMaxMemoryMB();
+
+      profileManager.add(new ServiceResourceProfile(taskPrefix, cpu, mem));
+      taskConstraintsManager.addTaskConstraints(taskPrefix, new ServiceTaskConstraints(cfg, taskPrefix));
     }
   }
 
@@ -262,7 +261,7 @@ public class Main {
   }
 
   private void initRebalancerService(MyriadConfiguration cfg, Injector injector) {
-    if (cfg.isRebalancer()) {
+    if (cfg.isRebalancerEnabled()) {
       LOGGER.info("Initializing Rebalancer");
       rebalancerService = Executors.newScheduledThreadPool(1);
       final int initialDelay = 100;
@@ -287,14 +286,13 @@ public class Main {
   private void startJavaBasedTaskInstance(Injector injector) {
     Map<String, ServiceConfiguration> auxServicesConfigs = injector.getInstance(MyriadConfiguration.class)
         .getServiceConfigurations();
-    if (auxServicesConfigs != null) {
-      MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
-      for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {
-        try {
-          myriadOperations.flexUpAService(entry.getValue().getMaxInstances().or(1), entry.getKey());
-        } catch (MyriadBadConfigurationException e) {
-          LOGGER.warn("Exception while trying to flexup service: {}", entry.getKey(), e);
-        }
+    
+    MyriadOperations myriadOperations = injector.getInstance(MyriadOperations.class);
+    for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {
+      try {
+        myriadOperations.flexUpAService(entry.getValue().getMaxInstances().or(1), entry.getKey());
+      } catch (MyriadBadConfigurationException e) {
+        LOGGER.warn("Exception while trying to flexup service: {}", entry.getKey(), e);
       }
     }
   }

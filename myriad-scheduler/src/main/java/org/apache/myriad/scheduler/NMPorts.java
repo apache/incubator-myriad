@@ -23,12 +23,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Helper class for dynamically assigning ports to nodemanager
+ * Helper class for dynamically assigning ports to NodeManager
  */
 public class NMPorts implements Ports {
-  private static final String NM_RPC_PORT_KEY = "nm.rpc.port";
-  private static final String NM_LOCALIZER_PORT_KEY = "nm.localizer.port";
-  private static final String NM_WEBAPP_HTTP_PORT_KEY = "nm.webapp.http.port";
+  private static final String NM_RPC_PORT_KEY          = "nm.rpc.port";
+  private static final String NM_LOCALIZER_PORT_KEY    = "nm.localizer.port";
+  private static final String NM_WEBAPP_HTTP_PORT_KEY  = "nm.webapp.http.port";
   private static final String NM_HTTP_SHUFFLE_PORT_KEY = "nm.http.shuffle.port";
 
   private static final String[] NM_PORT_KEYS =
