@@ -90,9 +90,9 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
     if (cfg.getNodeManagerConfiguration().getCgroups()) {
       addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "mesos/$TASK_DIR");
-	  if (environment.containsKey("YARN_HOME")) {
-	    addYarnNodemanagerOpt(KEY_YARN_HOME, environment.get("YARN_HOME"));
-	  }
+      if (environment.containsKey("YARN_HOME")) {
+        addYarnNodemanagerOpt(KEY_YARN_HOME, environment.get("YARN_HOME"));
+      }
     }
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_CPU_VCORES, Integer.toString(profile.getCpus().intValue()));
     addYarnNodemanagerOpt(KEY_NM_RESOURCE_MEM_MB, Integer.toString(profile.getMemory().intValue()));
@@ -111,15 +111,15 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   protected void appendCgroupsCmds(StringBuilder cmdLine) {
     if (cfg.getFrameworkSuperUser().isPresent()) {
       cmdLine.append(" export TASK_DIR=`basename $PWD`&&");
-	  //The container executor script expects mount-path to exist and owned by the yarn user
-	  //See: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html
-	  //If YARN ever moves to cgroup/mem it will be necessary to add a mem version.
-	  appendSudo(cmdLine);
-	  cmdLine.append("chown " + cfg.getFrameworkUser().get() + " ");
-	  cmdLine.append(cfg.getCGroupPath());
-	  cmdLine.append("/cpu/mesos/$TASK_DIR &&");
-	} else {
-	  LOGGER.info("frameworkSuperUser not enabled ignoring cgroup configuration");
+      //The container executor script expects mount-path to exist and owned by the yarn user
+      //See: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html
+      //If YARN ever moves to cgroup/mem it will be necessary to add a mem version.
+      appendSudo(cmdLine);
+      cmdLine.append("chown " + cfg.getFrameworkUser().get() + " ");
+      cmdLine.append(cfg.getCGroupPath());
+      cmdLine.append("/cpu/mesos/$TASK_DIR &&");
+    } else {
+      LOGGER.info("frameworkSuperUser not enabled ignoring cgroup configuration");
     }
   }
   

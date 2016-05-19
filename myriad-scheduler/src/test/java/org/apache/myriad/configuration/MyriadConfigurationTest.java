@@ -81,7 +81,7 @@ public class MyriadConfigurationTest {
     //checkpoints
     assertEquals(false, cfg.isCheckpoint());
     assertEquals(true, cfg.isHAEnabled());
-    assertEquals(true, cfg.isRebalancerEnabled());
+    assertEquals(false, cfg.isRebalancerEnabled());
   }
   
   @Test
