@@ -103,22 +103,23 @@ public class MyriadModule extends AbstractModule {
 
     MapBinder<String, TaskFactory> mapBinder = MapBinder.newMapBinder(binder(), String.class, TaskFactory.class);
     mapBinder.addBinding(NodeManagerConfiguration.NM_TASK_PREFIX).to(NMTaskFactoryImpl.class).in(Scopes.SINGLETON);
+
     Map<String, ServiceConfiguration> auxServicesConfigs = cfg.getServiceConfigurations();
-    if (auxServicesConfigs != null) {
-      for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {
-        String taskFactoryClass = entry.getValue().getTaskFactoryImplName().orNull();
-        if (taskFactoryClass != null) {
-          try {
-            Class<? extends TaskFactory> implClass = getTaskFactoryClass(taskFactoryClass);
-            mapBinder.addBinding(entry.getKey()).to(implClass).in(Scopes.SINGLETON);
-          } catch (ClassNotFoundException e) {
-            LOGGER.error("ClassNotFoundException", e);
-          }
-        } else {
-          mapBinder.addBinding(entry.getKey()).to(ServiceTaskFactoryImpl.class).in(Scopes.SINGLETON);
+    for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {
+      if (entry.getValue().getTaskFactoryImplName().isPresent()) {
+        String taskFactoryClass = entry.getValue().getTaskFactoryImplName().get();
+        try {
+          Class<? extends TaskFactory> implClass = getTaskFactoryClass(taskFactoryClass);
+          mapBinder.addBinding(entry.getKey()).to(implClass).in(Scopes.SINGLETON);
+        } catch (ClassNotFoundException e) {
+          LOGGER.error("ClassNotFoundException", e);
         }
+      } else {
+        //TODO (kjyost) Confirm if this else statement and logic should still be here
+        mapBinder.addBinding(entry.getKey()).to(ServiceTaskFactoryImpl.class).in(Scopes.SINGLETON);
       }
     }
+
     //TODO(Santosh): Should be configurable as well
     bind(NodeScaleDownPolicy.class).to(LeastAMNodesFirstPolicy.class).in(Scopes.SINGLETON);
   }

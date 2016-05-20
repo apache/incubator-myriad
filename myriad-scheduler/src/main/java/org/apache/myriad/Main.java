@@ -240,16 +240,15 @@ public class Main {
     TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
 
     Map<String, ServiceConfiguration> servicesConfigs = injector.getInstance(MyriadConfiguration.class).getServiceConfigurations();
-    if (servicesConfigs != null) {
-      for (Map.Entry<String, ServiceConfiguration> entry : servicesConfigs.entrySet()) {
-        final String taskPrefix = entry.getKey();
-        ServiceConfiguration config = entry.getValue();
-        final Double cpu = config.getCpus().or(ServiceConfiguration.DEFAULT_CPU);
-        final Double mem = config.getJvmMaxMemoryMB().or(ServiceConfiguration.DEFAULT_MEMORY);
+ 
+    for (Map.Entry<String, ServiceConfiguration> entry : servicesConfigs.entrySet()) {
+      final String taskPrefix = entry.getKey();
+      ServiceConfiguration config = entry.getValue();
+      final Double cpu = config.getCpus();
+      final Double mem = config.getJvmMaxMemoryMB();
 
-        profileManager.add(new ServiceResourceProfile(taskPrefix, cpu, mem));
-        taskConstraintsManager.addTaskConstraints(taskPrefix, new ServiceTaskConstraints(cfg, taskPrefix));
-      }
+      profileManager.add(new ServiceResourceProfile(taskPrefix, cpu, mem));
+      taskConstraintsManager.addTaskConstraints(taskPrefix, new ServiceTaskConstraints(cfg, taskPrefix));
     }
   }
 
@@ -262,7 +261,7 @@ public class Main {
   }
 
   private void initRebalancerService(MyriadConfiguration cfg, Injector injector) {
-    if (cfg.isRebalancer()) {
+    if (cfg.isRebalancerEnabled()) {
       LOGGER.info("Initializing Rebalancer");
       rebalancerService = Executors.newScheduledThreadPool(1);
       final int initialDelay = 100;

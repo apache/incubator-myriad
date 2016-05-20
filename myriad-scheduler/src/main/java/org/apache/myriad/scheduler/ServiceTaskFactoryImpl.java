@@ -24,6 +24,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.inject.Inject;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.CommandInfo.URI;
@@ -65,13 +69,13 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     this.taskUtils = taskUtils;
     this.clGenerator = new ServiceCommandLineGenerator(cfg, cfg.getMyriadExecutorConfiguration().getNodeManagerUri().orNull());
   }
-
+  
   @Override
   public TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, NodeTask nodeTask) {
     Objects.requireNonNull(offer, "Offer should be non-null");
     Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
 
-    ServiceConfiguration serviceConfig = cfg.getServiceConfiguration(nodeTask.getTaskPrefix());
+    ServiceConfiguration serviceConfig = cfg.getServiceConfiguration(nodeTask.getTaskPrefix()).get();
 
     Objects.requireNonNull(serviceConfig, "ServiceConfig should be non-null");
     Objects.requireNonNull(serviceConfig.getCommand().orNull(), "command for ServiceConfig should be non-null");
@@ -82,16 +86,17 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     List<Long> additionalPortsNumbers = null;
 
     final StringBuilder strB = new StringBuilder("env ");
-    if (serviceConfig.getServiceOpts() != null) {
-      strB.append(serviceConfig.getServiceOpts()).append("=");
+    if (serviceConfig.getServiceOpts().isPresent()) {
+      strB.append(serviceConfig.getServiceOpts().get()).append("=");
 
       strB.append("\"");
-      if (rmHostName != null && !rmHostName.isEmpty()) {
+      if (StringUtils.isNotEmpty(rmHostName)) {
         strB.append("-D" + YARN_RESOURCEMANAGER_HOSTNAME + "=" + rmHostName + " ");
       }
 
       Map<String, Long> ports = serviceConfig.getPorts().orNull();
-      if (ports != null && !ports.isEmpty()) {
+      
+      if (MapUtils.isNotEmpty(ports)) {
         int neededPortsCount = 0;
         for (Map.Entry<String, Long> portEntry : ports.entrySet()) {
           Long port = portEntry.getValue();
@@ -130,7 +135,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
         .addAllResources(taskUtils.getScalarResource(offer, "cpus", nodeTask.getProfile().getCpus(), 0.0))
         .addAllResources(taskUtils.getScalarResource(offer, "mem", nodeTask.getProfile().getMemory(), 0.0));
 
-    if (additionalPortsNumbers != null && !additionalPortsNumbers.isEmpty()) {
+    if (CollectionUtils.isNotEmpty(additionalPortsNumbers)) {
       // set ports
       Value.Ranges.Builder valueRanger = Value.Ranges.newBuilder();
       for (Long port : additionalPortsNumbers) {
@@ -151,7 +156,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
     CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
     Map<String, String> envVars = cfg.getYarnEnvironment();
-    if (envVars != null && !envVars.isEmpty()) {
+    if (MapUtils.isNotEmpty(envVars)) {
       Protos.Environment.Builder yarnHomeB = Protos.Environment.newBuilder();
       for (Map.Entry<String, String> envEntry : envVars.entrySet()) {
         Protos.Environment.Variable.Builder yarnEnvB = Protos.Environment.Variable.newBuilder();
@@ -163,7 +168,7 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
 
     if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
       //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
-      if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
+      if (!minimumUserSet(cfg)) {
         throw new RuntimeException("Trying to use remote distribution, but frameworkUser" + "and/or frameworkSuperUser not set!");
       }
 
@@ -195,6 +200,10 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     return commandInfo.build();
   }
 
+  private Boolean minimumUserSet(MyriadConfiguration conf) {
+    return (cfg.getFrameworkUser().isPresent() || cfg.getFrameworkSuperUser().isPresent());
+  }
+  
   @Override
   public ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId, Offer offer, CommandInfo commandInfo) {
     // TODO (yufeldman) if executor specified use it , otherwise return null
@@ -213,9 +222,10 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
     if (requestedPorts == 0) {
       return null;
     }
+    
     final List<Long> returnedPorts = new ArrayList<>();
     for (Resource resource : offer.getResourcesList()) {
-      if (resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {
+      if (resource.getName().equals("ports") && (isDefaultRole(resource))) {
         Iterator<Value.Range> itr = resource.getRanges().getRangeList().iterator();
         while (itr.hasNext()) {
           Value.Range range = itr.next();
@@ -232,7 +242,12 @@ public class ServiceTaskFactoryImpl implements TaskFactory {
         }
       }
     }
-    // this is actually an error condition - we did not have enough ports to use
+    //this is actually an error condition - we did not have enough ports to use
+    //TODO (hokiegeek2) does this need error handling then?
     return returnedPorts;
+  }
+  
+  private boolean isDefaultRole(Resource resource) {
+    return !resource.hasRole() || resource.getRole().equals("*");
   }
 }

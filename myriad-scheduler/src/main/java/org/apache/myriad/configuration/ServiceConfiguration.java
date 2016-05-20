@@ -18,41 +18,51 @@
 
 package org.apache.myriad.configuration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.Optional;
 import java.util.Map;
+
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Optional;
 
 /**
  * Configuration for any service/task to be started from Myriad Scheduler
  */
 public class ServiceConfiguration {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(ServiceConfiguration.class);
-
-  public static final Double DEFAULT_CPU = 0.1;
-
-  public static final Double DEFAULT_MEMORY = 256.0;
+  /**
+   * Translates to -Xmx for the Mesos executor JVM.
+   * Default number of CPU cores per Mesos executor JVM.
+   */
+  public static final Double DEFAULT_CPU_CORES = 0.1;
 
   /**
-   * Translates to -Xmx for the JVM.
+   * Default amount of RAM per Mesos executor JVM.
+   */
+  public static final Double DEFAULT_JVM_MAX_MEMORY_MB  = 256.0;
+  
+  /**
+   * Translates to -Xmx for the Mesos executor JVM.
+   * Allot 10% more memory to account for JVM overhead.
+   */
+  public static final double JVM_OVERHEAD = 0.1;
+  
+  /**
+   * Translates to -Xmx for the Mesos executor JVM.
    */
   @JsonProperty
   @JsonSerialize(using = OptionalSerializer.OptionalSerializerDouble.class)
   protected Double jvmMaxMemoryMB;
 
   /**
-   * Amount of CPU share given to  JVM.
+   * Amount of CPU share given to Mesos executor JVM.
    */
   @JsonProperty
   @JsonSerialize(using = OptionalSerializer.OptionalSerializerDouble.class)
   protected Double cpus;
 
   /**
-   * Translates to jvm opts for the JVM.
+   * Translates to JVM opts for the Mesos executor JVM.
    */
   @JsonProperty
   @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
@@ -89,17 +99,20 @@ public class ServiceConfiguration {
   @JsonProperty
   protected String serviceOptsName;
 
+  private Double generateMaxMemory() {
+    return (DEFAULT_JVM_MAX_MEMORY_MB) * (1 + JVM_OVERHEAD);
+  }
 
-  public Optional<Double> getJvmMaxMemoryMB() {
-    return Optional.fromNullable(jvmMaxMemoryMB);
+  public Double getJvmMaxMemoryMB() {
+    return Optional.fromNullable(jvmMaxMemoryMB).or(generateMaxMemory());
   }
 
   public Optional<String> getJvmOpts() {
     return Optional.fromNullable(jvmOpts);
   }
 
-  public Optional<Double> getCpus() {
-    return Optional.fromNullable(cpus);
+  public Double getCpus() {
+    return Optional.fromNullable(cpus).or(DEFAULT_CPU_CORES);
   }
 
   public String getTaskName() {
@@ -130,7 +143,7 @@ public class ServiceConfiguration {
     return Optional.fromNullable(command);
   }
 
-  public String getServiceOpts() {
-    return serviceOptsName;
+  public Optional<String> getServiceOpts() {
+    return Optional.fromNullable(serviceOptsName);
   }
 }

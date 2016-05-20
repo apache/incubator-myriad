@@ -22,7 +22,7 @@ frameworkName: MyriadTest
 frameworkRole: test
 frameworkUser: hduser     # User the Node Manager runs as, required if nodeManagerURI set, otherwise defaults to the user
                           # running the resource manager.
-frameworkSuperUser: root  # To be depricated, currently permissions need set by a superuser due to Mesos-1790.  Must be
+frameworkSuperUser: root  # To be deprecated, currently permissions need set by a superuser due to Mesos-1790.  Must be
                           # root or have passwordless sudo. Required if nodeManagerURI set, ignored otherwise.
 nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: localhost:2181

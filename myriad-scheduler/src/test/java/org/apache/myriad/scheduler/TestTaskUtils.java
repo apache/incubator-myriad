@@ -134,8 +134,9 @@ public class TestTaskUtils {
 
   private void checkResourceList(Iterable<Protos.Resource> resources, String name, Double roleVal, Double defaultVal) {
     int i = 0;
-    Range defaultValueRange = Ranges.closed(defaultVal - epsilon, defaultVal + epsilon);
-    Range roleValueRange = Ranges.closed(roleVal - epsilon, roleVal + epsilon);
+
+    Range<Double> defaultValueRange = Ranges.closed(defaultVal - epsilon, defaultVal + epsilon);
+    Range<Double> roleValueRange    = Ranges.closed(roleVal - epsilon, roleVal + epsilon);
 
     for (Protos.Resource resource: resources) {
       if (resource.hasRole() && resource.getRole().equals("test")) {

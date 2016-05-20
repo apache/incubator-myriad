@@ -21,6 +21,7 @@ package org.apache.myriad.scheduler;
 
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.slf4j.Logger;
@@ -82,11 +83,11 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     }
 
     String rmHostName = System.getProperty(KEY_YARN_RM_HOSTNAME);
-    if (rmHostName != null && !rmHostName.isEmpty()) {
+    if (StringUtils.isNotEmpty(rmHostName)) {
       addYarnNodemanagerOpt(KEY_YARN_RM_HOSTNAME, rmHostName);
     }
 
-    if (cfg.getNodeManagerConfiguration().getCgroups().or(Boolean.FALSE)) {
+    if (cfg.getNodeManagerConfiguration().getCgroups()) {
       addYarnNodemanagerOpt(KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "mesos/$TASK_DIR");
       if (environment.containsKey("YARN_HOME")) {
         addYarnNodemanagerOpt(KEY_YARN_HOME, environment.get("YARN_HOME"));
@@ -157,18 +158,19 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
   @Override
   public String getConfigurationUrl() {
     String httpPolicy = conf.get(TaskFactory.YARN_HTTP_POLICY);
+    String address = StringUtils.EMPTY;
     if (httpPolicy != null && httpPolicy.equals(TaskFactory.YARN_HTTP_POLICY_HTTPS_ONLY)) {
-      String address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS);
-      if (address == null || address.isEmpty()) {
+      address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS);
+      if (StringUtils.isEmpty(address)) {
         address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + ":8090";
       }
-      return "https://" + address + "/conf";
     } else {
-      String address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_ADDRESS);
-      if (address == null || address.isEmpty()) {
+      address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_ADDRESS);
+      if (StringUtils.isEmpty(address)) {
         address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + ":8088";
       }
-      return "http://" + address + "/conf";
     }
+    
+    return "http://" + address + "/conf";
   }
 }
