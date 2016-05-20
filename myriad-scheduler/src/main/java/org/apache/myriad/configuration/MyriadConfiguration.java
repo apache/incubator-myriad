@@ -150,13 +150,13 @@ public class MyriadConfiguration {
   private Map<String, Integer> nmInstances;
 
   @JsonProperty
-  private Boolean rebalancerEnabled;
+  private Boolean rebalancer;
 
   @JsonProperty
   private Boolean haEnabled;
 
   @JsonProperty
-  private NodeManagerConfiguration nodeManager;
+  private NodeManagerConfiguration nodemanager;
 
   @JsonProperty
   private Map<String, ServiceConfiguration> services;
@@ -242,7 +242,7 @@ public class MyriadConfiguration {
   }
 
   public Boolean isRebalancerEnabled() {
-    return Optional.fromNullable(rebalancerEnabled).or(DEFAULT_REBALANCER_ENABLED);
+    return Optional.fromNullable(rebalancer).or(DEFAULT_REBALANCER_ENABLED);
   }
 
   public Boolean isHAEnabled() {
@@ -250,7 +250,7 @@ public class MyriadConfiguration {
   }
 
   public NodeManagerConfiguration getNodeManagerConfiguration() {
-    return nodeManager;
+    return nodemanager;
   }
 
   public Map<String, ServiceConfiguration> getServiceConfigurations() {

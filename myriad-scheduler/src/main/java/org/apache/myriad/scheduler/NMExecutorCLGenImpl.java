@@ -21,7 +21,6 @@ package org.apache.myriad.scheduler;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.myriad.configuration.MyriadConfiguration;
@@ -99,8 +98,9 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
     addYarnNodemanagerOpt(KEY_NM_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getRpcPort()).toString());
     addYarnNodemanagerOpt(KEY_NM_LOCALIZER_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getLocalizerPort()).toString());
     addYarnNodemanagerOpt(KEY_NM_WEBAPP_ADDRESS, ALL_LOCAL_IPV4ADDR + Long.valueOf(ports.getWebAppHttpPort()).toString());
+    addYarnNodemanagerOpt(KEY_NM_SHUFFLE_PORT, Long.valueOf(ports.getShufflePort()).toString());
   }
-  
+
   protected void appendEnvForNM(StringBuilder cmdLine) {
     cmdLine.append(" env ");
     for (Map.Entry<String, String> env : environment.entrySet()) {
@@ -122,7 +122,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
       LOGGER.info("frameworkSuperUser not enabled ignoring cgroup configuration");
     }
   }
-  
+
   protected void appendYarnHomeExport(StringBuilder cmdLine) {
     if (environment.containsKey("YARN_HOME")) {
       cmdLine.append(" export YARN_HOME=");
@@ -157,10 +157,8 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
 
   @Override
   public String getConfigurationUrl() {
-    YarnConfiguration conf = new YarnConfiguration();
-    String httpPolicy      = conf.get(TaskFactory.YARN_HTTP_POLICY);
-    String address         = StringUtils.EMPTY;
-
+    String httpPolicy = conf.get(TaskFactory.YARN_HTTP_POLICY);
+    String address = StringUtils.EMPTY;
     if (httpPolicy != null && httpPolicy.equals(TaskFactory.YARN_HTTP_POLICY_HTTPS_ONLY)) {
       address = conf.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS);
       if (StringUtils.isEmpty(address)) {
