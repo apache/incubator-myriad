@@ -29,18 +29,15 @@ import org.apache.myriad.configuration.ServiceConfiguration;
  */
 public class ServiceTaskConstraints implements TaskConstraints {
 
-  private int portsCount;
+  private int portsCount = 0;
 
   public ServiceTaskConstraints(MyriadConfiguration cfg, String taskPrefix) {
-    this.portsCount = 0;
     Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
-    if (auxConfigs == null) {
-      return;
-    }
+
     ServiceConfiguration serviceConfig = auxConfigs.get(taskPrefix);
     if (serviceConfig != null) {
       if (serviceConfig.getPorts().isPresent()) {
-        this.portsCount = serviceConfig.getPorts().get().size();
+        portsCount = serviceConfig.getPorts().get().size();
       }
     }
   }

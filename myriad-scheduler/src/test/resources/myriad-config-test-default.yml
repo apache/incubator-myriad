@@ -16,17 +16,18 @@
 # under the License.
 
 mesosMaster: 10.0.2.15:5050
+haEnabled:  true
 checkpoint: false
-frameworkFailoverTimeout: 43200000
+frameworkFailoverTimeout: 44200000
 frameworkName: MyriadTest
-frameworkRole: 
-frameworkUser: hduser     # User the Node Manager runs as, required if nodeManagerURI set, otherwise defaults to the user
+frameworkRole: "*"
+frameworkUser: hduser     # User the Node Manager runs as, required if nodemanagerURI set, otherwise defaults to the user
                           # running the resource manager.
-frameworkSuperUser: root  # To be depricated, currently permissions need set by a superuser due to Mesos-1790.  Must be
-                          # root or have passwordless sudo. Required if nodeManagerURI set, ignored otherwise.
+frameworkSuperUser: root  # To be deprecated, currently permissions need set by a superuser due to Mesos-1790.  Must be
+                          # root or have passwordless sudo. Required if nodemanagerURI set, ignored otherwise.
 nativeLibrary: /usr/local/lib/libmesos.so
-zkServers: localhost:2181
-zkTimeout: 20000
+zkServers: 10.0.2.15:2181
+zkTimeout: 25000
 restApiPort: 8192
 profiles:
   small:
@@ -38,7 +39,8 @@ profiles:
   large:
     cpu: 4
     mem: 4096
-rebalancer: false
+
+rebalancer: 
 nodemanager:
   jvmMaxMemoryMB: 1024
   cpus: 0.2

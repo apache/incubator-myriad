@@ -18,15 +18,11 @@
  */
 package org.apache.myriad;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
-import com.google.protobuf.ByteString;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.Credential;
@@ -42,6 +38,13 @@ import org.apache.myriad.scheduler.MyriadScheduler;
 import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.base.Optional;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.protobuf.ByteString;
 
 /**
  * Guice Module for Mesos objects.
@@ -64,12 +67,12 @@ public class MesosModule extends AbstractModule {
     Builder frameworkInfoBuilder = FrameworkInfo.newBuilder().setUser("").setName(cfg.getFrameworkName()).setCheckpoint(
         cfg.isCheckpoint()).setFailoverTimeout(cfg.getFrameworkFailoverTimeout());
 
-    if (StringUtils.isNotEmpty(cfg.getFrameworkRole())) {
-      frameworkInfoBuilder.setRole(cfg.getFrameworkRole());
-    }
+    frameworkInfoBuilder.setRole(cfg.getFrameworkRole());
 
-    FrameworkID frameworkId = schedulerState.getFrameworkID();
-    if (frameworkId != null) {
+    Optional<FrameworkID> optFrameId = schedulerState.getFrameworkID();
+    
+    if (optFrameId.isPresent()) {
+      FrameworkID frameworkId = optFrameId.get();
       LOGGER.info("Attempting to re-register with frameworkId: {}", frameworkId.getValue());
       frameworkInfoBuilder.setId(frameworkId);
     }
