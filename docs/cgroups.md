@@ -82,6 +82,10 @@ Modify the `$YARN_HOME/etc/hadoop/yarn-site.xml` file by adding the following co
 <name>yarn.nodemanager.linux-container-executor.path</name>
 <value>${yarn.home}/bin/container-executor</value>
 </property>
+<property>
+<name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
+<value>${yarn.nodemanager.linux-container-executor.cgroups.hierarchy}</value>
+</property>
 
 <!-- Optional parameters, usually unnecessary
 <property>

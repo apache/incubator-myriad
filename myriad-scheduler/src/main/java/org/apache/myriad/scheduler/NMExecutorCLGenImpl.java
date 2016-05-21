@@ -41,7 +41,7 @@ public class NMExecutorCLGenImpl implements ExecutorCommandLineGenerator {
    * YARN class to help handle LCE resources
    */
   // TODO (mohit): Should it be configurable ?
-  public static final String KEY_YARN_NM_LCE_CGROUPS_HIERARCHY = "yarn.nodemanager.linux-container-executor.cgroups.hierachy";
+  public static final String KEY_YARN_NM_LCE_CGROUPS_HIERARCHY = "yarn.nodemanager.linux-container-executor.cgroups.hierarchy";
   public static final String KEY_YARN_HOME = "yarn.home";
   public static final String KEY_NM_RESOURCE_CPU_VCORES = "nodemanager.resource.cpu-vcores";
   public static final String KEY_NM_RESOURCE_MEM_MB = "nodemanager.resource.memory-mb";
