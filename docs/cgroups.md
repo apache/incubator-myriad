@@ -84,7 +84,7 @@ Modify the `$YARN_HOME/etc/hadoop/yarn-site.xml` file by adding the following co
 </property>
 <property>
 <name>yarn.nodemanager.linux-container-executor.cgroups.hierarchy</name>
-<value>${yarn.nodemanager.linux-container-executor.cgroups.hierachy}</value>
+<value>${yarn.nodemanager.linux-container-executor.cgroups.hierarchy}</value>
 </property>
 
 <!-- Optional parameters, usually unnecessary
