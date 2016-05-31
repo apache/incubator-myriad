@@ -17,47 +17,24 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import org.apache.mesos.Protos;
+import org.apache.myriad.BaseConfigurableTest;
+import org.apache.myriad.configuration.MyriadBadConfigurationException;
+import org.junit.Test;
+
 import com.google.common.collect.Range;
 import com.google.common.collect.Ranges;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.mesos.Protos;
-import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Tests for TaskUtils
  */
-public class TestTaskUtils {
-
-  static MyriadConfiguration cfg;
-  static MyriadConfiguration cfgWithRole;
-  static MyriadConfiguration cfgWithDocker;
+public class TestTaskUtils extends BaseConfigurableTest {
   static double epsilon = .0001;
-
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
-        MyriadConfiguration.class);
-    cfgWithRole = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-framework-role.yml"),
-        MyriadConfiguration.class);
-    cfgWithDocker = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-docker-info.yml"),
-            MyriadConfiguration.class);
-
-  }
-
-  @AfterClass
-  public static void tearDownAfterClass() throws Exception {
-  }
 
   @Test
   public void testGetResource() {
@@ -134,8 +111,8 @@ public class TestTaskUtils {
 
   private void checkResourceList(Iterable<Protos.Resource> resources, String name, Double roleVal, Double defaultVal) {
     int i = 0;
-    Range defaultValueRange = Ranges.closed(defaultVal - epsilon, defaultVal + epsilon);
-    Range roleValueRange = Ranges.closed(roleVal - epsilon, roleVal + epsilon);
+    Range<Double> defaultValueRange = Ranges.closed(defaultVal - epsilon, defaultVal + epsilon);
+    Range<Double> roleValueRange = Ranges.closed(roleVal - epsilon, roleVal + epsilon);
 
     for (Protos.Resource resource: resources) {
       if (resource.hasRole() && resource.getRole().equals("test")) {

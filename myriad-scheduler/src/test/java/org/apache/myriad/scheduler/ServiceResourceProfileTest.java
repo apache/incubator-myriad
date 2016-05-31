@@ -1,6 +1,5 @@
-package org.apache.myriad.state;
+package org.apache.myriad.scheduler;
 
-import org.apache.myriad.scheduler.ServiceResourceProfile;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

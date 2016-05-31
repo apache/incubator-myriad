@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 public class SlaveLostEventHandler implements EventHandler<SlaveLostEvent> {
   private static final Logger LOGGER = LoggerFactory.getLogger(SlaveLostEventHandler.class);
 
+  //TODO (hokiegeek2) Research how else Myriad should respond to this event
   @Override
   public void onEvent(SlaveLostEvent event, long sequence, boolean endOfBatch) throws Exception {
     SlaveID slaveId = event.getSlaveId();

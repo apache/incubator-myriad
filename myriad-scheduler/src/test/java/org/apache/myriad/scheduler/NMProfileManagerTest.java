@@ -1,6 +1,7 @@
 package org.apache.myriad.scheduler;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 /**
@@ -27,36 +28,36 @@ public class NMProfileManagerTest {
   @Test
   public void testAdd() throws Exception {
     NMProfileManager manager = this.getNMProfileManager();
-    Assert.assertEquals(5, manager.numberOfProfiles());
+    assertEquals(5, manager.numberOfProfiles());
   }
   
   @Test 
   public void testRetrieval() throws Exception {
     NMProfileManager manager = this.getNMProfileManager();   
-    Assert.assertEquals("profile1", manager.get("profile1").getName());
-    Assert.assertEquals("profile2", manager.get("profile2").getName());
-    Assert.assertEquals("profile3", manager.get("profile3").getName());
-    Assert.assertEquals("profile4", manager.get("profile4").getName());
-    Assert.assertEquals("profile5", manager.get("profile5").getName());
+    assertEquals("profile1", manager.get("profile1").getName());
+    assertEquals("profile2", manager.get("profile2").getName());
+    assertEquals("profile3", manager.get("profile3").getName());
+    assertEquals("profile4", manager.get("profile4").getName());
+    assertEquals("profile5", manager.get("profile5").getName());
   }
 
   @Test
   public void testExists() throws Exception {
     NMProfileManager manager = this.getNMProfileManager();
-    Assert.assertTrue(manager.exists("profile1"));
-    Assert.assertTrue(manager.exists("profile2"));
-    Assert.assertTrue(manager.exists("profile3"));
-    Assert.assertTrue(manager.exists("profile4"));
-    Assert.assertTrue(manager.exists("profile5"));
+    assertTrue(manager.exists("profile1"));
+    assertTrue(manager.exists("profile2"));
+    assertTrue(manager.exists("profile3"));
+    assertTrue(manager.exists("profile4"));
+    assertTrue(manager.exists("profile5"));
   }
   @Test
   public void testToString() throws Exception {
     NMProfileManager manager = this.getNMProfileManager();
     String toString = manager.toString();
-    Assert.assertTrue(toString.contains("\"name\":\"profile1\",\"cpus\":1,\"memory\":512"));
-    Assert.assertTrue(toString.contains("\"name\":\"profile2\",\"cpus\":2,\"memory\":1024"));
-    Assert.assertTrue(toString.contains("\"name\":\"profile3\",\"cpus\":3,\"memory\":2048"));
-    Assert.assertTrue(toString.contains("\"name\":\"profile4\",\"cpus\":4,\"memory\":3072"));
-    Assert.assertTrue(toString.contains("\"name\":\"profile5\",\"cpus\":5,\"memory\":4096"));
+    assertTrue(toString.contains("\"name\":\"profile1\",\"cpus\":1,\"memory\":512"));
+    assertTrue(toString.contains("\"name\":\"profile2\",\"cpus\":2,\"memory\":1024"));
+    assertTrue(toString.contains("\"name\":\"profile3\",\"cpus\":3,\"memory\":2048"));
+    assertTrue(toString.contains("\"name\":\"profile4\",\"cpus\":4,\"memory\":3072"));
+    assertTrue(toString.contains("\"name\":\"profile5\",\"cpus\":5,\"memory\":4096"));
   }
 }

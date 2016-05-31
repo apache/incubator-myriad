@@ -14,12 +14,18 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
  */
 public class BaseConfigurableTest {
   protected MyriadConfiguration cfg;
+  protected MyriadConfiguration cfgWithRole;
+  protected MyriadConfiguration cfgWithDocker;
 
   @Before
   public void setUp() throws Exception {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
     cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
     MyriadConfiguration.class);
+    cfgWithRole = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-framework-role.yml"),
+            MyriadConfiguration.class);
+    cfgWithDocker = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-docker-info.yml"),
+                MyriadConfiguration.class);
   } 
 
   @Test

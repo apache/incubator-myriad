@@ -37,6 +37,11 @@ public class MyriadWebServer {
   private final Connector connector;
   private final GuiceFilter filter;
 
+  /**
+   * Status codes for MyriadWebServer
+   */
+  public enum Status {STARTED, RUNNING, STOPPED, FAILED, UNKNOWN}
+  
   @Inject
   public MyriadWebServer(Server jetty, Connector connector, GuiceFilter filter) {
     this.jetty = jetty;
@@ -69,6 +74,22 @@ public class MyriadWebServer {
 
     this.jetty.addHandler(context);
     this.jetty.start();
+  }
+
+  public Status getStatus() {
+    if (jetty.isFailed()) { return Status.FAILED; }
+    else if (jetty.isStarted()) {
+      return Status.STARTED;
+    }
+    else if (jetty.isRunning()) {
+      return Status.RUNNING;
+    }
+    else if (jetty.isStopped()) {
+      return Status.STOPPED;
+    }   
+    else {
+      return Status.UNKNOWN;
+    }
   }
 
   public void stop() throws Exception {

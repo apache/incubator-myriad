@@ -23,47 +23,50 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
-import org.junit.BeforeClass;
+import org.apache.myriad.BaseConfigurableTest;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.common.collect.Sets;
 
 /**
- * AuxServices/tasks test
+ * Unit tests for MyriadConfiguration
  */
-public class MyriadConfigurationTest {
-
-  static MyriadConfiguration cfg;
-
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
-        MyriadConfiguration.class);
-
-  }
+public class MyriadConfigurationTest extends BaseConfigurableTest {
 
   @Test
-  public void additionalPropertiestest() throws Exception {
+  public void testMyriadContainerConfiguration() throws Exception {
+    MyriadContainerConfiguration conf = cfgWithDocker.getContainerInfo().get();
+    assertTrue(conf.getDockerInfo().isPresent());
 
-    Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
+    MyriadDockerConfiguration dConf = conf.getDockerInfo().get();
+    assertEquals(false, dConf.getForcePullImage());
+    assertEquals("mesos/myriad", dConf.getImage());
 
-    assertNotNull(auxConfigs);
-    assertEquals(auxConfigs.size(), 2);
-
-    for (Map.Entry<String, ServiceConfiguration> entry : auxConfigs.entrySet()) {
-      String taskName = entry.getKey();
-      ServiceConfiguration config = entry.getValue();
-      String outTaskname = config.getTaskName();
-      assertEquals(taskName, outTaskname);
+    assertNotNull(conf.getVolumes());
+    
+    Set<String> keys = Sets.newHashSet("hostPath", "containerPath", "mode");
+    Set<String> modes = Sets.newHashSet("RO", "RW");
+    Iterator<Map<String, String>> iter = conf.getVolumes().iterator();
+    
+    while (iter.hasNext()) {
+      Map<String, String> mcConf = iter.next();
+      assertEquals(keys, mcConf.keySet());
+      assertTrue(modes.contains(mcConf.get("mode")));
     }
   }
+  
+  @Test
+  public void testRoles() throws Exception {
+    assertEquals("test", cfgWithRole.getFrameworkRole());
+    assertEquals("*", cfg.getFrameworkRole());
+  }
 
   @Test
-  public void executorConfigurationTest() throws Exception {
+  public void testExecutorConfiguration() throws Exception {
     MyriadExecutorConfiguration conf = cfg.getMyriadExecutorConfiguration();
 
     assertEquals(new Double(256), conf.getJvmMaxMemoryMB().get());
@@ -72,7 +75,18 @@ public class MyriadConfigurationTest {
   }
   
   @Test
-  public void nodeManagerConfigurationTest() throws Exception {
+  public void testServiceConfigurations() throws Exception {
+    Map<String, ServiceConfiguration> confs = cfg.getServiceConfigurations();
+    Set<String> configKeys = Sets.newHashSet("jobhistory", "timelineserver");
+
+    assertEquals(configKeys, confs.keySet());
+    ServiceConfiguration sConfig = confs.get("jobhistory");
+    assertEquals(new Double(1.0), sConfig.getCpus().get());
+    assertEquals("jobhistory", sConfig.getTaskName());
+  }
+
+  @Test
+  public void testNodeManagerConfiguration() throws Exception {
     NodeManagerConfiguration config = cfg.getNodeManagerConfiguration();
     
     assertTrue(config.getCgroups().isPresent());
@@ -83,16 +97,16 @@ public class MyriadConfigurationTest {
   }
   
   @Test
-  public void profilesConfigurationTest() throws Exception {
+  public void testProfilesConfiguration() throws Exception {
     Map<String, Map<String, String>> profiles = cfg.getProfiles();
 
     for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {
       assertTrue(validateProfile(profile));
     }
   }  
-  
+
   private boolean validateProfile(Map.Entry<String, Map<String, String>> entry) {
-    String key                 = entry.getKey();
+    String key = entry.getKey();
     Map<String, String> value = entry.getValue();
 
     switch (key) {

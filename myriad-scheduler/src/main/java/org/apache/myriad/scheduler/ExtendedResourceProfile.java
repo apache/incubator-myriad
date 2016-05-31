@@ -90,4 +90,36 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
     Gson gson = new Gson();
     return gson.toJson(this);
   }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = super.hashCode();
+    result = prime * result + ((childProfile == null) ? 0 : childProfile.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!super.equals(obj)) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ExtendedResourceProfile other = (ExtendedResourceProfile) obj;
+
+    if (childProfile == null) {
+      if (other.childProfile != null) {
+        return false;
+      }
+    } else if (!childProfile.equals(other.childProfile)) {
+      return false;
+    }
+    return true;
+  }
 }

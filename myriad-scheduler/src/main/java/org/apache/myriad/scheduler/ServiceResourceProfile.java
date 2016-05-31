@@ -122,6 +122,75 @@ public class ServiceResourceProfile {
       }
       return null;
     }
+  }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((className == null) ? 0 : className.hashCode());
+    result = prime * result + ((cpus == null) ? 0 : cpus.hashCode());
+    result = prime * result + ((executorCpu == null) ? 0 : executorCpu.hashCode());
+    result = prime * result + ((executorMemory == null) ? 0 : executorMemory.hashCode());
+    result = prime * result + ((memory == null) ? 0 : memory.hashCode());
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }      
+    if (getClass() != obj.getClass()) {
+      return false;
+    } 
+    ServiceResourceProfile other = (ServiceResourceProfile) obj;
+    if (className == null) {
+      if (other.className != null) {
+        return false;
+      }
+    } else if (!className.equals(other.className)) {
+      return false;
+    }
+    if (cpus == null) {
+      if (other.cpus != null) {
+        return false;
+      }
+    } else if (!cpus.equals(other.cpus)) {
+      return false;
+    }
+    if (executorCpu == null) {
+      if (other.executorCpu != null) {
+        return false;
+      }
+    } else if (!executorCpu.equals(other.executorCpu)) {
+      return false;
+    }
+    if (executorMemory == null) {
+      if (other.executorMemory != null) {
+        return false;
+      }
+    } else if (!executorMemory.equals(other.executorMemory)) {
+      return false;
+    }
+    if (memory == null) {
+      if (other.memory != null) {
+        return false;
+      }
+    } else if (!memory.equals(other.memory)) {
+      return false;
+    }
+    if (name == null) {
+      if (other.name != null) {
+        return false;
+      }
+    } else if (!name.equals(other.name)) {
+      return false;
+    }  
+    return true;
   }
 }
