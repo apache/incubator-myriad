@@ -115,7 +115,7 @@ public class MyriadModule extends AbstractModule {
           LOGGER.error("ClassNotFoundException", e);
         }
       } else {
-    	//TODO (kjyost) Confirm if this else statement and logic should still be here
+        //TODO (kjyost) Confirm if this else statement and logic should still be here
         mapBinder.addBinding(entry.getKey()).to(ServiceTaskFactoryImpl.class).in(Scopes.SINGLETON);
       }
     }
