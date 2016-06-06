@@ -214,7 +214,7 @@ public class MyriadConfiguration {
   }
 
   public String getFrameworkRole() {
-    return Optional.fromNullable(frameworkRole).or("*");
+    return Optional.fromNullable(frameworkRole).or(DEFAULT_ROLE);
   }
 
   public String getFrameworkName() {
