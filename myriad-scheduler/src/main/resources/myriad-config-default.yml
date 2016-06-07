@@ -21,10 +21,10 @@ checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadAlpha
 frameworkRole: "*"
-frameworkUser: hduser     # User the Node Manager runs as, required if nodemanagerURI set, otherwise defaults to the user
+frameworkUser: hduser     # User the Node Manager runs as, required if nodeManagerURI set, otherwise defaults to the user
                           # running the resource manager.
-frameworkSuperUser: root  # To be depricated, currently permissions need set by a superuser due to Mesos-1790.  Must be
-                          # root or have passwordless sudo. Required if nodemanagerURI set, ignored otherwise.
+frameworkSuperUser: root  # To be deprecated, currently permissions need set by a superuser due to Mesos-1790.  Must be
+                          # root or have passwordless sudo. Required if nodeManagerURI set, ignored otherwise.
 nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: localhost:2181
 zkTimeout: 20000
@@ -56,14 +56,14 @@ executor:
   jvmMaxMemoryMB: 256
   path: file:///usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
   #The following should be used for a remotely distributed URI, hdfs assumed but other URI types valid.
-  #nodemanagerUri: hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz
+  #nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz
   #configUri: http://127.0.0.1/api/arifacts/config.tgz
   #jvmUri: https://downloads.mycompany.com/java/jre-7u76-linux-x64.tar.gz
 yarnEnvironment:
   YARN_HOME: /usr/local/hadoop
   #HADOOP_CONF_DIR=config
   #HADOOP_TMP_DIR=$MESOS_SANDBOX
-  #YARN_HOME: hadoop-2.7.0 #this should be relative if nodemanagerUri is set
+  #YARN_HOME: hadoop-2.7.0 #this should be relative if nodeManagerUri is set
   #JAVA_HOME: /usr/lib/jvm/java-default #System dependent, but sometimes necessary
   #JAVA_HOME: jre1.7.0_76 # Path to JRE distribution, relative to sandbox directory
   #JAVA_LIBRARY_PATH: /opt/mycompany/lib

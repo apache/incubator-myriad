@@ -21,10 +21,10 @@ checkpoint: false
 frameworkFailoverTimeout: 44200000
 frameworkName: MyriadTest
 frameworkRole: "*"
-frameworkUser: hduser     # User the Node Manager runs as, required if nodemanagerURI set, otherwise defaults to the user
+frameworkUser: hduser     # User the Node Manager runs as, required if nodeManagerURI set, otherwise defaults to the user
                           # running the resource manager.
 frameworkSuperUser: root  # To be deprecated, currently permissions need set by a superuser due to Mesos-1790.  Must be
-                          # root or have passwordless sudo. Required if nodemanagerURI set, ignored otherwise.
+                          # root or have passwordless sudo. Required if nodeManagerURI set, ignored otherwise.
 nativeLibrary: /usr/local/lib/libmesos.so
 zkServers: 10.0.2.15:2181
 zkTimeout: 25000
