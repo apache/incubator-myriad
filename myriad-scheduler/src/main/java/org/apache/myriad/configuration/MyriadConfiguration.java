@@ -110,7 +110,12 @@ public class MyriadConfiguration {
   public static final String DEFAULT_ZK_SERVERS = "localhost:2181";
   
   public static final String DEFAULT_CGROUP_PATH = "/sys/fs/cgroup";
-  
+
+  /**
+   * By default ha is turned off.
+   */
+  public static final Boolean DEFAULT_CGROUPS_ENABLED = false;
+
   public static final Map<String, ServiceConfiguration> EMPTY_SERVICE_CONFIGURATION = Collections.emptyMap();
 
   @JsonProperty
@@ -194,6 +199,8 @@ public class MyriadConfiguration {
   @JsonProperty
   private String cgroupPath;
 
+  @JsonProperty
+  private Boolean cgroupEnabled;
 
   public MyriadConfiguration() {
   }
@@ -300,5 +307,9 @@ public class MyriadConfiguration {
 
   public String getCGroupPath() {
     return Optional.fromNullable(cgroupPath).or(DEFAULT_CGROUP_PATH);
+  }
+
+  public Boolean isCgroupEnabled() {
+    return Optional.fromNullable(cgroupEnabled).or(DEFAULT_CGROUPS_ENABLED);
   }
 }

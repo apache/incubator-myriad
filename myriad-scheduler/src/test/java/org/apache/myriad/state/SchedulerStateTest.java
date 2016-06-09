@@ -5,6 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.MyriadFileSystemRMStateStore;
@@ -38,8 +39,8 @@ public class SchedulerStateTest {
   
   @Test
   public void testAddAndRemoveTask() throws Exception {
-    NodeTask task1 = new NodeTask(new ServiceResourceProfile("profile1", 0.1, 1024.0), new LikeConstraint("hostname", "host-[0-9]*.example.com"));
-    NodeTask task2 = new NodeTask(new ServiceResourceProfile("profile2", 0.1, 1024.0), new LikeConstraint("hostname", "host-[0-9]*.example.com"));
+    NodeTask task1 = new NodeTask(new ServiceResourceProfile("profile1", 0.1, 1024.0, new TreeMap<String, Long>()), new LikeConstraint("hostname", "host-[0-9]*.example.com"));
+    NodeTask task2 = new NodeTask(new ServiceResourceProfile("profile2", 0.1, 1024.0, new TreeMap<String, Long>()), new LikeConstraint("hostname", "host-[0-9]*.example.com"));
     TaskID id1 = TaskID.newBuilder().setValue("mock-task-1").build();
     TaskID id2 = TaskID.newBuilder().setValue("mock-task-2").build();
     

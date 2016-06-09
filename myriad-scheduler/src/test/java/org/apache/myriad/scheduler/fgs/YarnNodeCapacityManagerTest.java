@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.NodeId;
@@ -62,7 +63,8 @@ public class YarnNodeCapacityManagerTest extends BaseConfigurableTest {
   
   private Set<NodeTask> getNodeTasks() {
     Constraint cZero = new LikeConstraint("0.0.0.1", "host-[0-9]*.example.com");
-    ServiceResourceProfile zProfile = new ServiceResourceProfile("zProfile", 0.0, 0.0, 0.0, 0.0);
+    TreeMap<String, Long> ports = new TreeMap<>();
+    ServiceResourceProfile zProfile = new ServiceResourceProfile("zProfile", 0.0, 0.0, ports);
 
     ntZero = new NodeTask(zProfile, cZero);
     ntZero.setTaskPrefix("nm");

@@ -16,6 +16,8 @@ import org.apache.myriad.state.SchedulerState;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.TreeMap;
+
 /**
  * Unit tests for SchedulerStateResource
  */
@@ -34,10 +36,11 @@ public class SchedulerStateResourceTest extends BaseConfigurableTest {
     idOne = Protos.TaskID.newBuilder().setValue("nt-1").build();
     idTwo = Protos.TaskID.newBuilder().setValue("nt-2").build();
     idThree = Protos.TaskID.newBuilder().setValue("nt-3").build();
+    TreeMap<String, Long> ports = new TreeMap<>();
 
-    state.addTask(idOne, new NodeTask(new ServiceResourceProfile("profile1", 0.2, 1024.0), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
-    state.addTask(idTwo, new NodeTask(new ServiceResourceProfile("profile2", 0.4, 2048.0), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
-    state.addTask(idThree, new NodeTask(new ServiceResourceProfile("profile3", 0.6, 3072.0), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
+    state.addTask(idOne, new NodeTask(new ServiceResourceProfile("profile1", 0.2, 1024.0, ports), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
+    state.addTask(idTwo, new NodeTask(new ServiceResourceProfile("profile2", 0.4, 2048.0, ports), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
+    state.addTask(idThree, new NodeTask(new ServiceResourceProfile("profile3", 0.6, 3072.0, ports), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
 
     state.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
     state.makeTaskActive(idOne);

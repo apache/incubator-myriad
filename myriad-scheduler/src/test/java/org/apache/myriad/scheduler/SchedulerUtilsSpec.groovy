@@ -53,8 +53,8 @@ class SchedulerUtilsSpec extends Specification {
         given:
         def state = Mock(SchedulerState)
         def tasks = []
-        def fgsNMTask = new NodeTask(new ExtendedResourceProfile(new NMProfile("zero", 0, 0), 1.0, 2.0), null)
-        def cgsNMTask = new NodeTask(new ExtendedResourceProfile(new NMProfile("low", 2, 4096), 1.0, 2.0), null)
+        def fgsNMTask = new NodeTask(new ExtendedResourceProfile(new NMProfile("zero", 0, 0), 1.0, 2.0, new HashMap<String, Long>()), null)
+        def cgsNMTask = new NodeTask(new ExtendedResourceProfile(new NMProfile("low", 2, 4096), 1.0, 2.0, new HashMap<String, Long>()), null)
         fgsNMTask.setHostname("test_fgs_hostname")
         cgsNMTask.setHostname("test_cgs_hostname")
         tasks << fgsNMTask << cgsNMTask
@@ -82,7 +82,7 @@ class SchedulerUtilsSpec extends Specification {
 
 
     NodeTask createNodeTask(String hostname) {
-        def node = new NodeTask(new ExtendedResourceProfile(new NMProfile("", 1, 1), 1.0, 1.0), null)
+        def node = new NodeTask(new ExtendedResourceProfile(new NMProfile("", 1, 1), 1.0, 1.0, new HashMap<String, Long>()), null)
         node.hostname = hostname
         node.taskPrefix = "nm"
         node

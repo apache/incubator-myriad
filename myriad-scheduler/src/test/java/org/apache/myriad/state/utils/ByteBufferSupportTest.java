@@ -5,7 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.mesos.Protos;
@@ -33,7 +33,8 @@ public class ByteBufferSupportTest {
 
   @Before
   public void setUp() throws Exception {
-    task = new NodeTask(new ServiceResourceProfile("profile", 0.1, 1024.0), new LikeConstraint("hostname", "host-[0-9]*.example.com"));    
+    task = new NodeTask(new ServiceResourceProfile("profile", 0.1, 1024.0, new TreeMap<String, Long>()),
+        new LikeConstraint("hostname", "host-[0-9]*.example.com"));
     task.setHostname("localhost");
     task.setTaskPrefix("prefix"); 
     task.setExecutorInfo(getExecutorInfo());

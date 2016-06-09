@@ -66,7 +66,6 @@ public class MyriadFairScheduler extends FairScheduler {
     rmContext.getDispatcher().register(RMNodeEventType.class, rmNodeEventHandler);
     super.setRMContext(rmContext);
   }
-
   /**
    * ******** Methods overridden from YARN {@link FairScheduler}  *********************
    */

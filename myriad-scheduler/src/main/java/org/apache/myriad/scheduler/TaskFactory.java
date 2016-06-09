@@ -9,233 +9,151 @@
  * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
  * <p/>
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
+
 package org.apache.myriad.scheduler;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
-
-import javax.inject.Inject;
-
-import org.apache.mesos.Protos.CommandInfo;
-import org.apache.mesos.Protos.CommandInfo.URI;
-import org.apache.mesos.Protos.ExecutorID;
-import org.apache.mesos.Protos.ExecutorInfo;
-import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
-import org.apache.mesos.Protos.Value.Range;
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
+import org.apache.mesos.Protos;
 import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.configuration.MyriadExecutorConfiguration;
+import org.apache.myriad.configuration.MyriadContainerConfiguration;
+import org.apache.myriad.configuration.MyriadDockerConfiguration;
+import org.apache.myriad.scheduler.resource.ResourceOfferContainer;
 import org.apache.myriad.state.NodeTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Creates Tasks based upon Mesos offers
+ * Base class to create Tasks based upon Mesos offers
  */
-public interface TaskFactory {
+public abstract class TaskFactory {
+  public static final String EXECUTOR_NAME = "myriad_task";
+  public static final String EXECUTOR_PREFIX = "myriad_executor";
+
+  protected static final Logger LOGGER = LoggerFactory.getLogger(TaskFactory.class);
+
   static final String YARN_RESOURCEMANAGER_HOSTNAME = "yarn.resourcemanager.hostname";
   static final String YARN_RESOURCEMANAGER_WEBAPP_ADDRESS = "yarn.resourcemanager.webapp.address";
   static final String YARN_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS = "yarn.resourcemanager.webapp.https.address";
   static final String YARN_HTTP_POLICY = "yarn.http.policy";
   static final String YARN_HTTP_POLICY_HTTPS_ONLY = "HTTPS_ONLY";
 
-  TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, NodeTask nodeTask);
+  private static final String CONTAINER_PATH_KEY = "containerPath";
+  private static final String HOST_PATH_KEY = "hostPath";
+  private static final String RW_MODE = "mode";
+  private static final String PARAMETER_KEY_KEY = "key";
+  private static final String PARAMETER_VALUE_KEY = "value";
+
+  protected MyriadConfiguration cfg;
+  protected TaskUtils taskUtils;
+  protected ExecutorCommandLineGenerator clGenerator;
+
+  public TaskFactory() {
+
+  }
+
+  @Inject
+  public TaskFactory(MyriadConfiguration cfg, TaskUtils taskUtils, ExecutorCommandLineGenerator clGenerator) {
+    this.cfg = cfg;
+    this.taskUtils = taskUtils;
+    this.clGenerator = clGenerator;
+  }
+
+  public abstract Protos.TaskInfo createTask(ResourceOfferContainer resourceOfferContainer, Protos.FrameworkID frameworkId,
+                                             Protos.TaskID taskId, NodeTask nodeTask);
 
   // TODO(Santosh): This is needed because the ExecutorInfo constructed
   // to launch NM needs to be specified to launch placeholder tasks for
   // yarn containers (for fine grained scaling).
   // If mesos supports just specifying the 'ExecutorId' without the full
   // ExecutorInfo, we wouldn't need this interface method.
-  ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId, Offer offer, CommandInfo commandInfo);
+  public abstract Protos.ExecutorInfo getExecutorInfoForSlave(ResourceOfferContainer resourceOfferContainer, Protos.FrameworkID frameworkId, Protos.CommandInfo commandInfo);
 
-  /**
-   * Creates TaskInfo objects to launch NMs as mesos tasks.
-   */
-  class NMTaskFactoryImpl implements TaskFactory {
-    public static final String EXECUTOR_NAME = "myriad_task";
-    public static final String EXECUTOR_PREFIX = "myriad_executor";
-    public static final String YARN_NODEMANAGER_OPTS_KEY = "YARN_NODEMANAGER_OPTS";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(NMTaskFactoryImpl.class);
-    private static final Random rand = new Random();
-    private MyriadConfiguration cfg;
-    private TaskUtils taskUtils;
-    private ExecutorCommandLineGenerator clGenerator;
-
-    @Inject
-    public NMTaskFactoryImpl(MyriadConfiguration cfg, TaskUtils taskUtils, ExecutorCommandLineGenerator clGenerator) {
-      this.cfg = cfg;
-      this.taskUtils = taskUtils;
-      this.clGenerator = clGenerator;
-    }
-
-    @VisibleForTesting
-    protected static HashSet<Long> getNMPorts(Resource resource) {
-      HashSet<Long> ports = new HashSet<>();
-      if (resource.getName().equals("ports")) {
-        /*
-        ranges.getRangeList() returns a list of ranges, each range specifies a begin and end only.
-        so must loop though each range until we get all ports needed.  We exit each loop as soon as all
-        ports are found so bounded by NMPorts.expectedNumPorts.
-        */
-        final List<Range> ranges = resource.getRanges().getRangeList();
-        final List<Long> allAvailablePorts = new ArrayList<>();
-        for (Range range : ranges) {
-          if (range.hasBegin() && range.hasEnd()) {
-            for (long i = range.getBegin(); i <= range.getEnd(); i++) {
-              allAvailablePorts.add(i);
-            }
-          }
+  protected Iterable<Protos.Volume> getVolumes(Iterable<Map<String, String>> volume) {
+    return Iterables.transform(volume, new Function<Map<String, String>, Protos.Volume>() {
+      @Nullable
+      @Override
+      public Protos.Volume apply(Map<String, String> map) {
+        Preconditions.checkArgument(map.containsKey(HOST_PATH_KEY) && map.containsKey(CONTAINER_PATH_KEY));
+        Protos.Volume.Mode mode = Protos.Volume.Mode.RO;
+        if (map.containsKey(RW_MODE) && map.get(RW_MODE).toLowerCase().equals("rw")) {
+          mode = Protos.Volume.Mode.RW;
         }
-
-        Preconditions.checkState(allAvailablePorts.size() >= NMPorts.expectedNumPorts(), "Not enough ports in offer");
-
-        while (ports.size() < NMPorts.expectedNumPorts()) {
-          int portIndex = rand.nextInt(allAvailablePorts.size());
-          ports.add(allAvailablePorts.get(portIndex));
-          allAvailablePorts.remove(portIndex);
-        }
+        return Protos.Volume.newBuilder()
+            .setContainerPath(map.get(CONTAINER_PATH_KEY))
+            .setHostPath(map.get(HOST_PATH_KEY))
+            .setMode(mode)
+            .build();
       }
-      return ports;
-    }
+    });
+  }
 
-    //Utility function to get the first NMPorts.expectedNumPorts number of ports of an offer
-    @VisibleForTesting
-    protected static NMPorts getPorts(Offer offer) {
-      Set<Long> ports = new HashSet<>();
-      for (Resource resource : offer.getResourcesList()) {
-        if (resource.getName().equals("ports") && (!resource.hasRole() || resource.getRole().equals("*"))) {
-          ports = getNMPorts(resource);
-          break;
-        }
+  protected Iterable<Protos.Parameter> getParameters(Iterable<Map<String, String>> params) {
+    Preconditions.checkNotNull(params);
+    return Iterables.transform(params, new Function<Map<String, String>, Protos.Parameter>() {
+      @Override
+      public Protos.Parameter apply(Map<String, String> parameter) {
+        Preconditions.checkNotNull(parameter, "Null parameter");
+        Preconditions.checkState(parameter.containsKey(PARAMETER_KEY_KEY), "Missing key");
+        Preconditions.checkState(parameter.containsKey(PARAMETER_VALUE_KEY), "Missing value");
+        return Protos.Parameter.newBuilder()
+            .setKey(parameter.get(PARAMETER_KEY_KEY))
+            .setValue(PARAMETER_VALUE_KEY)
+            .build();
       }
+    });
+  }
 
-      Long [] portArray = ports.toArray(new Long [ports.size()]);
-      return new NMPorts(portArray);
-    }
-
-    @VisibleForTesting
-    CommandInfo getCommandInfo(ServiceResourceProfile profile, NMPorts ports) {
-      MyriadExecutorConfiguration myriadExecutorConfiguration = cfg.getMyriadExecutorConfiguration();
-      CommandInfo.Builder commandInfo = CommandInfo.newBuilder();
-      String cmd;
-
-      if (myriadExecutorConfiguration.getJvmUri().isPresent()) {
-        final String jvmRemoteUri = myriadExecutorConfiguration.getJvmUri().get();
-        LOGGER.info("Getting JRE distribution from:" + jvmRemoteUri);
-        URI jvmUri = URI.newBuilder().setValue(jvmRemoteUri).setExtract(true).build();
-        commandInfo.addUris(jvmUri);
-      }
-
-      if (myriadExecutorConfiguration.getConfigUri().isPresent()) {
-        String configURI = myriadExecutorConfiguration.getConfigUri().get();
-        LOGGER.info("Getting Hadoop distribution from: {}", configURI);
-        commandInfo.addUris(URI.newBuilder().setValue(configURI).build());
-      }
-
-      if (myriadExecutorConfiguration.getNodeManagerUri().isPresent()) {
-        //Both FrameworkUser and FrameworkSuperuser to get all of the directory permissions correct.
-        if (!(cfg.getFrameworkUser().isPresent() && cfg.getFrameworkSuperUser().isPresent())) {
-          throw new RuntimeException("Trying to use remote distribution, but frameworkUser" + "and/or frameworkSuperUser not set!");
-        }
-        String nodeManagerUri = myriadExecutorConfiguration.getNodeManagerUri().get();
-        cmd = clGenerator.generateCommandLine(profile, ports);
-
-        //get the nodemanagerURI
-        //We're going to extract ourselves, so setExtract is false
-        LOGGER.info("Getting Hadoop distribution from: {}", nodeManagerUri);
-        URI nmUri = URI.newBuilder().setValue(nodeManagerUri).setExtract(false).build();
-
-        //get configs directly from resource manager
-        String configUrlString = clGenerator.getConfigurationUrl();
-        LOGGER.info("Getting config from:" + configUrlString);
-        URI configUri = URI.newBuilder().setValue(configUrlString).build();
-        LOGGER.info("Slave will execute command: {}",  cmd);
-        commandInfo.addUris(nmUri).addUris(configUri).setValue("echo \"" + cmd + "\";" + cmd);
-        commandInfo.setUser(cfg.getFrameworkSuperUser().get());
-
-      } else {
-        cmd = clGenerator.generateCommandLine(profile, ports);
-        commandInfo.setValue("echo \"" + cmd + "\";" + cmd);
-
-        if (cfg.getFrameworkUser().isPresent()) {
-          commandInfo.setUser(cfg.getFrameworkUser().get());
-        }
-      }
-      return commandInfo.build();
-    }
-
-    @Override
-    public TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, NodeTask nodeTask) {
-      Objects.requireNonNull(offer, "Offer should be non-null");
-      Objects.requireNonNull(nodeTask, "NodeTask should be non-null");
-
-      NMPorts ports = getPorts(offer);
-      LOGGER.debug(ports.toString());
-
-      ServiceResourceProfile serviceProfile = nodeTask.getProfile();
-      Double taskMemory = serviceProfile.getAggregateMemory();
-      Double taskCpus = serviceProfile.getAggregateCpu();
-
-      CommandInfo commandInfo = getCommandInfo(serviceProfile, ports);
-      ExecutorInfo executorInfo = getExecutorInfoForSlave(frameworkId, offer, commandInfo);
-
-      TaskInfo.Builder taskBuilder = TaskInfo.newBuilder().setName(cfg.getFrameworkName() + "-" + taskId.getValue()).setTaskId(taskId).setSlaveId(
-          offer.getSlaveId());
-
-      return taskBuilder
-          .addAllResources(taskUtils.getScalarResource(offer, "cpus", taskCpus, taskUtils.getExecutorCpus()))
-          .addAllResources(taskUtils.getScalarResource(offer, "mem", taskMemory, taskUtils.getExecutorMemory()))
-          .addResources(Resource.newBuilder().setName("ports").setType(Value.Type.RANGES).setRanges(Value.Ranges.newBuilder()
-              .addRange(Range.newBuilder().setBegin(ports.getRpcPort()).setEnd(ports.getRpcPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getLocalizerPort()).setEnd(ports.getLocalizerPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getWebAppHttpPort()).setEnd(ports.getWebAppHttpPort()).build())
-              .addRange(Range.newBuilder().setBegin(ports.getShufflePort()).setEnd(ports.getShufflePort()).build())))
-          .setExecutor(executorInfo)
-          .build();
-    }
-
-    @Override
-    public ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId, Offer offer, CommandInfo commandInfo) {
-      ExecutorID executorId = ExecutorID.newBuilder()
-          .setValue(EXECUTOR_PREFIX + frameworkId.getValue() + offer.getId().getValue() + offer.getSlaveId().getValue())
-          .build();
-      ExecutorInfo.Builder executorInfo = ExecutorInfo.newBuilder().setCommand(commandInfo).setName(EXECUTOR_NAME).setExecutorId(executorId)
-              .addAllResources(taskUtils.getScalarResource(offer, "cpus", taskUtils.getExecutorCpus(), 0.0))
-              .addAllResources(taskUtils.getScalarResource(offer, "mem", taskUtils.getExecutorMemory(), 0.0));
-      if (cfg.getContainerInfo().isPresent()) {
-        executorInfo.setContainer(taskUtils.getContainerInfo());
-      }
-      return executorInfo.build();
-    }
+  protected Protos.ContainerInfo.DockerInfo getDockerInfo(MyriadDockerConfiguration dockerConfiguration) {
+    Preconditions.checkArgument(dockerConfiguration.getNetwork().equals("HOST"), "Currently only host networking supported");
+    Protos.ContainerInfo.DockerInfo.Builder dockerBuilder = Protos.ContainerInfo.DockerInfo.newBuilder()
+        .setImage(dockerConfiguration.getImage())
+        .setForcePullImage(dockerConfiguration.getForcePullImage())
+        .setNetwork(Protos.ContainerInfo.DockerInfo.Network.valueOf(dockerConfiguration.getNetwork()))
+        .setPrivileged(dockerConfiguration.getPrivledged())
+        .addAllParameters(getParameters(dockerConfiguration.getParameters()));
+    return dockerBuilder.build();
   }
 
   /**
-   * Implement NM Task Constraints
+   * Builds a ContainerInfo Object
+   *
+   * @return ContainerInfo
    */
-  public static class NMTaskConstraints implements TaskConstraints {
-
-    @Override
-    public int portsCount() {
-      return NMPorts.expectedNumPorts();
+  protected Protos.ContainerInfo getContainerInfo() {
+    Preconditions.checkArgument(cfg.getContainerInfo().isPresent(), "ContainerConfiguration doesn't exist!");
+    MyriadContainerConfiguration containerConfiguration = cfg.getContainerInfo().get();
+    Protos.ContainerInfo.Builder containerBuilder = Protos.ContainerInfo.newBuilder()
+        .setType(Protos.ContainerInfo.Type.valueOf(containerConfiguration.getType()))
+        .addAllVolumes(getVolumes(containerConfiguration.getVolumes()));
+    if (containerConfiguration.getDockerInfo().isPresent()) {
+      MyriadDockerConfiguration dockerConfiguration = containerConfiguration.getDockerInfo().get();
+      containerBuilder.setDocker(getDockerInfo(dockerConfiguration));
     }
+    return containerBuilder.build();
+  }
+
+  /**
+   * Simple helper to convert Mesos Range Resource to a list of longs.
+   */
+  protected List<Long> rangesConverter(List<Protos.Resource> rangeResources) {
+    List<Long> ret = new ArrayList();
+    for (Protos.Resource range : rangeResources) {
+      ret.add(range.getRanges().getRange(0).getBegin());
+    }
+    return ret;
   }
 }

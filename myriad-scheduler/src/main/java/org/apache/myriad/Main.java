@@ -18,13 +18,17 @@
  */
 package org.apache.myriad;
 
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
@@ -43,9 +47,6 @@ import org.apache.myriad.scheduler.NMProfile;
 import org.apache.myriad.scheduler.Rebalancer;
 import org.apache.myriad.scheduler.ServiceProfileManager;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.scheduler.ServiceTaskConstraints;
-import org.apache.myriad.scheduler.TaskConstraintsManager;
-import org.apache.myriad.scheduler.TaskFactory;
 import org.apache.myriad.scheduler.TaskTerminator;
 import org.apache.myriad.scheduler.TaskUtils;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
@@ -55,21 +56,15 @@ import org.apache.myriad.webapp.WebAppGuiceModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.health.HealthCheckRegistry;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
 /**
  * Main is the bootstrap class for the Myriad scheduler, managing the lifecycles of
  * the following components:
- * 
+ *
  *  1. MyriadDriverManager
  *  2. MyriadWebServer
  *  3. TaskTerminator
  *  4. HealthCheckRegistry
- *  
+ *
  *  Main uses the Guice Injector framework to manage the Myriad object graph and is
  *  configured by myriad-config-default.yml
  */
@@ -87,36 +82,36 @@ public class Main {
   /**
   * Main is the bootstrap class for the Myriad scheduler, managing the lifecycles of
   * the following components:
-  * 
+  *
   *  1. MyriadDriverManager
   *  2. MyriadWebServer
   *  3. TaskTerminator
   *  4. HealthCheckRegistry
-  *  
+  *
   *  Main uses the Guice Injector framework to manage the Myriad object graph and is
   *  configured by myriad-config-default.yml
   */
   public static void initialize(Configuration hadoopConf, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
-                                InterceptorRegistry registry) throws Exception {       
+                                InterceptorRegistry registry) throws Exception {
     MyriadModule myriadModule = new MyriadModule("myriad-config-default.yml", hadoopConf, yarnScheduler, rmContext, registry);
     MesosModule mesosModule = new MesosModule();
     injector = Guice.createInjector(myriadModule, mesosModule, new WebAppGuiceModule());
 
     new Main().run(injector.getInstance(MyriadConfiguration.class));
   }
-  
+
   // TODO (Kannan Rajah) Hack to get injector in unit test.
   public static Injector getInjector() {
     return injector;
   }
 
-  /** 
+  /**
    * Initializes the Myriad object graph via MyriadConfiguration and starts
    * the Mesos interface (MyriadDriverManager) as well as all Myriad services
-   * 
+   *
    *@param cfg MyriadConfiguration
    * @throws Exception
-   */  
+   */
   public void run(MyriadConfiguration cfg) throws Exception {
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug("Bindings: " + injector.getAllBindings());
@@ -171,8 +166,6 @@ public class Main {
   private void initProfiles(Injector injector) {
     LOGGER.info("Initializing Profiles");
     ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
-    TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
-    taskConstraintsManager.addTaskConstraints(NodeManagerConfiguration.NM_TASK_PREFIX, new TaskFactory.NMTaskConstraints());
     Map<String, Map<String, String>> profiles = injector.getInstance(MyriadConfiguration.class).getProfiles();
     TaskUtils taskUtils = injector.getInstance(TaskUtils.class);
     if (MapUtils.isNotEmpty(profiles)) {
@@ -181,10 +174,8 @@ public class Main {
         if (MapUtils.isNotEmpty(profiles) && profileResourceMap.containsKey("cpu") && profileResourceMap.containsKey("mem")) {
           Long cpu = Long.parseLong(profileResourceMap.get("cpu"));
           Long mem = Long.parseLong(profileResourceMap.get("mem"));
-
-          ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(), cpu, mem), taskUtils.getExecutorCpus(), taskUtils.getExecutorMemory(),
-              taskUtils.getNodeManagerCpus(), taskUtils.getNodeManagerMemory());
-
+          ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(), cpu, mem),
+              taskUtils.getNodeManagerCpus(), taskUtils.getNodeManagerMemory(), taskUtils.getNodeManagerPorts());
           profileManager.add(serviceProfile);
         } else {
           LOGGER.error("Invalid definition for profile: " + profile.getKey());
@@ -259,7 +250,6 @@ public class Main {
   private void initServiceConfigurations(MyriadConfiguration cfg, Injector injector) {
     LOGGER.info("Initializing initServiceConfigurations");
     ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
-    TaskConstraintsManager taskConstraintsManager = injector.getInstance(TaskConstraintsManager.class);
 
     Map<String, ServiceConfiguration> servicesConfigs = injector.getInstance(MyriadConfiguration.class).getServiceConfigurations();
  
@@ -268,9 +258,8 @@ public class Main {
       ServiceConfiguration config = entry.getValue();
       final Double cpu = config.getCpus();
       final Double mem = config.getJvmMaxMemoryMB();
-
-      profileManager.add(new ServiceResourceProfile(taskPrefix, cpu, mem));
-      taskConstraintsManager.addTaskConstraints(taskPrefix, new ServiceTaskConstraints(cfg, taskPrefix));
+      final Map<String, Long> ports = config.getPorts();
+      profileManager.add(new ServiceResourceProfile(taskPrefix, cpu, mem, ports));
     }
   }
 
