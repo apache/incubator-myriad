@@ -63,6 +63,7 @@ services:
      myriad.mapreduce.jobhistory.webapp.address: 0
    envSettings: -Dcluster.name.prefix=/mycluster
    taskName: jobhistory
+   command: bin/mapred historyserver
  timelineserver:
    jvmMaxMemoryMB: 1024
    cpus: 1

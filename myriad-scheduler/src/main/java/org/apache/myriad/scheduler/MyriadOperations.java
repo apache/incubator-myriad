@@ -136,7 +136,7 @@ public class MyriadOperations {
 
     Collection<NodeTask> nodes = new HashSet<>();
     for (int i = 0; i < instances; i++) {
-      NodeTask nodeTask = new NodeTask(new ServiceResourceProfile(serviceName, cpu, mem), null);
+      NodeTask nodeTask = new NodeTask(new ServiceResourceProfile(serviceName, cpu, mem, auxTaskConf.getPorts()), null);
       nodeTask.setTaskPrefix(serviceName);
       nodes.add(nodeTask);
     }

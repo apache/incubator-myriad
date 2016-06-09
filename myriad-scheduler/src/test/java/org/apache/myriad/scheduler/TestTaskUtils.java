@@ -17,15 +17,18 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.google.common.collect.Range;
-import com.google.common.collect.Ranges;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import static org.junit.Assert.assertTrue;
 import org.apache.mesos.Protos;
 import org.apache.myriad.BaseConfigurableTest;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Range;
+import com.google.common.collect.Ranges;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.util.HashMap;
+
 
 /**
  * Tests for TaskUtils
@@ -40,7 +43,7 @@ public class TestTaskUtils extends BaseConfigurableTest {
     Gson gson = new GsonBuilder().registerTypeAdapter(ServiceResourceProfile.class, new ServiceResourceProfile.CustomDeserializer())
         .create();
 
-    ServiceResourceProfile parentProfile = new ServiceResourceProfile("abc", 1.0, 100.0);
+    ServiceResourceProfile parentProfile = new ServiceResourceProfile("abc", 1.0, 100.0, new HashMap<String, Long>());
 
     String parentStr = gson.toJson(parentProfile);
     ServiceResourceProfile processedProfile = gson.fromJson(parentStr, ServiceResourceProfile.class);
@@ -48,7 +51,8 @@ public class TestTaskUtils extends BaseConfigurableTest {
     assertTrue(processedProfile.getClass().equals(ServiceResourceProfile.class));
     assertTrue(processedProfile.toString().equalsIgnoreCase(parentStr));
 
-    ServiceResourceProfile childProfile = new ExtendedResourceProfile(new NMProfile("bcd", 5L, 15L), 2.0, 7.0);
+    ServiceResourceProfile childProfile = new ExtendedResourceProfile(new NMProfile("bcd", 5L, 15L), 2.0, 7.0,
+        cfg.getNodeManagerConfiguration().getPorts());
 
     String childStr = gson.toJson(childProfile);
     ServiceResourceProfile processedChildProfile = gson.fromJson(childStr, ServiceResourceProfile.class);
@@ -124,25 +128,4 @@ public class TestTaskUtils extends BaseConfigurableTest {
     checkResourceList(taskUtils.getScalarResource(createScalarOffer("cpus", 0.0, 2.0), "cpus", 0.5, 1.5), "cpus", 0.0, 0.5);
   }
 
-  @Test
-  public void testContainerInfo() {
-    TaskUtils taskUtils = new TaskUtils(cfgWithDocker);
-    Protos.ContainerInfo containerInfo = taskUtils.getContainerInfo();
-    assertTrue("The container should have a docker", containerInfo.hasDocker());
-    assertTrue("There should be two volumes", containerInfo.getVolumesCount() == 2);
-    assertTrue("The first volume should be read only", containerInfo.getVolumes(0).getMode().equals(Protos.Volume.Mode.RO));
-    assertTrue("The first volume should be read write", containerInfo.getVolumes(1).getMode().equals(Protos.Volume.Mode.RW));
-  }
-
-  @Test public void testDockerInfo() {
-    TaskUtils taskUtils = new TaskUtils(cfgWithDocker);
-    Protos.ContainerInfo containerInfo = taskUtils.getContainerInfo();
-    assertTrue("The container should have a docker", containerInfo.hasDocker());
-    assertTrue("There should be two volumes", containerInfo.getVolumesList().size() == 2);
-    assertTrue("There should be a docker image", containerInfo.getDocker().hasImage());
-    assertTrue("The docker image should be mesos/myraid", containerInfo.getDocker().getImage().equals("mesos/myriad"));
-    assertTrue("Should be using host networking", containerInfo.getDocker().getNetwork().equals(Protos.ContainerInfo.DockerInfo.Network.HOST));
-    assertTrue("There should be two parameters", containerInfo.getDocker().getParametersList().size() == 2);
-    assertTrue("Privledged mode should be false", containerInfo.getDocker().getPrivileged() == false);
-  }
 }

@@ -7,6 +7,8 @@ import org.apache.myriad.scheduler.constraints.LikeConstraint;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.TreeMap;
+
 /**
  * Unit tests for Cluster
  */
@@ -16,15 +18,16 @@ public class ClusterTest {
 
   @Before
   public void setUp() throws Exception {
+    TreeMap<String, Long> ports = new TreeMap<>();
     cluster = new Cluster();
     cluster.setClusterName("test-cluster");
     cluster.setMinQuota(5.0);
     cluster.setResourceManagerHost("localhost");
     cluster.setResourceManagerPort("8192");
 
-    task1 = new NodeTask(new ServiceResourceProfile("profile1", 0.1, 1024.0), new LikeConstraint("hostname1", "host-[0-9]*.example1.com"));
-    task2 = new NodeTask(new ServiceResourceProfile("profile2", 0.2, 1024.0), new LikeConstraint("hostname2", "host-[0-9]*.example2.com"));
-    task3 = new NodeTask(new ServiceResourceProfile("profile3", 0.3, 1024.0), new LikeConstraint("hostname3", "host-[0-9]*.example3.com"));
+    task1 = new NodeTask(new ServiceResourceProfile("profile1", 0.1, 1024.0, ports), new LikeConstraint("hostname1", "host-[0-9]*.example1.com"));
+    task2 = new NodeTask(new ServiceResourceProfile("profile2", 0.2, 1024.0, ports), new LikeConstraint("hostname2", "host-[0-9]*.example2.com"));
+    task3 = new NodeTask(new ServiceResourceProfile("profile3", 0.3, 1024.0, ports), new LikeConstraint("hostname3", "host-[0-9]*.example3.com"));
   }
 
   private void resetCluster() throws Exception {

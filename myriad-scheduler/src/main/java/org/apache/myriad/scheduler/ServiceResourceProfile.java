@@ -24,11 +24,13 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import java.lang.reflect.Type;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Resource Profile for any service 
+ * Resource Profile for any service
  */
 public class ServiceResourceProfile {
 
@@ -50,18 +52,14 @@ public class ServiceResourceProfile {
 
   protected String className = ServiceResourceProfile.class.getName();
 
-  public ServiceResourceProfile(String name, Double cpus, Double mem) {
-    this.name = name;
-    this.cpus = cpus;
-    this.memory = mem;
-  }
+  protected Map<String, Long> ports;
 
-  public ServiceResourceProfile(String name, Double cpus, Double mem, Double execCpus, Double execMemory) {
+  public ServiceResourceProfile(String name, Double cpus, Double mem, Map<String, Long> ports) {
     this.name = name;
     this.cpus = cpus;
     this.memory = mem;
-    this.executorCpu = execCpus;
-    this.executorMemory = execMemory;
+    this.ports = ports;
+    this.className = ServiceResourceProfile.class.getName();
   }
 
   public String getName() {
@@ -84,12 +82,8 @@ public class ServiceResourceProfile {
     return cpus;
   }
 
-  public Double getExecutorCpu() {
-    return executorCpu;
-  }
-
-  public Double getExecutorMemory() {
-    return executorMemory;
+  public Map<String, Long> getPorts() {
+    return ports;
   }
 
   @Override
@@ -144,10 +138,10 @@ public class ServiceResourceProfile {
     }
     if (obj == null) {
       return false;
-    }      
+    }
     if (getClass() != obj.getClass()) {
       return false;
-    } 
+    }
     ServiceResourceProfile other = (ServiceResourceProfile) obj;
     if (className == null) {
       if (other.className != null) {
@@ -190,7 +184,7 @@ public class ServiceResourceProfile {
       }
     } else if (!name.equals(other.name)) {
       return false;
-    }  
+    }
     return true;
   }
 }

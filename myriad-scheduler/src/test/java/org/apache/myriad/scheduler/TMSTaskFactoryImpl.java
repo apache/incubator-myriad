@@ -22,15 +22,15 @@ import javax.inject.Inject;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Protos.ExecutorInfo;
 import org.apache.mesos.Protos.FrameworkID;
-import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.scheduler.resource.ResourceOfferContainer;
 
 /**
  * Test implementation of TaskFactory
  */
-public class TMSTaskFactoryImpl implements TaskFactory {
+public class TMSTaskFactoryImpl extends TaskFactory {
 
   private MyriadConfiguration cfg;
   private TaskUtils taskUtils;
@@ -42,7 +42,7 @@ public class TMSTaskFactoryImpl implements TaskFactory {
   }
 
   @Override
-  public TaskInfo createTask(Offer offer, FrameworkID frameworkId, TaskID taskId, org.apache.myriad.state.NodeTask nodeTask) {
+  public TaskInfo createTask(ResourceOfferContainer offer, FrameworkID frameworkId, TaskID taskId, org.apache.myriad.state.NodeTask nodeTask) {
     return null;
   }
 
@@ -63,7 +63,8 @@ public class TMSTaskFactoryImpl implements TaskFactory {
   }
 
   @Override
-  public ExecutorInfo getExecutorInfoForSlave(FrameworkID frameworkId, Offer offer, CommandInfo commandInfo) {
+  public ExecutorInfo getExecutorInfoForSlave(ResourceOfferContainer resourceOfferContainer, FrameworkID frameworkId,
+                                              CommandInfo commandInfo) {
     return null;
   }
 }
