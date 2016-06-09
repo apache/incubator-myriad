@@ -15,8 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
+servedConfigPath: /tmp/myriadEtc
+servedBinaryPath: /tmp/myriadBinary
 mesosMaster: 10.0.2.15:5050
-haEnabled:  true
+haEnabled:  false
 checkpoint: false
 frameworkFailoverTimeout: 44200000
 frameworkName: MyriadTest
@@ -58,7 +60,8 @@ yarnEnvironment:
 mesosAuthenticationPrincipal:
 mesosAuthenticationSecretFilename:
 services:
-   jobhistory:
+   jobhistory:  
+     maxInstances: 1
      jvmMaxMemoryMB: 1024
      cpus: 1
      ports:

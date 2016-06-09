@@ -18,19 +18,13 @@
  */
 package org.apache.myriad;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.health.HealthCheckRegistry;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
@@ -61,6 +55,12 @@ import org.apache.myriad.webapp.WebAppGuiceModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 /**
  * Main entry point for myriad scheduler
  */
@@ -76,18 +76,14 @@ public class Main {
   private static Injector injector;
 
   public static void initialize(Configuration hadoopConf, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
-                                InterceptorRegistry registry) throws Exception {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    MyriadConfiguration cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource(
-        "myriad-config-default.yml"), MyriadConfiguration.class);
-
-    MyriadModule myriadModule = new MyriadModule(cfg, hadoopConf, yarnScheduler, rmContext, registry);
+                                InterceptorRegistry registry) throws Exception {       
+    MyriadModule myriadModule = new MyriadModule("myriad-config-default.yml", hadoopConf, yarnScheduler, rmContext, registry);
     MesosModule mesosModule = new MesosModule();
     injector = Guice.createInjector(myriadModule, mesosModule, new WebAppGuiceModule());
 
-    new Main().run(cfg);
+    new Main().run(injector.getInstance(MyriadConfiguration.class));
   }
-
+  
   // TODO (Kannan Rajah) Hack to get injector in unit test.
   public static Injector getInjector() {
     return injector;
@@ -158,10 +154,8 @@ public class Main {
           Long cpu = Long.parseLong(profileResourceMap.get("cpu"));
           Long mem = Long.parseLong(profileResourceMap.get("mem"));
 
-          ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(), cpu, mem),
+          ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(), cpu, mem), taskUtils.getExecutorCpus(), taskUtils.getExecutorMemory(),
               taskUtils.getNodeManagerCpus(), taskUtils.getNodeManagerMemory());
-          serviceProfile.setExecutorCpu(taskUtils.getExecutorCpus());
-          serviceProfile.setExecutorMemory(taskUtils.getExecutorMemory());
 
           profileManager.add(serviceProfile);
         } else {

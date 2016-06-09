@@ -21,7 +21,7 @@ package org.apache.myriad.executor;
 import java.util.Map;
 
 /**
- * Node Manger Task Configuraiton
+ * Node Manger Task Configuration
  */
 public class NMTaskConfig {
   private String yarnHome;

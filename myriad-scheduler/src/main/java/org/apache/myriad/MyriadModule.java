@@ -18,11 +18,15 @@
  */
 package org.apache.myriad;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
+
+import java.io.IOException;
 import java.util.Map;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
@@ -68,15 +72,15 @@ public class MyriadModule extends AbstractModule {
   private final RMContext rmContext;
   private InterceptorRegistry interceptorRegistry;
 
-  public MyriadModule(MyriadConfiguration cfg, Configuration hadoopConf, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
+  public MyriadModule(String configFile, Configuration hadoopConf, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
                       InterceptorRegistry interceptorRegistry) {
-    this.cfg = cfg;
+    this.cfg = this.generateMyriadConfiguration(configFile);
     this.hadoopConf = hadoopConf;
     this.yarnScheduler = yarnScheduler;
     this.rmContext = rmContext;
     this.interceptorRegistry = interceptorRegistry;
   }
-
+  
   @Override
   protected void configure() {
     LOGGER.debug("Configuring guice");
@@ -167,5 +171,17 @@ public class MyriadModule extends AbstractModule {
       cliGenerator = new NMExecutorCLGenImpl(cfg);
     }
     return cliGenerator;
+  }
+  
+  protected MyriadConfiguration generateMyriadConfiguration(String configFile) {
+    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+
+    try {
+      return mapper.readValue(Thread.currentThread().getContextClassLoader().getResource(
+      configFile), MyriadConfiguration.class);
+    } catch (IOException e) {
+      LOGGER.error("The configFile {} could not be found", configFile);
+      throw new IllegalArgumentException("The configFile cannot be found", e);
+    }
   }
 }

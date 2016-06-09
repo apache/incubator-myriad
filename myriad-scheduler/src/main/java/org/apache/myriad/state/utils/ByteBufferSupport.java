@@ -28,6 +28,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
@@ -50,7 +53,7 @@ public class ByteBufferSupport {
 
   public static void addByteBuffers(List<ByteBuffer> list, ByteArrayOutputStream bytes) throws IOException {
     // If list, add the list size, then the size of each buffer followed by the buffer.
-    if (list != null) {
+    if (CollectionUtils.isNotEmpty(list)) {
       bytes.write(toIntBytes(list.size()));
       for (ByteBuffer bb : list) {
         addByteBuffer(bb, bytes);
@@ -61,7 +64,7 @@ public class ByteBufferSupport {
   }
 
   public static void addByteBuffer(ByteBuffer bb, ByteArrayOutputStream bytes) throws IOException {
-    if (bb != null && bytes != null) {
+    if (byteBufferNotEmpty(bb)) {
       bytes.write(toIntBytes(bb.array().length));
       bytes.write(bb.array());
     }
@@ -199,16 +202,21 @@ public class ByteBufferSupport {
    */
   public static NodeTask toNodeTask(ByteBuffer bb) {
     NodeTask nt = null;
-    if (bb != null && bb.array().length > 0) {
+    if (byteBufferNotEmpty(bb)) {
       nt = new NodeTask(getServiceResourceProfile(bb), getConstraint(bb));
       nt.setHostname(toString(bb));
       nt.setSlaveId(toSlaveId(bb));
       nt.setTaskStatus(toTaskStatus(bb));
       nt.setExecutorInfo(toExecutorInfo(bb));
+      nt.setTaskPrefix(toString(bb));
     }
     return nt;
   }
 
+  private static boolean byteBufferNotEmpty(ByteBuffer bb) {
+    return bb != null && bb.array().length > 0;
+  }
+  
   public static byte[] getTaskBytes(NodeTask nt) {
     if (nt.getTaskStatus() != null) {
       return nt.getTaskStatus().toByteArray();
@@ -234,7 +242,7 @@ public class ByteBufferSupport {
   }
 
   public static void putBytes(ByteBuffer bb, byte bytes[]) {
-    if (bytes != null && bytes.length > 0) {
+    if (ArrayUtils.isNotEmpty(bytes)) {
       bb.putInt(bytes.length);
       bb.put(bytes);
     } else {
@@ -250,7 +258,7 @@ public class ByteBufferSupport {
 
   /**
    * This assumes the next position is the size as an int, and the following is a string
-   * iff the size is not zero.
+   * if the size is not zero.
    *
    * @param bb ByteBuffer to extract string from
    * @return string from the next position, or "" if the size is zero
@@ -259,7 +267,7 @@ public class ByteBufferSupport {
     byte[] bytes = new byte[bb.getInt()];
     String s = "";
     try {
-      if (bytes.length > 0) {
+      if (ArrayUtils.isNotEmpty(bytes)) {
         bb.get(bytes);
         s = new String(bytes, UTF8);
       }
@@ -279,7 +287,7 @@ public class ByteBufferSupport {
 
   public static ServiceResourceProfile getServiceResourceProfile(ByteBuffer bb) {
     String p = toString(bb);
-    if (!StringUtils.isEmpty(p)) {
+    if (StringUtils.isNotEmpty(p)) {
       return gsonCustom.fromJson(p, ServiceResourceProfile.class);
     } else {
       return null;
@@ -295,7 +303,7 @@ public class ByteBufferSupport {
 
       case LIKE:
 
-        if (!StringUtils.isEmpty(p)) {
+        if (StringUtils.isNotEmpty(p)) {
           return gson.fromJson(p, LikeConstraint.class);
         }
     }
@@ -363,5 +371,4 @@ public class ByteBufferSupport {
   public static ByteBuffer createBuffer(ByteBuffer bb) {
     return fillBuffer(getBytes(bb, bb.getInt()));
   }
-
 }

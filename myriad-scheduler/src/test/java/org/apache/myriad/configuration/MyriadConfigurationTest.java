@@ -21,71 +21,51 @@ package org.apache.myriad.configuration;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
-import org.junit.BeforeClass;
+import org.apache.myriad.BaseConfigurableTest;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.common.collect.Sets;
 
 /**
- * AuxServices/tasks test
+ * Unit tests for MyriadConfiguration
  */
-public class MyriadConfigurationTest {
+public class MyriadConfigurationTest extends BaseConfigurableTest {
 
-  static MyriadConfiguration cfg;
+  public void testMyriadContainerConfiguration() throws Exception {
+    MyriadContainerConfiguration conf = cfgWithDocker.getContainerInfo().get();
+    assertTrue(conf.getDockerInfo().isPresent());
 
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
-        MyriadConfiguration.class);
+    MyriadDockerConfiguration dConf = conf.getDockerInfo().get();
+    assertEquals(false, dConf.getForcePullImage());
+    assertEquals("mesos/myriad", dConf.getImage());
 
-  }
-
-  @Test
-  public void serviceConfigurationTest() throws Exception {  
-    Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
-
-    assertEquals(auxConfigs.size(), 2);
-
-    for (Map.Entry<String, ServiceConfiguration> entry : auxConfigs.entrySet()) {
-      String taskName = entry.getKey();
-      ServiceConfiguration config = entry.getValue();
-      String outTaskname = config.getTaskName();
-      assertEquals(taskName, outTaskname);
+    assertNotNull(conf.getVolumes());
+    
+    Set<String> keys = Sets.newHashSet("hostPath", "containerPath", "mode");
+    Set<String> modes = Sets.newHashSet("RO", "RW");
+    Iterator<Map<String, String>> iter = conf.getVolumes().iterator();
+    
+    while (iter.hasNext()) {
+      Map<String, String> mcConf = iter.next();
+      assertEquals(keys, mcConf.keySet());
+      assertTrue(modes.contains(mcConf.get("mode")));
     }
   }
-
+  
   @Test
-  public void coreConfigurationTest() throws Exception {
-    assertEquals("MyriadTest", cfg.getFrameworkName());
-
-    //authorization parameters
+  public void testRoles() throws Exception {
+    assertEquals("test", cfgWithRole.getFrameworkRole());
     assertEquals("*", cfg.getFrameworkRole());
-    assertEquals("hduser", cfg.getFrameworkUser().get());
-    assertEquals("root", cfg.getFrameworkSuperUser().get());
-
-    //ports and directory paths
-    assertEquals("10.0.2.15:5050", cfg.getMesosMaster());
-    assertEquals("/usr/local/lib/libmesos.so", cfg.getNativeLibrary());
-    assertEquals(new Integer(8192), cfg.getRestApiPort());
-    assertEquals("10.0.2.15:2181", cfg.getZkServers());
-  
-    //timeouts
-    assertEquals(new Double(44200000), cfg.getFrameworkFailoverTimeout());
-    assertEquals(new Integer(25000), cfg.getZkTimeout());
-  
-    //checkpoints
-    assertEquals(false, cfg.isCheckpoint());
-    assertEquals(true, cfg.isHAEnabled());
-    assertEquals(false, cfg.isRebalancerEnabled());
   }
-  
+
   @Test
-  public void executorConfigurationTest() throws Exception {
+  public void testExecutorConfiguration() throws Exception {
     MyriadExecutorConfiguration conf = cfg.getMyriadExecutorConfiguration();
 
     assertEquals(new Double(256), conf.getJvmMaxMemoryMB());
@@ -94,7 +74,18 @@ public class MyriadConfigurationTest {
   }
 
   @Test
-  public void nodeManagerConfigurationTest() throws Exception {
+  public void testServiceConfigurations() throws Exception {
+    Map<String, ServiceConfiguration> confs = cfg.getServiceConfigurations();
+    Set<String> configKeys = Sets.newHashSet("jobhistory", "timelineserver");
+
+    assertEquals(configKeys, confs.keySet());
+    ServiceConfiguration sConfig = confs.get("jobhistory");
+    assertEquals(new Double(1.0), sConfig.getCpus());
+    assertEquals("jobhistory", sConfig.getTaskName());
+  }
+
+  @Test
+  public void testNodeManagerConfiguration() throws Exception {
     NodeManagerConfiguration config = cfg.getNodeManagerConfiguration();
 
     assertFalse(config.getCgroups());
@@ -103,7 +94,7 @@ public class MyriadConfigurationTest {
   }
   
   @Test
-  public void profilesConfigurationTest() throws Exception {
+  public void testProfilesConfiguration() throws Exception {
     Map<String, Map<String, String>> profiles = cfg.getProfiles();
 
     for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {
@@ -112,9 +103,9 @@ public class MyriadConfigurationTest {
   }
   
   private boolean validateProfile(Map.Entry<String, Map<String, String>> entry) {
-    String key                 = entry.getKey();
+    String key = entry.getKey();
     Map<String, String> value = entry.getValue();
-    
+
     switch (key) {
       case "small" : {
         return value.get("cpu").equals("1") && value.get("mem").equals("1100");

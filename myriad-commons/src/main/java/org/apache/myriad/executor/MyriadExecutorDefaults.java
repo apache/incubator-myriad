@@ -69,9 +69,7 @@ public class MyriadExecutorDefaults {
 
   public static final double DEFAULT_JVM_MAX_MEMORY_MB = 256;
   /**
-   * Default cpus for executor JVM.
+   * Default CPU cores for executor JVM.
    */
   public static final double DEFAULT_CPUS = 0.2;
-
-
 }

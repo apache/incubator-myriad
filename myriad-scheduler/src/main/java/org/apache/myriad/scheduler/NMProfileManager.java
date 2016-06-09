@@ -18,14 +18,16 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.google.gson.Gson;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Node Manager Profile Manager
+ * NMProfile Manager
  */
 public class NMProfileManager {
   private static final Logger LOGGER = LoggerFactory.getLogger(NMProfileManager.class);
@@ -46,8 +48,21 @@ public class NMProfileManager {
     return this.profiles.containsKey(name);
   }
 
+  public int numberOfProfiles() {
+    return profiles.size();
+  }
+  
+  @Override
   public String toString() {
-    Gson gson = new Gson();
-    return gson.toJson(this);
+    ToStringBuilder builder = new ToStringBuilder(this, ToStringStyle.JSON_STYLE);
+
+    for (Map.Entry<String, NMProfile> profile : profiles.entrySet()) {
+      NMProfile value = profile.getValue();
+      builder.append("name", value.getName());
+      builder.append("cpus", value.getCpus());
+      builder.append("memory", value.getMemory());
+    }
+
+    return builder.toString();
   }
 }

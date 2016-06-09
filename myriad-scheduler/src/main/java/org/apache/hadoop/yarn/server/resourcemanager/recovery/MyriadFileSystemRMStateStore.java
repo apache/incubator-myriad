@@ -32,6 +32,8 @@ import org.apache.myriad.state.utils.StoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * StateStore that stores Myriad state in addition to RM state to DFS.
  */
@@ -70,6 +72,7 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
     return null;
   }
 
+  @VisibleForTesting
   @Override
   protected synchronized void startInternal() throws Exception {
     super.startInternal();
@@ -120,7 +123,7 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
 
 
   protected void reflectedUpdateFile(Path outputPath, byte[] data) throws InvocationTargetException, IllegalAccessException {
-    Class [] parameters = updateFileMethod.getParameterTypes();
+    Class<?> [] parameters = updateFileMethod.getParameterTypes();
     if (parameters.length == 2 && parameters[0].equals(Path.class) && parameters[1].isArray()) {
       updateFileMethod.invoke(this, outputPath, data);
     } else if (parameters.length == 3 && parameters[0].equals(Path.class) && parameters[1].isArray() && parameters[2].isPrimitive()) {

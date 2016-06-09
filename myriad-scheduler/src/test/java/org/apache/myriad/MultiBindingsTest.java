@@ -18,15 +18,20 @@
 
 package org.apache.myriad;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import java.util.Map;
-import org.apache.myriad.scheduler.TaskFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.myriad.scheduler.TaskFactory;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * Test for Multibindings
@@ -34,22 +39,17 @@ import static org.junit.Assert.assertNotNull;
 public class MultiBindingsTest {
 
   private static Injector injector;
+  
+  private List<String> keyNames = Lists.newArrayList("nm", "jobhistory", "timelineserver");
 
   @BeforeClass
   public static void setUpBeforeClass() throws Exception {
     MyriadTestModule myriadModule = new MyriadTestModule();
     injector = Guice.createInjector(myriadModule);
-
-  }
-
-  @AfterClass
-  public static void tearDownAfterClass() throws Exception {
   }
 
   @Test
   public void multiBindingsTest() {
-
-
     MultiBindingsUsage myinstance = injector.getInstance(MultiBindingsUsage.class);
 
     Map<String, TaskFactory> taskMap = myinstance.getMap();
@@ -58,12 +58,7 @@ public class MultiBindingsTest {
 
     taskMap = myinstance.getMap();
     for (Map.Entry<String, TaskFactory> entry : taskMap.entrySet()) {
-      String keyName = entry.getKey();
-      TaskFactory taskFactory = entry.getValue();
-      System.out.println(taskFactory);
+      assertTrue(keyNames.contains(entry.getKey()));
     }
-
-
   }
-
 }

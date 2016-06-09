@@ -18,24 +18,17 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import org.apache.mesos.Protos.CommandInfo;
-import org.apache.myriad.configuration.MyriadConfiguration;
-import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import static org.junit.Assert.assertTrue;
+
+import org.apache.mesos.Protos.CommandInfo;
+import org.apache.myriad.BaseConfigurableTest;
+import org.apache.myriad.scheduler.TaskFactory.NMTaskFactoryImpl;
+import org.junit.Test;
 
 /**
  * Class to test CommandLine generation
  */
-public class TestServiceCommandLine {
-
-  static MyriadConfiguration cfg;
-
+public class TestServiceCommandLine extends BaseConfigurableTest {
   static String toJHSCompare =
       "echo \" sudo tar -zxpf hadoop-2.7.0.tar.gz &&  sudo  cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml; " +
       "export TASK_DIR=`basename $PWD`; sudo  chmod +wx /sys/fs/cgroup/cpu/mesos/$TASK_DIR;" +
@@ -43,18 +36,6 @@ public class TestServiceCommandLine {
       " conf /usr/local/hadoop/etc/hadoop/yarn-site.xml; sudo -E -u hduser -H $YARN_HOME/bin/mapred historyserver";
   static String toCompare =
       "echo \" sudo tar -zxpf hadoop-2.7.0.tar.gz &&  sudo  cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml;";
-
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
-        MyriadConfiguration.class);
-
-  }
-
-  @AfterClass
-  public static void tearDownAfterClass() throws Exception {
-  }
 
   @Test
   public void testJHSCommandLineGeneration() throws Exception {
