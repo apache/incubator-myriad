@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Resource Profile for any service
+ * Resource Profile for any service 
  */
 public class ServiceResourceProfile {
 
