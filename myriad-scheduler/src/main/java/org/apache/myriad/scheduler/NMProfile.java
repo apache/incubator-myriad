@@ -60,4 +60,49 @@ public class NMProfile {
     return gson.toJson(this);
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((cpus == null) ? 0 : cpus.hashCode());
+    result = prime * result + ((memory == null) ? 0 : memory.hashCode());
+    result = prime * result + ((name == null) ? 0 : name.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    NMProfile other = (NMProfile) obj;
+    if (cpus == null) {
+      if (other.cpus != null) {
+        return false;
+      }
+    } else if (!cpus.equals(other.cpus)) {
+      return false;
+    }
+    if (memory == null) {
+      if (other.memory != null) {
+        return false;
+      }
+    } else if (!memory.equals(other.memory)) {
+      return false;
+    }
+    if (name == null) {
+      if (other.name != null) {
+        return false;
+      }
+    } else if (!name.equals(other.name)) {
+      return false;
+    }
+    return true;
+  }
 }

@@ -21,12 +21,16 @@ package org.apache.myriad.scheduler.fgs;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import javax.inject.Inject;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.myriad.scheduler.MyriadDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Manages the Mesos offers tracked by Myriad.
@@ -109,5 +113,10 @@ public class OfferLifecycleManager {
     if (numOutStandingOffers > 0) {
       LOGGER.info("Declined {} outstanding offers for host {}", numOutStandingOffers, hostname);
     }
+  }
+  
+  @VisibleForTesting
+  public ConsumedOffer getConsumedOffer(String hostname) {
+    return consumedOfferMap.get(hostname);
   }
 }

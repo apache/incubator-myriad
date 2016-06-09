@@ -31,7 +31,6 @@ public class OfferRescindedEventHandler implements EventHandler<OfferRescindedEv
 
   @Override
   public void onEvent(OfferRescindedEvent event, long sequence, boolean endOfBatch) throws Exception {
-    LOGGER.info("OfferRescinded event: {}", event);
+    LOGGER.info("OfferRescindedEvent for offer id: {} for scheuler {}", event.getOfferId().toString(), event.getDriver().getClass().getName());
   }
-
 }

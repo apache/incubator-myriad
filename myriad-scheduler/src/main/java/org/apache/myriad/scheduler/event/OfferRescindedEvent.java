@@ -44,4 +44,8 @@ public class OfferRescindedEvent {
     this.offerId = offerId;
   }
 
+  @Override
+  public String toString() {
+    return "OfferRescindedEvent [driver=" + driver + ", offerId=" + offerId + "]";
+  }
 }

@@ -58,6 +58,8 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
       //something is broken
       throw new RuntimeException("Could not find valid updateFile Method");
     }
+    
+    startInternal();
   }
 
   private Method getUpdateFileMethod() {
