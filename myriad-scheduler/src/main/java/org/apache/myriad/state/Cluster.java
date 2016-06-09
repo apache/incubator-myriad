@@ -66,6 +66,10 @@ public class Cluster {
   public void removeNode(NodeTask task) {
     this.nodes.remove(task);
   }
+  
+  public void removeAllNodes() {
+    this.nodes.clear();
+  }
 
   public String getResourceManagerHost() {
     return resourceManagerHost;

@@ -16,7 +16,7 @@
 # under the License.
 
 mesosMaster: 10.0.2.15:5050
-haEnabled:  true
+haEnabled:  false
 checkpoint: false
 frameworkFailoverTimeout: 44200000
 frameworkName: MyriadTest

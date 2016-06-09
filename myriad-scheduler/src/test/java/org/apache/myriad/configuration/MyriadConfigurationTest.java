@@ -24,29 +24,16 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
-import org.junit.BeforeClass;
+import org.apache.myriad.BaseConfigurableTest;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 /**
  * AuxServices/tasks test
  */
-public class MyriadConfigurationTest {
-
-  static MyriadConfiguration cfg;
-
-  @BeforeClass
-  public static void setUpBeforeClass() throws Exception {
-    ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
-        MyriadConfiguration.class);
-
-  }
+public class MyriadConfigurationTest extends BaseConfigurableTest {
 
   @Test
-  public void serviceConfigurationTest() throws Exception {  
+  public void testServiceConfigurations() throws Exception {  
     Map<String, ServiceConfiguration> auxConfigs = cfg.getServiceConfigurations();
 
     assertEquals(auxConfigs.size(), 2);
@@ -57,31 +44,6 @@ public class MyriadConfigurationTest {
       String outTaskname = config.getTaskName();
       assertEquals(taskName, outTaskname);
     }
-  }
-
-  @Test
-  public void coreConfigurationTest() throws Exception {
-    assertEquals("MyriadTest", cfg.getFrameworkName());
-
-    //authorization parameters
-    assertEquals("*", cfg.getFrameworkRole());
-    assertEquals("hduser", cfg.getFrameworkUser().get());
-    assertEquals("root", cfg.getFrameworkSuperUser().get());
-
-    //ports and directory paths
-    assertEquals("10.0.2.15:5050", cfg.getMesosMaster());
-    assertEquals("/usr/local/lib/libmesos.so", cfg.getNativeLibrary());
-    assertEquals(new Integer(8192), cfg.getRestApiPort());
-    assertEquals("10.0.2.15:2181", cfg.getZkServers());
-  
-    //timeouts
-    assertEquals(new Double(44200000), cfg.getFrameworkFailoverTimeout());
-    assertEquals(new Integer(25000), cfg.getZkTimeout());
-  
-    //checkpoints
-    assertEquals(false, cfg.isCheckpoint());
-    assertEquals(true, cfg.isHAEnabled());
-    assertEquals(false, cfg.isRebalancerEnabled());
   }
   
   @Test
@@ -94,7 +56,7 @@ public class MyriadConfigurationTest {
   }
 
   @Test
-  public void nodeManagerConfigurationTest() throws Exception {
+  public void testNodeManagerConfiguration() throws Exception {
     NodeManagerConfiguration config = cfg.getNodeManagerConfiguration();
 
     assertFalse(config.getCgroups());
@@ -114,7 +76,7 @@ public class MyriadConfigurationTest {
   private boolean validateProfile(Map.Entry<String, Map<String, String>> entry) {
     String key                 = entry.getKey();
     Map<String, String> value = entry.getValue();
-    
+
     switch (key) {
       case "small" : {
         return value.get("cpu").equals("1") && value.get("mem").equals("1100");
