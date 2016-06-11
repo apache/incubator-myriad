@@ -37,7 +37,7 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
     super(childProfile.getName(), cpu, mem, execCpu, execMemory);
 
     this.childProfile = childProfile;
-    this.className    = ExtendedResourceProfile.class.getName();
+    this.className = ExtendedResourceProfile.class.getName();
   }
 
  /**
@@ -49,7 +49,7 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
     super(childProfile.getName(), cpu, mem);
 
     this.childProfile = childProfile;
-    this.className    = ExtendedResourceProfile.class.getName();
+    this.className = ExtendedResourceProfile.class.getName();
   }
 
   public NMProfile getChildProfile() {

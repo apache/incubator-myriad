@@ -44,23 +44,23 @@ public class ServiceResourceProfile {
    */
   protected final Double memory;
 
-  protected Double executorCpu    = 0.0;
+  protected Double executorCpu = 0.0;
 
   protected Double executorMemory = 0.0;
 
-  protected String className      = ServiceResourceProfile.class.getName();
+  protected String className = ServiceResourceProfile.class.getName();
 
   public ServiceResourceProfile(String name, Double cpus, Double mem) {
-    this.name   = name;
-    this.cpus   = cpus;
+    this.name = name;
+    this.cpus = cpus;
     this.memory = mem;
   }
 
   public ServiceResourceProfile(String name, Double cpus, Double mem, Double execCpus, Double execMemory) {
-    this.name           = name;
-    this.cpus           = cpus;
-    this.memory         = mem;
-    this.executorCpu    = execCpus;
+    this.name = name;
+    this.cpus = cpus;
+    this.memory = mem;
+    this.executorCpu = execCpus;
     this.executorMemory = execMemory;
   }
 

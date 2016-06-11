@@ -22,6 +22,7 @@ public class MyriadFileSystemRMStateStoreTest {
     assertTrue(store.isInState(STATE.NOTINITED));
     store.init(conf);
     assertTrue(store.isInState(STATE.INITED));
+    store.startInternal();
     store.close();
   }
 
@@ -51,8 +52,9 @@ public class MyriadFileSystemRMStateStoreTest {
 
   private MyriadFileSystemRMStateStore getInitializedStore() throws Exception {
     Configuration conf = getConfiguration();
-    MyriadFileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
+    MyriadFileSystemRMStateStore store = new MyriadFileSystemRMStateStore();  
     store.init(conf);
+    store.startInternal();
     store.loadState();   
     store.loadMyriadState();
     store.setRMDispatcher(new MockDispatcher());

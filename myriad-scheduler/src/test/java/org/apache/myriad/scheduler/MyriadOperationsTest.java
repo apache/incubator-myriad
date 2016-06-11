@@ -6,7 +6,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.event.Dispatcher;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.ahs.RMApplicationHistoryWriter;
-import org.apache.hadoop.yarn.server.resourcemanager.recovery.MyriadFileSystemRMStateStore;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.AMLivelinessMonitor;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.common.fica.FiCaSchedulerApp;
@@ -40,7 +39,8 @@ public class MyriadOperationsTest extends BaseConfigurableTest {
   public void setUp() throws Exception {
     super.setUp();
     AbstractYarnScheduler<FiCaSchedulerApp, FiCaSchedulerNode> scheduler = TestObjectFactory.getYarnScheduler();
-    sState = new SchedulerState(new MyriadFileSystemRMStateStore());
+    //sState = new SchedulerState(new MyriadFileSystemRMStateStore());
+    sState = TestObjectFactory.getSchedulerState(cfg);
     sState.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
 
     MyriadDriverManager manager = TestObjectFactory.getMyriadDriverManager();

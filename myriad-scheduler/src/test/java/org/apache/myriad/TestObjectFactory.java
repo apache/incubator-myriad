@@ -10,18 +10,14 @@ import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.SlaveID;
-import org.apache.mesos.Protos.TaskID;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.apache.myriad.scheduler.MockSchedulerDriver;
 import org.apache.myriad.scheduler.MyriadDriver;
 import org.apache.myriad.scheduler.MyriadDriverManager;
-import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.scheduler.constraints.LikeConstraint;
 import org.apache.myriad.scheduler.yarn.MyriadCapacityScheduler;
 import org.apache.myriad.scheduler.yarn.interceptor.CompositeInterceptor;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.MockDispatcher;
-import org.apache.myriad.state.NodeTask;
 import org.apache.myriad.state.SchedulerState;
 import org.apache.myriad.webapp.HttpConnectorProvider;
 import org.apache.myriad.webapp.MyriadWebServer;
@@ -37,21 +33,9 @@ import com.google.inject.servlet.GuiceFilter;
  * Factory for common objects utilized over 1..n Junit tests
  */
 public class TestObjectFactory {
-  public static SchedulerState getMockSchedulerState(MyriadConfiguration cfg) {
+  public static SchedulerState getSchedulerState(MyriadConfiguration cfg) {
     SchedulerState state = new SchedulerState(new MyriadFileSystemRMStateStore());
-    TaskID idOne = Protos.TaskID.newBuilder().setValue("nt-1").build();
-    TaskID idTwo = Protos.TaskID.newBuilder().setValue("nt-2").build();
-    TaskID idThree = Protos.TaskID.newBuilder().setValue("nt-3").build();
-
-    state.addTask(idOne, new NodeTask(new ServiceResourceProfile("profile1", 0.2, 1024.0), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
-    state.addTask(idTwo, new NodeTask(new ServiceResourceProfile("profile2", 0.4, 2048.0), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
-    state.addTask(idThree, new NodeTask(new ServiceResourceProfile("profile3", 0.6, 3072.0), new LikeConstraint("localhost", "host-[0-9]*.example.com")));
-
     state.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
-    state.makeTaskActive(idOne);
-    state.makeTaskPending(idTwo); 
-    state.makeTaskStaging(idThree);
-
     return state;  
   }
 
@@ -92,8 +76,8 @@ public class TestObjectFactory {
     conf.set("yarn.resourcemanager.fs.state-store.uri", "file:///tmp/");
     MyriadFileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
     store.init(conf);
+    store.start();
     store.loadState();   
-    store.loadMyriadState();
     store.setRMDispatcher(new MockDispatcher());
     return store;
   }

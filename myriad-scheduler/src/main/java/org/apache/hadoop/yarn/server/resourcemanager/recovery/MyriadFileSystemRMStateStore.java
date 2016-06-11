@@ -32,6 +32,8 @@ import org.apache.myriad.state.utils.StoreContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * StateStore that stores Myriad state in addition to RM state to DFS.
  */
@@ -58,8 +60,6 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
       //something is broken
       throw new RuntimeException("Could not find valid updateFile Method");
     }
-    
-    startInternal();
   }
 
   private Method getUpdateFileMethod() {
@@ -72,6 +72,7 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
     return null;
   }
 
+  @VisibleForTesting
   @Override
   protected synchronized void startInternal() throws Exception {
     super.startInternal();

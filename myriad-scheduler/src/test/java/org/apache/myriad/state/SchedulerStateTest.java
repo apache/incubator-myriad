@@ -10,6 +10,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.MyriadFileSystemRMStateStore;
 import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskID;
+import org.apache.myriad.TestObjectFactory;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
 import org.apache.myriad.scheduler.constraints.LikeConstraint;
 import org.junit.Before;
@@ -25,11 +26,7 @@ public class SchedulerStateTest {
 
   @Before
   public void setUp() throws Exception {
-    Configuration conf = getConfiguration();
-    MyriadFileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
-    store.init(conf);
-    store.initInternal(conf);
-    store.loadState();
+    MyriadFileSystemRMStateStore store = TestObjectFactory.getStateStore(getConfiguration());
     state = new SchedulerState(store);    
   }
 
