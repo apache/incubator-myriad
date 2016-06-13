@@ -77,17 +77,15 @@ public class MyriadWebServer {
   }
 
   public Status getStatus() {
-    if (jetty.isFailed()) { return Status.FAILED; }
-    else if (jetty.isStarted()) {
+    if (jetty.isFailed()) { 
+      return Status.FAILED;
+    } else if (jetty.isStarted()) {
       return Status.STARTED;
-    }
-    else if (jetty.isRunning()) {
+    } else if (jetty.isRunning()) {
       return Status.RUNNING;
-    }
-    else if (jetty.isStopped()) {
+    } else if (jetty.isStopped()) {
       return Status.STOPPED;
-    }   
-    else {
+    } else {
       return Status.UNKNOWN;
     }
   }

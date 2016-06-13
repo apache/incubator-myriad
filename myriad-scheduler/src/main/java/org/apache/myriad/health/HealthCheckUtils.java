@@ -56,11 +56,9 @@ public class HealthCheckUtils {
     String[] split = connectionString.split(":");   
     if (split.length != 2) {
       throw new IllegalArgumentException("The Connection String " + connectionString + " is invalid. It must be in <host>:<port> format");
-    }
-    else if (!StringUtils.isNumeric(split[1])) {
+    } else if (!StringUtils.isNumeric(split[1])) {
       throw new IllegalArgumentException("The Connection String " + connectionString + " is invalid. The port must be an integer");
-    }
-    else {
+    } else {
       return split;
     }
   }

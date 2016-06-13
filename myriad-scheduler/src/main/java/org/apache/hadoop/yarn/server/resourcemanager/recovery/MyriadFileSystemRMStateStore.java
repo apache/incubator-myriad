@@ -123,7 +123,7 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
 
 
   protected void reflectedUpdateFile(Path outputPath, byte[] data) throws InvocationTargetException, IllegalAccessException {
-    Class [] parameters = updateFileMethod.getParameterTypes();
+    Class<?> [] parameters = updateFileMethod.getParameterTypes();
     if (parameters.length == 2 && parameters[0].equals(Path.class) && parameters[1].isArray()) {
       updateFileMethod.invoke(this, outputPath, data);
     } else if (parameters.length == 3 && parameters[0].equals(Path.class) && parameters[1].isArray() && parameters[2].isPrimitive()) {

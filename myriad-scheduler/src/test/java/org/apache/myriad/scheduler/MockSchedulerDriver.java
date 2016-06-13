@@ -60,17 +60,19 @@ public class MockSchedulerDriver implements SchedulerDriver {
     return null;
   }
 
-  @Override
+  @Override 
   public Status launchTasks(Collection<OfferID> offerIds, Collection<TaskInfo> tasks) {
     return null;
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public Status launchTasks(OfferID offerId, Collection<TaskInfo> tasks, Filters filters) {
     return null;
   }
 
   @Override
+  @SuppressWarnings("deprecation")
   public Status launchTasks(OfferID offerId, Collection<TaskInfo> tasks) {
     return null;
   }
@@ -118,10 +120,5 @@ public class MockSchedulerDriver implements SchedulerDriver {
   @Override
   public Status reconcileTasks(Collection<TaskStatus> statuses) {
     return null;
-  }
-
-  @Override
-  public String toString() {
-    return "MockSchedulerDriver [" + this.getClass().getName() + "]";
   }
 }
