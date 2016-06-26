@@ -21,7 +21,6 @@ package org.apache.myriad.configuration;
 import java.util.Collections;
 import java.util.Map;
 
-import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -134,11 +133,9 @@ public class MyriadConfiguration {
   private String frameworkRole;
 
   @JsonProperty
-  @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
   private String frameworkUser;
 
   @JsonProperty
-  @JsonSerialize(using = OptionalSerializer.OptionalSerializerString.class)
   private String frameworkSuperUser;
 
   @JsonProperty
