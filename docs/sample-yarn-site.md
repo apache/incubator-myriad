@@ -45,7 +45,7 @@ The following is a sample yarn-site.xml file.
         &lt;value>${nodemanager.resource.memory-mb}&lt;/value>
     &lt;/property>
 &lt;!-- Dynamic Port Assignment enablement by Mesos -->
-  &lt;property>
+    &lt;property>
         &lt;name>yarn.nodemanager.address&lt;/name>
         &lt;value>${myriad.yarn.nodemanager.address}&lt;/value>
     &lt;/property>
@@ -69,7 +69,7 @@ The following is a sample yarn-site.xml file.
     &lt;/property>
 &lt;!-- Needed for Fine Grain Scaling -->
     &lt;property>
-  &lt;name>yarn.scheduler.minimum-allocation-vcores&lt;/name>
+        &lt;name>yarn.scheduler.minimum-allocation-mb&lt;/name>
         &lt;value>0&lt;/value>
     &lt;/property>
     &lt;property>
