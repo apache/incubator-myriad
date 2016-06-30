@@ -31,7 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * handles and logs mesos status update events
+ * Handles and logs mesos StatusUpdateEvents based upon the corresponding
+ * Protos.TaskState enum value
  */
 public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent> {
 
@@ -45,7 +46,21 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
     this.schedulerState = schedulerState;
     this.offerLifecycleManager = offerLifecycleManager;
   }
-
+  
+  /**
+   * Encapsulates the logic to log and respond to the incoming StatusUpdateEvent per the
+   * Event TaskStatus state:
+   * 
+   * 1. TASK_STAGING: mark task as staging wtihin SchedulerState
+   * 2. TASK_STARTING: mark task as staging within SchedulerState
+   * 3. TASK_RUNNING: mark task as active within SchedulerState
+   * 4. TASK_FINISHED: decline outstanding offers and remove task from SchedulerState
+   * 5. TASK_FAILED: decline outstanding offers, remove failed, killable tasks from SchedulerState,
+   *    mark as pending non-killable, failed tasks
+   * 6. TASK_KILLED: decline outstanding offers, removed killed tasks from SchedulerState
+   * 7. TASK_LOST: decline outstanding offers, remove killable, lost tasks from SchedulerState,
+   *    mark as pending non-killable, lost tasks
+   */
   @Override
   public void onEvent(StatusUpdateEvent event, long sequence, boolean endOfBatch) throws Exception {
     TaskStatus status = event.getStatus();
@@ -71,25 +86,44 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
         schedulerState.makeTaskActive(taskId);
         break;
       case TASK_FINISHED:
-        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-        schedulerState.removeTask(taskId);
+        cleanupTask(taskId, task, "finished");
         break;
       case TASK_FAILED:
-        // Add to pending tasks
-        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-        schedulerState.makeTaskPending(taskId);
+        cleanupFailedTask(taskId, task, "failed");
         break;
       case TASK_KILLED:
-        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-        schedulerState.removeTask(taskId);
+        cleanupTask(taskId, task, "killed");
         break;
       case TASK_LOST:
-        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-        schedulerState.makeTaskPending(taskId);
+        cleanupFailedTask(taskId, task, "lost");
         break;
       default:
         LOGGER.error("Invalid state: {}", state);
         break;
     }
+  }
+
+  private void cleanupFailedTask(TaskID taskId, NodeTask task, String stopReason) {
+    offerLifecycleManager.declineOutstandingOffers(task.getHostname());
+    /*
+     * Remove the task from SchedulerState if the task is killable.  Otherwise,
+     * mark the task as pending to enable restart.
+     */
+    if (taskIsKillable(taskId)) {
+      schedulerState.removeTask(taskId);
+      LOGGER.info("Removed killable, {} task with id {}", stopReason, taskId);
+    } else {
+      schedulerState.makeTaskPending(taskId);        
+      LOGGER.info("Marked as pending {} task with id {}", stopReason, taskId);
+    }  
+  }
+  
+  private void cleanupTask(TaskID taskId, NodeTask task, String stopReason) {
+    offerLifecycleManager.declineOutstandingOffers(task.getHostname());
+    schedulerState.removeTask(taskId);    
+    LOGGER.info("Removed {} task with id {}", stopReason, taskId);
+  }
+  private boolean taskIsKillable(TaskID taskId) {
+    return schedulerState.getKillableTasks().contains(taskId);
   }
 }

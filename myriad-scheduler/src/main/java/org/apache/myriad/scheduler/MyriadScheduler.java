@@ -18,9 +18,10 @@
  */
 package org.apache.myriad.scheduler;
 
-import com.lmax.disruptor.EventTranslator;
 import java.util.List;
+
 import javax.inject.Inject;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -36,8 +37,11 @@ import org.apache.myriad.scheduler.event.ResourceOffersEvent;
 import org.apache.myriad.scheduler.event.SlaveLostEvent;
 import org.apache.myriad.scheduler.event.StatusUpdateEvent;
 
+import com.lmax.disruptor.EventTranslator;
+
 /**
- * Myriad Scheduler
+ * The Myriad implementation of the Mesos Scheduler callback interface, where the method implementations
+ * publish Myriad framework events corresponding to the Mesos callbacks.
  */
 public class MyriadScheduler implements Scheduler {
   private org.apache.myriad.DisruptorManager disruptorManager;
@@ -47,6 +51,9 @@ public class MyriadScheduler implements Scheduler {
     this.disruptorManager = disruptorManager;
   }
 
+  /**
+   * Publishes a RegisteredEvent
+   */
   @Override
   public void registered(final SchedulerDriver driver, final Protos.FrameworkID frameworkId, final Protos.MasterInfo masterInfo) {
     disruptorManager.getRegisteredEventDisruptor().publishEvent(new EventTranslator<RegisteredEvent>() {
@@ -59,6 +66,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes a ReRegisteredEvent
+   */
   @Override
   public void reregistered(final SchedulerDriver driver, final Protos.MasterInfo masterInfo) {
     disruptorManager.getReRegisteredEventDisruptor().publishEvent(new EventTranslator<ReRegisteredEvent>() {
@@ -70,6 +80,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes a ResourceOffersEvent
+   */
   @Override
   public void resourceOffers(final SchedulerDriver driver, final List<Protos.Offer> offers) {
     disruptorManager.getResourceOffersEventDisruptor().publishEvent(new EventTranslator<ResourceOffersEvent>() {
@@ -81,6 +94,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes a OfferRescindedEvent
+   */
   @Override
   public void offerRescinded(final SchedulerDriver driver, final Protos.OfferID offerId) {
     disruptorManager.getOfferRescindedEventDisruptor().publishEvent(new EventTranslator<OfferRescindedEvent>() {
@@ -92,6 +108,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes a StatusUpdateEvent
+   */
   @Override
   public void statusUpdate(final SchedulerDriver driver, final Protos.TaskStatus status) {
     disruptorManager.getStatusUpdateEventDisruptor().publishEvent(new EventTranslator<StatusUpdateEvent>() {
@@ -103,6 +122,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes FrameworkMessageEvent
+   */
   @Override
   public void frameworkMessage(final SchedulerDriver driver, final Protos.ExecutorID executorId, final Protos.SlaveID slaveId,
                                final byte[] bytes) {
@@ -117,6 +139,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes DisconnectedEvent
+   */
   @Override
   public void disconnected(final SchedulerDriver driver) {
     disruptorManager.getDisconnectedEventDisruptor().publishEvent(new EventTranslator<DisconnectedEvent>() {
@@ -127,6 +152,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes SlaveLostEvent
+   */
   @Override
   public void slaveLost(final SchedulerDriver driver, final Protos.SlaveID slaveId) {
     disruptorManager.getSlaveLostEventDisruptor().publishEvent(new EventTranslator<SlaveLostEvent>() {
@@ -138,6 +166,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes ExecutorLostEvent
+   */
   @Override
   public void executorLost(final SchedulerDriver driver, final Protos.ExecutorID executorId, final Protos.SlaveID slaveId,
                            final int exitStatus) {
@@ -152,6 +183,9 @@ public class MyriadScheduler implements Scheduler {
     });
   }
 
+  /**
+   * Publishes ErrorEvent
+   */
   @Override
   public void error(final SchedulerDriver driver, final String message) {
     disruptorManager.getErrorEventDisruptor().publishEvent(new EventTranslator<ErrorEvent>() {
