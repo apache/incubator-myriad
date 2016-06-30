@@ -97,7 +97,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
       }
       return;
     }
-    LOGGER.info("Received offers {}", offers.size());
+    LOGGER.debug("Received offers {}", offers.size());
     LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
     driverOperationLock.lock();
     try {
@@ -218,7 +218,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     if (aggrCpu <= cpus && aggrMem <= mem && taskConstraints.portsCount() <= ports) {
       return true;
     } else {
-      LOGGER.info("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}", aggrCpu, aggrMem, ports);
+      LOGGER.error("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}", aggrCpu, aggrMem, ports);
       return false;
     }
   }
@@ -243,7 +243,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
 
   private void checkResource(boolean fail, String resource) {
     if (fail) {
-      LOGGER.info("No " + resource + " resources present");
+      LOGGER.error("No " + resource + " resources present");
     }
   }
 

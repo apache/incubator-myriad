@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
@@ -101,7 +102,7 @@ public class MyriadFileSystemRMStateStore extends FileSystemRMStateStore impleme
   @Override
   public synchronized StoreContext loadMyriadState() throws Exception {
     StoreContext sc = null;
-    if (myriadStateBytes != null && myriadStateBytes.length > 0) {
+    if (ArrayUtils.isNotEmpty(myriadStateBytes)) {
       sc = StoreContext.fromSerializedBytes(myriadStateBytes);
       myriadStateBytes = null;
     }

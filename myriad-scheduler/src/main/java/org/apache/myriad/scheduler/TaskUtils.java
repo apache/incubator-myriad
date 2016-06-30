@@ -75,9 +75,6 @@ public class TaskUtils {
   private static final String CONTAINER_PATH_KEY = "containerPath";
   private static final String HOST_PATH_KEY = "hostPath";
   private static final String RW_MODE = "mode";
-  private static final String CONTAINER_PORT_KEY = "containerPort";
-  private static final String HOST_PORT_KEY = "hostPort";
-  private static final String PROTOCOL_KEY = "protocol";
   private static final String PARAMETER_KEY_KEY = "key";
   private static final String PARAMETER_VALUE_KEY = "value";
 
