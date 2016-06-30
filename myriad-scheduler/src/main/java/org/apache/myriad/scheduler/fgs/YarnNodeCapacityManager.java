@@ -127,13 +127,15 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
   }
 
   private void removeYarnTask(RMContainer rmContainer) {
-    if (rmContainer != null && rmContainer.getContainer() != null) {
+    if (containersNotNull(rmContainer)){
       Protos.TaskID taskId = containerToTaskId(rmContainer);
-      //TODO (darinj) Reliable messaging
+      /*
+       * Mark the task as killable within the ServerState object to flag the task 
+       * for the TaskTerminator daemon to kill the task
+       */
       state.makeTaskKillable(taskId);
-      myriadDriver.kill(taskId);
-      String hostname = rmContainer.getContainer().getNodeId().getHost();
-      Node node = nodeStore.getNode(hostname);
+      
+      Node node = retrieveNode(rmContainer);
       if (node != null) {
         RMNode rmNode = node.getNode().getRMNode();
         Resource resource = rmContainer.getContainer().getResource();
@@ -141,11 +143,20 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
         LOGGER.info("Removed task yarn_{} with exit status freeing {} cpu and {} mem.", rmContainer.getContainer().toString(),
             rmContainer.getContainerExitStatus(), resource.getVirtualCores(), resource.getMemory());
       } else {
-        LOGGER.warn(hostname + " not found");
+        LOGGER.warn("The Node for the {} host was not found", rmContainer.getContainer().getNodeId().getHost());
       }
     }
   }
 
+  private Node retrieveNode(RMContainer container) {
+    String hostname = container.getContainer().getNodeId().getHost();
+    return nodeStore.getNode(hostname);
+  }
+
+  private boolean containersNotNull(RMContainer rmContainer) {
+    return (rmContainer != null && rmContainer.getContainer() != null);
+  }
+  
   @Override
   public void afterSchedulerEventHandled(SchedulerEvent event) {
     switch (event.getType()) {
@@ -182,7 +193,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
 
   /**
    * Checks if any containers were allocated in the current scheduler run and
-   * launches the corresponding Mesos tasks. It also udpates the node
+   * launches the corresponding Mesos tasks. It also updates the node
    * capacity depending on what portion of the consumed offers were actually
    * used.
    */
@@ -232,11 +243,22 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     node.removeContainerSnapshot();
   }
 
-
+  /**
+   * Increments the capacity for the specified RMNode
+   * 
+   * @param rmNode
+   * @param removedCapacity
+   */
   public void incrementNodeCapacity(RMNode rmNode, Resource addedCapacity) {
     setNodeCapacity(rmNode, Resources.add(rmNode.getTotalCapability(), addedCapacity));
   }
 
+  /**
+   * Decrements the capacity for the specified RMNode
+   * 
+   * @param rmNode
+   * @param removedCapacity
+   */
   public void decrementNodeCapacity(RMNode rmNode, Resource removedCapacity) {
     setNodeCapacity(rmNode, Resources.subtract(rmNode.getTotalCapability(), removedCapacity));
   }
