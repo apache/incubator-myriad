@@ -86,33 +86,16 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
         schedulerState.makeTaskActive(taskId);
         break;
       case TASK_FINISHED:
-        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-        schedulerState.removeTask(taskId);
+        cleanupTask(taskId, task, "finished");
         break;
       case TASK_FAILED:
-        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-        // Add to pending tasks if the failed task was not actually a killed task
-        if (taskIsKillable(taskId)) {
-          schedulerState.removeTask(taskId);  
-          LOGGER.info("Removed killable, failed task with id {}", taskId);
-        } else {
-          schedulerState.makeTaskPending(taskId);          
-        }  
+        cleanupFailedTask(taskId, task, "failed");
         break;
       case TASK_KILLED:
-        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-        schedulerState.removeTask(taskId);
-        LOGGER.info("Removed killed task with id {}", taskId);
+        cleanupTask(taskId, task, "killed");
         break;
       case TASK_LOST:
-        offerLifecycleManager.declineOutstandingOffers(task.getHostname());
-        if (taskIsKillable(taskId)) {
-          schedulerState.removeTask(taskId);
-          LOGGER.info("Removed killable, lost task with id {}", taskId);
-        } else {
-          schedulerState.makeTaskPending(taskId);        
-          LOGGER.info("Marked as pending lost task with id {}", taskId);
-        }  
+        cleanupFailedTask(taskId, task, "lost");
         break;
       default:
         LOGGER.error("Invalid state: {}", state);
@@ -120,6 +103,26 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
     }
   }
 
+  private void cleanupFailedTask(TaskID taskId, NodeTask task, String stopReason) {
+    offerLifecycleManager.declineOutstandingOffers(task.getHostname());
+    /*
+     * Remove the task from SchedulerState if the task is killable.  Otherwise,
+     * mark the task as pending to enable restart.
+     */
+    if (taskIsKillable(taskId)) {
+      schedulerState.removeTask(taskId);
+      LOGGER.info("Removed killable, {} task with id {}", stopReason, taskId);
+    } else {
+      schedulerState.makeTaskPending(taskId);        
+      LOGGER.info("Marked as pending {} task with id {}", stopReason, taskId);
+    }  
+  }
+  
+  private void cleanupTask(TaskID taskId, NodeTask task, String stopReason) {
+    offerLifecycleManager.declineOutstandingOffers(task.getHostname());
+    schedulerState.removeTask(taskId);    
+    LOGGER.info("Removed {} task with id {}", stopReason, taskId);
+  }
   private boolean taskIsKillable(TaskID taskId) {
     return schedulerState.getKillableTasks().contains(taskId);
   }

@@ -218,7 +218,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     if (aggrCpu <= cpus && aggrMem <= mem && taskConstraints.portsCount() <= ports) {
       return true;
     } else {
-      LOGGER.error("Offer not sufficient for task with, cpu: {}, memory: {}, ports: {}", aggrCpu, aggrMem, ports);
+      LOGGER.debug("Offer insufficient for task with, cpu: {}, memory: {}, ports: {}", aggrCpu, aggrMem, ports);
       return false;
     }
   }
@@ -243,7 +243,7 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
 
   private void checkResource(boolean fail, String resource) {
     if (fail) {
-      LOGGER.error("No " + resource + " resources present");
+      LOGGER.debug("No " + resource + " resources present");
     }
   }
 
