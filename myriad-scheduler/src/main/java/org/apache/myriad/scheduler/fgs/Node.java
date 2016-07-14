@@ -25,7 +25,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerNode;
 import org.apache.mesos.Protos;
 
 /**
- * Abstraction that encapsulates YARN and Mesos view of a node.
+ * Abstraction that encapsulates the combined YARN and Mesos views of a node.
  */
 public class Node {
   /**

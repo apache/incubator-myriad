@@ -37,7 +37,8 @@ import org.apache.myriad.scheduler.event.SlaveLostEvent;
 import org.apache.myriad.scheduler.event.StatusUpdateEvent;
 
 /**
- * Myriad Scheduler
+ * The Myriad implementation of the Mesos Scheduler callback interface. The Scheduler method implementations
+ * fire Myriad framework events corresponding to the Mesos callbacks.
  */
 public class MyriadScheduler implements Scheduler {
   private org.apache.myriad.DisruptorManager disruptorManager;

@@ -26,7 +26,7 @@ public class SchedulerStateTest {
 
   @Before
   public void setUp() throws Exception {
-    MyriadFileSystemRMStateStore store = TestObjectFactory.getStateStore(getConfiguration());
+    MyriadFileSystemRMStateStore store = TestObjectFactory.getStateStore(getConfiguration(), false);
     state = new SchedulerState(store);    
   }
 

@@ -27,7 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Responsible for intializing myriad.
+ * Responsible for initializing Myriad by invoking initialize upon the 
+ * Myriad driver {@link org.apache.myriad.Main}
  */
 public class MyriadInitializationInterceptor extends BaseInterceptor {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyriadInitializationInterceptor.class);
