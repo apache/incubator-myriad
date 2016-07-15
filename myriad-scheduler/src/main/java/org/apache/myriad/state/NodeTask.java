@@ -30,7 +30,7 @@ import org.apache.myriad.scheduler.TaskUtils;
 import org.apache.myriad.scheduler.constraints.Constraint;
 
 /**
- * Represents a task to be launched by the executor
+ * Represents a Mesos task to be launched by the Mesos executor
  */
 public class NodeTask {
   @JsonProperty

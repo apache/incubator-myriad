@@ -2,7 +2,6 @@ package org.apache.myriad;
 
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.junit.Before;
-import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -27,9 +26,4 @@ public class BaseConfigurableTest {
     cfgWithDocker = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-docker-info.yml"),
                 MyriadConfiguration.class);
   } 
-
-  @Test
-  public void testMyriadConfiguration() throws Exception {
-    cfg.getFrameworkName();
-  }
 }
