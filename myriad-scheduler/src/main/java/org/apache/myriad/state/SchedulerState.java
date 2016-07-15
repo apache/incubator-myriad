@@ -42,7 +42,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 /**
- * Represents the state of the Myriad scheduler
+ * Encapsulates the state of the all {@link NodeTask} objects managed
+ * by a {@link MyriadScheduler} as well as corresponding state update methods.
  */
 public class SchedulerState {
   private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerState.class);
@@ -164,6 +165,10 @@ public class SchedulerState {
     return this.tasks.get(taskId);
   }
 
+  /**
+   * Return a list of TaskIDs corresponding to all killable tasks
+   * @return
+   */
   public synchronized Set<Protos.TaskID> getKillableTasks() {
     Set<Protos.TaskID> returnSet = new HashSet<>();
     for (Map.Entry<String, SchedulerStateForType> entry : statesForTaskType.entrySet()) {
@@ -172,6 +177,12 @@ public class SchedulerState {
     return returnSet;
   }
 
+  /**
+   * Retrieve set of TaskIDs corresponding to killable tasks for a given prefix
+   * 
+   * @param taskPrefix
+   * @return
+   */
   public synchronized Set<Protos.TaskID> getKillableTasks(String taskPrefix) {
     SchedulerStateForType stateTask = statesForTaskType.get(taskPrefix);
     return (stateTask == null ? new HashSet<Protos.TaskID>() : stateTask.getKillableTasks());

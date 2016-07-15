@@ -90,7 +90,7 @@ public class MyriadDriver {
    */  
   public Status kill(final TaskID taskId) {
     Status status = driver.killTask(taskId);
-    LOGGER.info("Task {} killed with status: {}", taskId, status);
+    LOGGER.info("Task {} kill initiated with Driver status  {}", taskId, status);    
     return status;
   }
 
@@ -112,6 +112,12 @@ public class MyriadDriver {
     return status;
   }
 
+  /**
+   * Returns reference to the underlying Mesos SchedulerDriver
+   * to which all method invocations are delegated to.
+   * 
+   * @return the underlying Mesos SchedulerDriver
+   */
   public SchedulerDriver getDriver() {
     return driver;
   }
