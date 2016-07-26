@@ -17,44 +17,21 @@
  */
 package org.apache.myriad.scheduler;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import org.apache.mesos.Protos;
-import org.apache.myriad.BaseConfigurableTest;
-import org.apache.myriad.configuration.MyriadBadConfigurationException;
-import org.junit.Test;
-
 import com.google.common.collect.Range;
 import com.google.common.collect.Ranges;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.mesos.Protos;
+import org.apache.myriad.BaseConfigurableTest;
+import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for TaskUtils
  */
 public class TestTaskUtils extends BaseConfigurableTest {
   static double epsilon = .0001;
-
-  @Test
-  public void testGetResource() {
-    TaskUtils taskUtils = new TaskUtils(cfg);
-
-    NMProfile fooProfile = new NMProfile("abc", 1L, 1000L);
-    try {
-      taskUtils.getAuxTaskCpus(fooProfile, "foo");
-      fail("Should not complete sucessfully for foo");
-    } catch (MyriadBadConfigurationException e) {
-      // success
-    }
-
-    try {
-      double cpu = taskUtils.getAuxTaskCpus(fooProfile, "jobhistory");
-      assertTrue(cpu > 0.0);
-    } catch (MyriadBadConfigurationException e) {
-      fail("cpu should be defined for jobhistory");
-    }
-  }
 
   @Test
   public void testServiceResourceProfile() throws Exception {
