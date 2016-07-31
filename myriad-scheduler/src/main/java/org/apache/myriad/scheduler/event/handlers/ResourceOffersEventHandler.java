@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.inject.Inject;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -99,84 +100,113 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     }
     LOGGER.debug("Received offers {}", offers.size());
     LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
+
+    List<Offer> reserved = new ArrayList<Offer>();
+    List<Offer> unreserved = new ArrayList<Offer>();
+
+    for (Offer offer : offers) {
+      if (hasReservedResources(offer)) {
+        reserved.add(offer);
+      } else {
+        unreserved.add(offer);
+      }
+    }
+
     driverOperationLock.lock();
     try {
-      for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext(); ) {
-        Offer offer = iterator.next();
-        Set<NodeTask> nodeTasks = schedulerState.getNodeTasks(offer.getSlaveId());
-        for (NodeTask nodeTask : nodeTasks) {
-          nodeTask.setSlaveAttributes(offer.getAttributesList());
-        }
-        // keep this in case SchedulerState gets out of sync. This should not happen with
-        // synchronizing addNodes method in SchedulerState
-        // but to keep it safe
-        final Set<Protos.TaskID> missingTasks = Sets.newHashSet();
-        Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
-        if (CollectionUtils.isNotEmpty(pendingTasks)) {
-          for (Protos.TaskID pendingTaskId : pendingTasks) {
-            NodeTask taskToLaunch = schedulerState.getTask(pendingTaskId);
-            if (taskToLaunch == null) {
-              missingTasks.add(pendingTaskId);
-              LOGGER.warn("Node task for TaskID: {} does not exist", pendingTaskId);
-              continue;
-            }
-            String taskPrefix = taskToLaunch.getTaskPrefix();
-            ServiceResourceProfile profile = taskToLaunch.getProfile();
-            Constraint constraint = taskToLaunch.getConstraint();
+      // Handle reserved offers.
+      dispatchTasks(driver, reserved);
 
-            Set<NodeTask> launchedTasks = new HashSet<>();
-            launchedTasks.addAll(schedulerState.getActiveTasksByType(taskPrefix));
-            launchedTasks.addAll(schedulerState.getStagingTasksByType(taskPrefix));
-
-            if (matches(offer, taskToLaunch, constraint) && SchedulerUtils.isUniqueHostname(offer, taskToLaunch, launchedTasks)) {
-              try {
-                final TaskInfo task = taskFactoryMap.get(taskPrefix).createTask(offer, schedulerState.getFrameworkID().get(),
-                    pendingTaskId, taskToLaunch);
-                List<OfferID> offerIds = new ArrayList<>();
-                offerIds.add(offer.getId());
-                List<TaskInfo> tasks = new ArrayList<>();
-                tasks.add(task);
-                LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
-                LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
-                driver.launchTasks(offerIds, tasks);
-                schedulerState.makeTaskStaging(pendingTaskId);
-
-                // For every NM Task that we launch, we currently
-                // need to backup the ExecutorInfo for that NM Task in the State Store.
-                // Without this, we will not be able to launch tasks corresponding to yarn
-                // containers. This is specially important in case the RM restarts.
-                taskToLaunch.setExecutorInfo(task.getExecutor());
-                taskToLaunch.setHostname(offer.getHostname());
-                taskToLaunch.setSlaveId(offer.getSlaveId());
-                schedulerState.addTask(pendingTaskId, taskToLaunch);
-                iterator.remove(); // remove the used offer from offers list
-                break;
-              } catch (Throwable t) {
-                LOGGER.error("Exception thrown while trying to create a task for {}", taskPrefix, t);
-              }
-            }
-          }
-          for (Protos.TaskID taskId : missingTasks) {
-            schedulerState.removeTask(taskId);
-          }
-        }
-      }
-
-      for (Offer offer : offers) {
-        if (SchedulerUtils.isEligibleForFineGrainedScaling(offer.getHostname(), schedulerState)) {
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Picking an offer from slave with hostname {} for fine grained scaling.", offer.getHostname());
-          }
-          offerLifecycleMgr.addOffers(offer);
-        } else {
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Declining offer {} from slave {}.", offer, offer.getHostname());
-          }
-          driver.declineOffer(offer.getId());
-        }
-      }
+      // Handle unreserved offers.
+      dispatchTasks(driver, unreserved);
     } finally {
       driverOperationLock.unlock();
+    }
+  }
+
+  private boolean hasReservedResources(Offer offer) {
+    for (Resource resource : offer.getResourcesList()) {
+      if (resource.hasRole() && !resource.getRole().equals("*")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private void dispatchTasks(SchedulerDriver driver, List<Offer> offers) {
+    for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext(); ) {
+      Offer offer = iterator.next();
+      Set<NodeTask> nodeTasks = schedulerState.getNodeTasks(offer.getSlaveId());
+      for (NodeTask nodeTask : nodeTasks) {
+        nodeTask.setSlaveAttributes(offer.getAttributesList());
+      }
+      // keep this in case SchedulerState gets out of sync. This should not happen with
+      // synchronizing addNodes method in SchedulerState
+      // but to keep it safe
+      final Set<Protos.TaskID> missingTasks = Sets.newHashSet();
+      Set<Protos.TaskID> pendingTasks = schedulerState.getPendingTaskIds();
+      if (CollectionUtils.isNotEmpty(pendingTasks)) {
+        for (Protos.TaskID pendingTaskId : pendingTasks) {
+          NodeTask taskToLaunch = schedulerState.getTask(pendingTaskId);
+          if (taskToLaunch == null) {
+            missingTasks.add(pendingTaskId);
+            LOGGER.warn("Node task for TaskID: {} does not exist", pendingTaskId);
+            continue;
+          }
+          String taskPrefix = taskToLaunch.getTaskPrefix();
+          ServiceResourceProfile profile = taskToLaunch.getProfile();
+          Constraint constraint = taskToLaunch.getConstraint();
+
+          Set<NodeTask> launchedTasks = new HashSet<>();
+          launchedTasks.addAll(schedulerState.getActiveTasksByType(taskPrefix));
+          launchedTasks.addAll(schedulerState.getStagingTasksByType(taskPrefix));
+
+          if (matches(offer, taskToLaunch, constraint) && SchedulerUtils.isUniqueHostname(offer, taskToLaunch, launchedTasks)) {
+            try {
+              final TaskInfo task = taskFactoryMap.get(taskPrefix).createTask(offer, schedulerState.getFrameworkID().get(),
+                      pendingTaskId, taskToLaunch);
+              List<OfferID> offerIds = new ArrayList<>();
+              offerIds.add(offer.getId());
+              List<TaskInfo> tasks = new ArrayList<>();
+              tasks.add(task);
+              LOGGER.info("Launching task: {} using offer: {}", task.getTaskId().getValue(), offer.getId());
+              LOGGER.debug("Launching task: {} with profile: {} using offer: {}", task, profile, offer);
+              driver.launchTasks(offerIds, tasks);
+              schedulerState.makeTaskStaging(pendingTaskId);
+
+              // For every NM Task that we launch, we currently
+              // need to backup the ExecutorInfo for that NM Task in the State Store.
+              // Without this, we will not be able to launch tasks corresponding to yarn
+              // containers. This is specially important in case the RM restarts.
+              taskToLaunch.setExecutorInfo(task.getExecutor());
+              taskToLaunch.setHostname(offer.getHostname());
+              taskToLaunch.setSlaveId(offer.getSlaveId());
+              schedulerState.addTask(pendingTaskId, taskToLaunch);
+              iterator.remove(); // remove the used offer from offers list
+              break;
+            } catch (Throwable t) {
+              LOGGER.error("Exception thrown while trying to create a task for {}", taskPrefix, t);
+            }
+          }
+        }
+        for (Protos.TaskID taskId : missingTasks) {
+          schedulerState.removeTask(taskId);
+        }
+      }
+    }
+
+    for (Offer offer : offers) {
+      if (SchedulerUtils.isEligibleForFineGrainedScaling(offer.getHostname(), schedulerState)) {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Picking an offer from slave with hostname {} for fine grained scaling.", offer.getHostname());
+        }
+        offerLifecycleMgr.addOffers(offer);
+      } else {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("Declining offer {} from slave {}.", offer, offer.getHostname());
+        }
+        driver.declineOffer(offer.getId());
+      }
     }
   }
 
