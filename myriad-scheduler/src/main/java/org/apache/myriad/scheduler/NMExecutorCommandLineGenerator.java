@@ -101,7 +101,6 @@ public class NMExecutorCommandLineGenerator extends ExecutorCommandLineGenerator
       addJavaOpt(yarnOpts, KEY_YARN_HOME, yarnEnv.get("YARN_HOME"));
     }
 
-    addJavaOpt(yarnOpts, KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "mesos/$TASK_DIR");
     addJavaOpt(yarnOpts, KEY_NM_RESOURCE_CPU_VCORES, Integer.toString(profile.getCpus().intValue()));
     addJavaOpt(yarnOpts, KEY_NM_RESOURCE_MEM_MB, Integer.toString(profile.getMemory().intValue()));
     Map<String, Long> portsMap = profile.getPorts();
@@ -133,16 +132,16 @@ public class NMExecutorCommandLineGenerator extends ExecutorCommandLineGenerator
   protected void appendCgroupsCmds(StringBuilder cmdLine) {
     //These can't be set in the environment as they require commands to be run on the host
     if (myriadConfiguration.getFrameworkSuperUser().isPresent() && myriadConfiguration.isCgroupEnabled()) {
-      cmdLine.append(" export TASK_DIR=`basename $PWD`&&");
+      cmdLine.append(" export TASK_DIR=`cat /proc/self/cgroup | grep :cpu: | cut -d: -f3` &&");
       //The container executor script expects mount-path to exist and owned by the yarn user
       //See: https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/NodeManagerCgroups.html
       //If YARN ever moves to cgroup/mem it will be necessary to add a mem version.
       appendSudo(cmdLine);
       cmdLine.append("chown " + myriadConfiguration.getFrameworkUser().get() + " ");
       cmdLine.append(myriadConfiguration.getCGroupPath());
-      cmdLine.append("/cpu/mesos/$TASK_DIR &&");
-      cmdLine.append(String.format("export %s=%s -D%s=%s", ENV_YARN_NODEMANAGER_OPTS, ENV_YARN_NODEMANAGER_OPTS,
-          KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "mesos/$TASK_DIR"));
+      cmdLine.append("/cpu$TASK_DIR &&");
+      cmdLine.append(String.format("export %s=\"$%s -D%s=%s\" && ", ENV_YARN_NODEMANAGER_OPTS, ENV_YARN_NODEMANAGER_OPTS,
+          KEY_YARN_NM_LCE_CGROUPS_HIERARCHY, "$TASK_DIR"));
     } else if (myriadConfiguration.isCgroupEnabled()) {
       LOGGER.info("frameworkSuperUser not set ignoring cgroup configuration, this will likely can the nodemanager to crash");
     }

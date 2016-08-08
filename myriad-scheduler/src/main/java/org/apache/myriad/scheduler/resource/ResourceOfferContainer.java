@@ -96,9 +96,9 @@ public class ResourceOfferContainer {
    * @return
    */
   public boolean satisfies(ServiceResourceProfile profile) {
-    return scalarValues.get(RESOURCE_CPUS).satisfies(profile.getAggregateCpu()) &&
-        scalarValues.get(RESOURCE_MEM).satisfies(profile.getAggregateMemory()) &&
-        rangeValues.get(RESOURCE_PORTS).satisfies(profile.getPorts().values());
+    return scalarValues.containsKey(RESOURCE_CPUS) && scalarValues.get(RESOURCE_CPUS).satisfies(profile.getAggregateCpu()) &&
+        scalarValues.containsKey(RESOURCE_MEM) && scalarValues.get(RESOURCE_MEM).satisfies(profile.getAggregateMemory()) &&
+        rangeValues.containsKey(RESOURCE_PORTS) && rangeValues.get(RESOURCE_PORTS).satisfies(profile.getPorts().values());
   }
 
   /**
