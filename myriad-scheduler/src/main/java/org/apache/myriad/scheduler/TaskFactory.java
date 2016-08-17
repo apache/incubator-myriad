@@ -150,7 +150,7 @@ public abstract class TaskFactory {
    * Simple helper to convert Mesos Range Resource to a list of longs.
    */
   protected List<Long> rangesConverter(List<Protos.Resource> rangeResources) {
-    List<Long> ret = new ArrayList();
+    List<Long> ret = new ArrayList<Long>();
     for (Protos.Resource range : rangeResources) {
       ret.add(range.getRanges().getRange(0).getBegin());
     }

@@ -18,15 +18,27 @@
 
 package org.apache.myriad;
 
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.dataformat.yaml.*;
-import com.google.inject.*;
-import com.google.inject.multibindings.*;
-import java.io.*;
-import java.util.*;
-import org.apache.myriad.configuration.*;
-import org.apache.myriad.scheduler.*;
-import org.slf4j.*;
+import java.io.IOException;
+import java.util.Map;
+
+import org.apache.myriad.configuration.MyriadConfiguration;
+import org.apache.myriad.configuration.NodeManagerConfiguration;
+import org.apache.myriad.configuration.ServiceConfiguration;
+import org.apache.myriad.scheduler.ExecutorCommandLineGenerator;
+import org.apache.myriad.scheduler.NMExecutorCommandLineGenerator;
+import org.apache.myriad.scheduler.NMTaskFactory;
+import org.apache.myriad.scheduler.ServiceTaskFactory;
+import org.apache.myriad.scheduler.TaskFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.inject.multibindings.MapBinder;
 
 /**
  * AbstractModule extension for UnitTests
@@ -57,7 +69,7 @@ public class MyriadTestModule extends AbstractModule {
     bind(MyriadConfiguration.class).toInstance(cfg);
 
     MapBinder<String, TaskFactory> mapBinder = MapBinder.newMapBinder(binder(), String.class, TaskFactory.class);
-    mapBinder.addBinding(NodeManagerConfiguration.NM_TASK_PREFIX).to(NMTaskFactory.class).in(Scopes.SINGLETON);
+    mapBinder.addBinding(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX).to(NMTaskFactory.class).in(Scopes.SINGLETON);
     Map<String, ServiceConfiguration> auxServicesConfigs = cfg.getServiceConfigurations();
     for (Map.Entry<String, ServiceConfiguration> entry : auxServicesConfigs.entrySet()) {
       String taskFactoryClass = entry.getValue().getTaskFactoryImplName().orNull();

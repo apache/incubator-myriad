@@ -169,10 +169,10 @@ public class SchedulerState {
    * Return a list of TaskIDs corresponding to all killable tasks
    * @return
    */
-  public synchronized Set<Protos.TaskID> getKillableTasks() {
+  public synchronized Set<Protos.TaskID> getKillableTaskIds() {
     Set<Protos.TaskID> returnSet = new HashSet<>();
     for (Map.Entry<String, SchedulerStateForType> entry : statesForTaskType.entrySet()) {
-      returnSet.addAll(entry.getValue().getKillableTasks());
+      returnSet.addAll(entry.getValue().getKillableTaskIds());
     }
     return returnSet;
   }
@@ -183,9 +183,9 @@ public class SchedulerState {
    * @param taskPrefix
    * @return
    */
-  public synchronized Set<Protos.TaskID> getKillableTasks(String taskPrefix) {
+  public synchronized Set<Protos.TaskID> getKillableTaskIds(String taskPrefix) {
     SchedulerStateForType stateTask = statesForTaskType.get(taskPrefix);
-    return (stateTask == null ? new HashSet<Protos.TaskID>() : stateTask.getKillableTasks());
+    return (stateTask == null ? new HashSet<Protos.TaskID>() : stateTask.getKillableTaskIds());
   }
 
   public synchronized void removeTask(Protos.TaskID taskId) {
@@ -384,7 +384,7 @@ public class SchedulerState {
 
     try {
       StoreContext sc = new StoreContext(frameworkId, tasks, getPendingTaskIds(), getStagingTaskIds(), getActiveTaskIds(),
-          getLostTaskIds(), getKillableTasks());
+          getLostTaskIds(), getKillableTaskIds());
       stateStore.storeMyriadState(sc);
     } catch (Exception e) {
       LOGGER.error("Failed to update scheduler state to state store", e);
@@ -411,7 +411,7 @@ public class SchedulerState {
         LOGGER.debug("State Store state includes frameworkId: {}, pending tasks count: {}, staging tasks count: {} " +
                      "active tasks count: {}, lost tasks count: {}, and killable tasks count: {}", frameworkId.getValue(),
                       this.getPendingTaskIds().size(), this.getStagingTaskIds().size(), this.getActiveTaskIds().size(),
-                      this.getLostTaskIds().size(), this.getKillableTasks().size());
+                      this.getLostTaskIds().size(), this.getKillableTaskIds().size());
       }
     } catch (Exception e) {
       LOGGER.error("Failed to read scheduler state from state store", e);
@@ -545,7 +545,7 @@ public class SchedulerState {
       return Collections.unmodifiableSet(this.lostTasks);
     }
 
-    public synchronized Set<Protos.TaskID> getKillableTasks() {
+    public synchronized Set<Protos.TaskID> getKillableTaskIds() {
       return Collections.unmodifiableSet(this.killableTasks);
     }
 

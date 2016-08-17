@@ -124,6 +124,6 @@ public class StatusUpdateEventHandler implements EventHandler<StatusUpdateEvent>
     LOGGER.info("Removed {} task with id {}", stopReason, taskId);
   }
   private boolean taskIsKillable(TaskID taskId) {
-    return schedulerState.getKillableTasks().contains(taskId);
+    return schedulerState.getKillableTaskIds().contains(taskId);
   }
 }

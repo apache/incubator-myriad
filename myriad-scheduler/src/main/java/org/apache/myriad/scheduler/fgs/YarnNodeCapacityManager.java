@@ -18,14 +18,12 @@
  */
 package org.apache.myriad.scheduler.fgs;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import javax.inject.Inject;
 
 import org.apache.hadoop.yarn.api.records.Container;
@@ -58,6 +56,10 @@ import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Manages the capacity exposed by NodeManager. It uses the offers available
@@ -316,7 +318,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     // as this is now cached in the NodeTask object in scheduler state.
     Protos.ExecutorInfo executorInfo = node.getExecInfo();
     if (executorInfo == null) {
-      executorInfo = Protos.ExecutorInfo.newBuilder(state.getNodeTask(offer.getSlaveId(), NodeManagerConfiguration.NM_TASK_PREFIX)
+      executorInfo = Protos.ExecutorInfo.newBuilder(state.getNodeTask(offer.getSlaveId(), NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX)
           .getExecutorInfo()).setFrameworkId(offer.getFrameworkId()).build();
       node.setExecInfo(executorInfo);
     }

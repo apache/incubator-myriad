@@ -40,6 +40,7 @@ import org.apache.myriad.webapp.MyriadWebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
@@ -49,7 +50,6 @@ import com.google.inject.Inject;
 public class MyriadOperations {
   private static final Logger LOGGER = LoggerFactory.getLogger(MyriadOperations.class);
   private final SchedulerState schedulerState;
-
   private MyriadConfiguration cfg;
   private NodeScaleDownPolicy nodeScaleDownPolicy;
   private MyriadDriverManager driverManager;
@@ -69,12 +69,17 @@ public class MyriadOperations {
       myriadStateStore = (MyriadStateStore) rmContext.getStateStore();
     }
   }
+  
+  @VisibleForTesting
+  protected SchedulerState getSchedulerState() {
+    return schedulerState;
+  }
 
   public void flexUpCluster(ServiceResourceProfile serviceResourceProfile, int instances, Constraint constraint) {
     Collection<NodeTask> nodes = new HashSet<>();
     for (int i = 0; i < instances; i++) {
       NodeTask nodeTask = new NodeTask(serviceResourceProfile, constraint);
-      nodeTask.setTaskPrefix(NodeManagerConfiguration.NM_TASK_PREFIX);
+      nodeTask.setTaskPrefix(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX);
       nodes.add(nodeTask);
     }
 

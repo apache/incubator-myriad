@@ -127,5 +127,4 @@ public class TestTaskUtils extends BaseConfigurableTest {
     checkResourceList(taskUtils.getScalarResource(createScalarOffer("cpus", 0.0, 2.0), "cpus", 1.0, 1.0), "cpus", 0.0, 1.0);
     checkResourceList(taskUtils.getScalarResource(createScalarOffer("cpus", 0.0, 2.0), "cpus", 0.5, 1.5), "cpus", 0.0, 0.5);
   }
-
 }

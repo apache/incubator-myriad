@@ -1,66 +1,141 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.myriad.state;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.server.resourcemanager.recovery.MyriadFileSystemRMStateStore;
-import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.TaskID;
+import org.apache.myriad.BaseConfigurableTest;
 import org.apache.myriad.TestObjectFactory;
-import org.apache.myriad.scheduler.ServiceResourceProfile;
-import org.apache.myriad.scheduler.constraints.LikeConstraint;
-import org.junit.Before;
 import org.junit.Test;
-
-import com.google.common.collect.Sets;
 
 /**
  * Unit tests for SchedulerState
  */
-public class SchedulerStateTest {
-  SchedulerState state;
+public class SchedulerStateTest extends BaseConfigurableTest {
+  private NodeTask taskOne;
+  private NodeTask taskTwo;
 
-  @Before
+  @Override
   public void setUp() throws Exception {
-    MyriadFileSystemRMStateStore store = TestObjectFactory.getStateStore(getConfiguration(), false);
-    state = new SchedulerState(store);    
+    super.setUp();
+    this.baseStateStoreDirectory = "/tmp/scheduler-state-test";
   }
 
-  @Test
-  public void testSetFrameworkID() throws Exception {
-    state.setFrameworkId(FrameworkID.newBuilder().setValue("mock-framework").build());
-    assertEquals("mock-framework", state.getFrameworkID().get().getValue());
+  private SchedulerState initialize() throws Exception {
+    resetStoreState();
+    taskOne = TestObjectFactory.getNodeTask("zero", "localhost", 0.0, 0.0, Long.valueOf(1), Long.valueOf(2));
+    taskTwo = TestObjectFactory.getNodeTask("low", "localhost", 0.1, 1024.0, Long.valueOf(1), Long.valueOf(2));
+    SchedulerState sState = TestObjectFactory.getSchedulerState(this.cfg, "tmp/scheduler-state-test");
+    return sState;
+  }
+  
+  @Test 
+  public void testGetFrameworkID() throws Exception {
+    SchedulerState sState = initialize();
+    assertEquals("mock-framework", sState.getFrameworkID().get().getValue());
   }
   
   @Test
-  public void testAddAndRemoveTask() throws Exception {
-    NodeTask task1 = new NodeTask(new ServiceResourceProfile("profile1", 0.1, 1024.0, new TreeMap<String, Long>()), new LikeConstraint("hostname", "host-[0-9]*.example.com"));
-    NodeTask task2 = new NodeTask(new ServiceResourceProfile("profile2", 0.1, 1024.0, new TreeMap<String, Long>()), new LikeConstraint("hostname", "host-[0-9]*.example.com"));
-    TaskID id1 = TaskID.newBuilder().setValue("mock-task-1").build();
-    TaskID id2 = TaskID.newBuilder().setValue("mock-task-2").build();
-    
-    Set<TaskID> taskIds = Sets.newHashSet(id1, id2);
-    state.addTask(id1, task1);
-    assertNotNull(state.getTask(id1));
-    state.addTask(id2, task2);
-    assertNotNull(state.getTask(id2));
-    assertEquals(2, state.getTasks(taskIds).size());
-    state.removeTask(id1);   
-    assertEquals(1, state.getTasks(taskIds).size());
-    assertNull(state.getTask(id1)); 
-    state.removeTask(id2);   
-    assertEquals(0, state.getTasks(taskIds).size());
-    assertNull(state.getTask(id2)); 
+  public void testAddTask() throws Exception {
+    SchedulerState sState = initialize();
+    TaskID idOne = TaskID.newBuilder().setValue("Task1").build();
+    TaskID idTwo = TaskID.newBuilder().setValue("Task2").build();
+    sState.addTask(idOne, taskOne);
+    sState.addTask(idTwo, taskTwo);
+    assertEquals("zero", sState.getTask(idOne).getProfile().getName());
+    assertEquals("low", sState.getTask(idTwo).getProfile().getName());
+  }
+  
+  @Test
+  public void testMakeTestActive() throws Exception {
+    SchedulerState sState = initialize();
+    TaskID idOne = TaskID.newBuilder().setValue("Task1").build();
+    TaskID idTwo = TaskID.newBuilder().setValue("Task2").build();
+    sState.addTask(idOne, taskOne);
+    sState.addTask(idTwo, taskTwo);
+    sState.makeTaskActive(idOne);
+    sState.makeTaskActive(idTwo);
+    assertTrue(sState.getActiveTasks().contains(taskOne));
+    assertTrue(sState.getActiveTasks().contains(taskTwo));
+  }
+  
+  @Test 
+  public void testMakeTestPending() throws Exception {
+    SchedulerState sState = initialize();
+    TaskID idOne = TaskID.newBuilder().setValue("Task1").build();
+    TaskID idTwo = TaskID.newBuilder().setValue("Task2").build();
+    sState.makeTaskPending(idOne);
+    sState.makeTaskPending(idTwo);
+    assertEquals(2, sState.getPendingTaskIds().size());
+    assertTrue(sState.getPendingTaskIds().contains(idOne));
+    assertTrue(sState.getPendingTaskIds().contains(idTwo));    
   }
 
-  private Configuration getConfiguration() {
-    Configuration conf = new Configuration();
-    conf.set("yarn.resourcemanager.fs.state-store.uri", "file:///tmp/");
-    return conf;
+  @Test 
+  public void testMakeTestKillable() throws Exception {
+    SchedulerState sState = initialize();
+    TaskID idOne = TaskID.newBuilder().setValue("Task1").build();
+    TaskID idTwo = TaskID.newBuilder().setValue("Task2").build();
+    sState.makeTaskKillable(idOne);
+    sState.makeTaskKillable(idTwo);
+    assertEquals(2, sState.getKillableTaskIds().size());
+    assertTrue(sState.getKillableTaskIds().contains(idOne));  
+    assertTrue(sState.getKillableTaskIds().contains(idTwo));    
+  }
+
+  @Test 
+  public void testMakeTestStaging() throws Exception {
+    SchedulerState sState = initialize();
+    TaskID idOne = TaskID.newBuilder().setValue("Task1").build();
+    TaskID idTwo = TaskID.newBuilder().setValue("Task2").build();
+    sState.addTask(idOne, taskOne);
+    sState.addTask(idTwo, taskTwo);
+    sState.makeTaskStaging(idOne);
+    sState.makeTaskStaging(idTwo);
+    assertEquals(2, sState.getStagingTasks().size());
+    assertTrue(sState.getStagingTasks().contains(taskOne));
+    assertTrue(sState.getStagingTasks().contains(taskTwo));    
+  }
+
+  @Test 
+  public void testMakeTestLost() throws Exception {
+    SchedulerState sState = initialize();
+    TaskID idOne = TaskID.newBuilder().setValue("Task1").build();
+    TaskID idTwo = TaskID.newBuilder().setValue("Task2").build();
+    sState.makeTaskLost(idOne);
+    sState.makeTaskLost(idTwo);
+    assertEquals(2, sState.getLostTaskIds().size());
+    assertTrue(sState.getLostTaskIds().contains(idOne));
+    assertTrue(sState.getLostTaskIds().contains(idTwo));    
+  }  
+
+  @Test
+  public void testRemoveTask() throws Exception {
+    SchedulerState sState = initialize();
+    TaskID idOne = TaskID.newBuilder().setValue("Task1").build();
+    TaskID idTwo = TaskID.newBuilder().setValue("Task2").build();
+    sState.removeTask(idOne);
+    assertNull(sState.getTask(idOne));
+    sState.removeTask(idTwo);
+    assertNull(sState.getTask(idTwo));
   }
 }

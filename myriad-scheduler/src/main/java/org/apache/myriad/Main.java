@@ -79,18 +79,6 @@ public class Main {
 
   private static Injector injector;
 
-  /**
-  * Main is the bootstrap class for the Myriad scheduler, managing the lifecycles of
-  * the following components:
-  *
-  *  1. MyriadDriverManager
-  *  2. MyriadWebServer
-  *  3. TaskTerminator
-  *  4. HealthCheckRegistry
-  *
-  *  Main uses the Guice Injector framework to manage the Myriad object graph and is
-  *  configured by myriad-config-default.yml
-  */
   public static void initialize(Configuration hadoopConf, AbstractYarnScheduler yarnScheduler, RMContext rmContext,
                                 InterceptorRegistry registry) throws Exception {
     MyriadModule myriadModule = new MyriadModule("myriad-config-default.yml", hadoopConf, yarnScheduler, rmContext, registry);
@@ -217,19 +205,19 @@ public class Main {
     SchedulerState schedulerState = injector.getInstance(SchedulerState.class);
 
     Set<org.apache.myriad.state.NodeTask> launchedNMTasks = new HashSet<>();
-    launchedNMTasks.addAll(schedulerState.getPendingTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getPendingTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in pending state. Not launching additional NMs", launchedNMTasks.size());
       return;
     }
 
-    launchedNMTasks.addAll(schedulerState.getStagingTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getStagingTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in staging state. Not launching additional NMs", launchedNMTasks.size());
       return;
     }
 
-    launchedNMTasks.addAll(schedulerState.getActiveTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getActiveTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in active state. Not launching additional NMs", launchedNMTasks.size());
       return;
