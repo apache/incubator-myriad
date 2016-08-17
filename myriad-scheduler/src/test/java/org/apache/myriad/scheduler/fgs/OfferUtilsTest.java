@@ -67,7 +67,7 @@ public class OfferUtilsTest {
   
   @Test
   public void testgetYarnResourcesFromMesosOffers() throws Exception {
-    org.apache.hadoop.yarn.api.records.Resource resource = OfferUtils.getYarnResourcesFromMesosOffers(offers);
+    org.apache.hadoop.yarn.api.records.Resource resource = OfferUtils.getYarnResourceFromMesosOffers(offers);
     assertEquals(6.0, resource.getMemory(), 1.0);
     assertEquals(3.0, resource.getVirtualCores(), 1.0);
   }

@@ -89,8 +89,9 @@ public class MyriadConfigurationTest extends BaseConfigurableTest {
     NodeManagerConfiguration config = cfg.getNodeManagerConfiguration();
 
     assertFalse(config.getCgroups());
-    assertEquals(new Double(0.2), config.getCpus());
-    assertEquals(new Double(1024.0), config.getJvmMaxMemoryMB());
+    assertEquals(new Double(0.8), config.getCpus());
+    assertEquals(new Double(2048.0), config.getJvmMaxMemoryMB());
+    assertEquals(new Double(4.0), config.getMaxCpus());
   }
   
   @Test

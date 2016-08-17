@@ -18,17 +18,13 @@
  */
 package org.apache.myriad;
 
-import com.codahale.metrics.JmxReporter;
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.health.HealthCheckRegistry;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
@@ -55,6 +51,12 @@ import org.apache.myriad.webapp.MyriadWebServer;
 import org.apache.myriad.webapp.WebAppGuiceModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.health.HealthCheckRegistry;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * Main is the bootstrap class for the Myriad scheduler, managing the lifecycles of
@@ -166,6 +168,7 @@ public class Main {
   private void initProfiles(Injector injector) {
     LOGGER.info("Initializing Profiles");
     ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
+
     Map<String, Map<String, String>> profiles = injector.getInstance(MyriadConfiguration.class).getProfiles();
     TaskUtils taskUtils = injector.getInstance(TaskUtils.class);
     if (MapUtils.isNotEmpty(profiles)) {
@@ -217,19 +220,19 @@ public class Main {
     SchedulerState schedulerState = injector.getInstance(SchedulerState.class);
 
     Set<org.apache.myriad.state.NodeTask> launchedNMTasks = new HashSet<>();
-    launchedNMTasks.addAll(schedulerState.getPendingTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getPendingTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in pending state. Not launching additional NMs", launchedNMTasks.size());
       return;
     }
 
-    launchedNMTasks.addAll(schedulerState.getStagingTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getStagingTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in staging state. Not launching additional NMs", launchedNMTasks.size());
       return;
     }
 
-    launchedNMTasks.addAll(schedulerState.getActiveTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX));
+    launchedNMTasks.addAll(schedulerState.getActiveTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX));
     if (!launchedNMTasks.isEmpty()) {
       LOGGER.info("{} NM(s) in active state. Not launching additional NMs", launchedNMTasks.size());
       return;

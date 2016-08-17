@@ -1,7 +1,10 @@
 package org.apache.myriad;
 
+import java.net.URL;
+
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.junit.Before;
+import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -16,14 +19,29 @@ public class BaseConfigurableTest {
   protected MyriadConfiguration cfgWithRole;
   protected MyriadConfiguration cfgWithDocker;
 
+  /**
+   * This is normally overridden in derived classes. Be sure to invoke this implementation, otherwise
+   * cfg, cfgWithRole, and cfgWithDocker will all be null.
+   * 
+   * @throws Exception
+   */
   @Before
   public void setUp() throws Exception {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-    cfg = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default.yml"),
+    cfg = mapper.readValue(getConfURL("myriad-config-test-default.yml"),
     MyriadConfiguration.class);
-    cfgWithRole = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-framework-role.yml"),
+    cfgWithRole = mapper.readValue(getConfURL("myriad-config-test-default-with-framework-role.yml"),
             MyriadConfiguration.class);
-    cfgWithDocker = mapper.readValue(Thread.currentThread().getContextClassLoader().getResource("myriad-config-test-default-with-docker-info.yml"),
+    cfgWithDocker = mapper.readValue(getConfURL("myriad-config-test-default-with-docker-info.yml"),
                 MyriadConfiguration.class);
   } 
+
+  private URL getConfURL(String file) {
+    return Thread.currentThread().getContextClassLoader().getResource(file);
+  }
+  
+  @Test
+  public void testMyriadConfiguration() throws Exception {
+    cfg.getFrameworkName();
+  }
 }

@@ -18,14 +18,12 @@
  */
 package org.apache.myriad.scheduler.fgs;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import javax.inject.Inject;
 
 import org.apache.hadoop.yarn.api.records.Container;
@@ -58,6 +56,11 @@ import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Manages the capacity exposed by NodeManager. It uses the offers available
@@ -98,7 +101,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     this.state = state;
     this.taskUtils = taskUtils;
   }
-
+    
   @Override
   public CallBackFilter getCallBackFilter() {
     return new CallBackFilter() {
@@ -135,9 +138,9 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
        */
       state.makeTaskKillable(taskId);
       
-      Node node = retrieveNode(rmContainer);
-      if (node != null) {
-        RMNode rmNode = node.getNode().getRMNode();
+      Optional<Node> optNode = retrieveNode(rmContainer);
+      if (optNode.isPresent()) {
+        RMNode rmNode = optNode.get().getNode().getRMNode();
         Resource resource = rmContainer.getContainer().getResource();
         decrementNodeCapacity(rmNode, resource);
         LOGGER.info("Removed task yarn_{} with exit status freeing {} cpu and {} mem.", rmContainer.getContainer().toString(),
@@ -148,9 +151,9 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     }
   }
 
-  private Node retrieveNode(RMContainer container) {
+  private Optional<Node> retrieveNode(RMContainer container) {
     String hostname = container.getContainer().getNodeId().getHost();
-    return nodeStore.getNode(hostname);
+    return Optional.fromNullable(nodeStore.getNode(hostname));
   }
 
   private boolean containersNotNull(RMContainer rmContainer) {
@@ -219,7 +222,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
       for (Protos.Offer offer : consumedOffer.getOffers()) {
         offerLifecycleMgr.declineOffer(offer);
       }
-      decrementNodeCapacity(rmNode, OfferUtils.getYarnResourcesFromMesosOffers(consumedOffer.getOffers()));
+      decrementNodeCapacity(rmNode, OfferUtils.getYarnResourceFromMesosOffers(consumedOffer.getOffers()));
     } else {
       LOGGER.debug("Containers allocated using Mesos offers for host: {} count: {}", host, containersAllocatedByMesosOffer.size());
 
@@ -233,7 +236,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
       }
 
       // Reduce node capacity to account for unused offers
-      Resource resOffered = OfferUtils.getYarnResourcesFromMesosOffers(consumedOffer.getOffers());
+      Resource resOffered = OfferUtils.getYarnResourceFromMesosOffers(consumedOffer.getOffers());
       Resource resUnused = Resources.subtract(resOffered, resUsed);
       decrementNodeCapacity(rmNode, resUnused);
       myriadDriver.getDriver().launchTasks(consumedOffer.getOfferIds(), tasks);
@@ -316,7 +319,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     // as this is now cached in the NodeTask object in scheduler state.
     Protos.ExecutorInfo executorInfo = node.getExecInfo();
     if (executorInfo == null) {
-      executorInfo = Protos.ExecutorInfo.newBuilder(state.getNodeTask(offer.getSlaveId(), NodeManagerConfiguration.NM_TASK_PREFIX)
+      executorInfo = Protos.ExecutorInfo.newBuilder(state.getNodeTask(offer.getSlaveId(), NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX)
           .getExecutorInfo()).setFrameworkId(offer.getFrameworkId()).build();
       node.setExecInfo(executorInfo);
     }

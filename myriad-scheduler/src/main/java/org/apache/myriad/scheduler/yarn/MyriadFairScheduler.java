@@ -18,6 +18,8 @@
  */
 package org.apache.myriad.scheduler.yarn;
 
+import java.util.List;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
@@ -28,11 +30,10 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.SchedulerApplicationAttempt;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
+import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FSSchedulerNode;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler;
 import org.apache.myriad.scheduler.yarn.interceptor.CompositeInterceptor;
 import org.apache.myriad.scheduler.yarn.interceptor.YarnSchedulerInterceptor;
-
-import java.util.List;
 
 /**
  * {@link MyriadFairScheduler} just extends YARN's {@link FairScheduler} and
@@ -100,6 +101,10 @@ public class MyriadFairScheduler extends FairScheduler {
     this.yarnSchedulerInterceptor.beforeSchedulerEventHandled(event);
     super.handle(event);
     this.yarnSchedulerInterceptor.afterSchedulerEventHandled(event);
+  }
+  
+  public void addNode(FSSchedulerNode node) {
+    this.nodes.put(node.getNodeID(), node);
   }
 }
 

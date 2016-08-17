@@ -1,27 +1,27 @@
 package org.apache.myriad.state;
 
 import org.apache.hadoop.yarn.event.Dispatcher;
+import org.apache.hadoop.yarn.event.Event;
 import org.apache.hadoop.yarn.event.EventHandler;
-import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppEvent;
 
 /**
  * Mock Dispatcher implementation for unit tests
  */
 public class MockDispatcher implements Dispatcher {
-  EventHandler<RMAppEvent> handler = new MockEventHandler();
+  EventHandler<Event> handler = new MockEventHandler();
 
   /**
    * Mock EventHandler implementation for unit tests
    */
-  public static class MockEventHandler implements EventHandler<RMAppEvent> {
+  public static class MockEventHandler implements EventHandler<Event> {
     @Override
-    public void handle(RMAppEvent event) {
+    public void handle(Event event) {
       //noop
     }  
   }
 
   @Override
-  public EventHandler<RMAppEvent> getEventHandler() {
+  public EventHandler<Event> getEventHandler() {
     return handler;
   }
 
