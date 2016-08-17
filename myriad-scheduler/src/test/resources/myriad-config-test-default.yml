@@ -44,9 +44,10 @@ profiles:
 
 rebalancer: 
 nodemanager:
-  jvmMaxMemoryMB: 1024
-  cpus: 0.2
+  jvmMaxMemoryMB: 2048
+  cpus: 0.8
   cgroups: false
+  maxCpus: 4
 executor:
   jvmMaxMemoryMB: 256
   path: file:///usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
@@ -60,20 +61,20 @@ yarnEnvironment:
 mesosAuthenticationPrincipal:
 mesosAuthenticationSecretFilename:
 services:
-  jobhistory:
-    maxInstances: 1
-    jvmMaxMemoryMB: 1024
-    cpus: 1
-    ports:
-      myriad.mapreduce.jobhistory.admin.address: 0
-      myriad.mapreduce.jobhistory.address: 0
-      myriad.mapreduce.jobhistory.webapp.address: 1
-    command: bin/mapred historyserver
-    envSettings: -Dcluster.name.prefix=/mycluster
-    taskName: jobhistory
-  timelineserver:
-    jvmMaxMemoryMB: 1024
-    cpus: 1
-    envSettings: -Dcluster.name.prefix=/mycluster2
-    taskName: timelineserver
-    command: bin/mapred historyserver
+   jobhistory:  
+     maxInstances: 2
+     jvmMaxMemoryMB: 1024
+     cpus: 1
+     ports:
+       myriad.mapreduce.jobhistory.admin.address: 0
+       myriad.mapreduce.jobhistory.address: 0
+       myriad.mapreduce.jobhistory.webapp.address: 0
+     command: bin/mapred historyserver
+     envSettings: -Dcluster.name.prefix=/mycluster
+     taskName: jobhistory
+   timelineserver:
+     jvmMaxMemoryMB: 1024
+     cpus: 1
+     envSettings: -Dcluster.name.prefix=/mycluster2
+     taskName: timelineserver	
+     command: bin/mapred historyserver

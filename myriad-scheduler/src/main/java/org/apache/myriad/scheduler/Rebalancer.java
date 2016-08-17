@@ -46,8 +46,8 @@ public class Rebalancer implements Runnable {
 
   @Override
   public void run() {
-    final Set<Protos.TaskID> activeIds = schedulerState.getActiveTaskIds(NodeManagerConfiguration.NM_TASK_PREFIX);
-    final Set<Protos.TaskID> pendingIds = schedulerState.getPendingTaskIds(NodeManagerConfiguration.NM_TASK_PREFIX);
+    final Set<Protos.TaskID> activeIds = schedulerState.getActiveTaskIds(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX);
+    final Set<Protos.TaskID> pendingIds = schedulerState.getPendingTaskIds(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX);
     LOGGER.info("Active {}, Pending {}", activeIds.size(), pendingIds.size());
     if (activeIds.size() < 1 && pendingIds.size() < 1) {
       myriadOperations.flexUpCluster(profileManager.get("small"), 1, null);

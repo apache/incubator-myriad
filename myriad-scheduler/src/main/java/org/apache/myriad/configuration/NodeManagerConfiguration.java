@@ -56,8 +56,13 @@ public class NodeManagerConfiguration {
   /**
    * Default NodeManager Mesos task prefix
    */
-  public static final String NM_TASK_PREFIX = "nm";
-
+  public static final String DEFAULT_NM_TASK_PREFIX = "nm";
+  
+  /**
+   * Default max CPU cores for NodeManager JVM
+   */
+  public static final double DEFAULT_NM_MAX_CPUS = 24;
+  
   /**
    * Translates to -Xmx for the NodeManager JVM.
    */
@@ -85,7 +90,10 @@ public class NodeManagerConfiguration {
    */
   @JsonProperty
   private Boolean cgroups;
-
+  
+  @JsonProperty
+  private Double maxCpus;
+  
   private Double generateNodeManagerMemory() {
     return (NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
   }
@@ -116,5 +124,9 @@ public class NodeManagerConfiguration {
 
   public boolean getCgroups() {
     return Optional.fromNullable(cgroups).or(DEFAULT_NM_CGROUPS);
+  }
+  
+  public Double getMaxCpus() {
+    return Optional.fromNullable(maxCpus).or(DEFAULT_NM_MAX_CPUS);
   }
 }

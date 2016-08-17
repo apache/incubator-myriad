@@ -46,7 +46,11 @@ public class TaskUtils {
   public double getNodeManagerMemory() {
     return cfg.getNodeManagerConfiguration().getJvmMaxMemoryMB();
   }
-  
+
+  public double getNodeManagerMaxCpus() {
+    return cfg.getNodeManagerConfiguration().getMaxCpus();
+  }
+
   public double getNodeManagerCpus() {
     return cfg.getNodeManagerConfiguration().getCpus();
   }
@@ -80,7 +84,7 @@ public class TaskUtils {
    */
   public Iterable<Protos.Resource> getScalarResource(Protos.Offer offer, String name, Double value, Double used) {
     String role = cfg.getFrameworkRole();
-    List<Protos.Resource> resources = new ArrayList<>();
+    List<Protos.Resource> resources = new ArrayList<Protos.Resource>();
 
     double resourceDifference = 0; //used to determine the resource difference of value and the resources requested from role *
     //Find role by name, must loop through resources

@@ -6,7 +6,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.service.Service.STATE;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMAppState;
-import org.apache.myriad.state.MockDispatcher;
+import org.apache.myriad.TestObjectFactory;
 import org.apache.myriad.state.MockRMApp;
 import org.junit.Test;
 
@@ -17,13 +17,16 @@ public class MyriadFileSystemRMStateStoreTest {
 
   @Test
   public void testInit() throws Exception {
-    Configuration conf = getConfiguration();
+    Configuration conf = new Configuration();
+    conf.set("yarn.resourcemanager.fs.state-store.uri", "file:///" + "/tmp/myriad-file-system-rm-state-store-test");
     MyriadFileSystemRMStateStore store = new MyriadFileSystemRMStateStore();
     assertTrue(store.isInState(STATE.NOTINITED));
     store.init(conf);
     assertTrue(store.isInState(STATE.INITED));
-    store.startInternal();
+    store.start();
+    assertTrue(store.isInState(STATE.STARTED));
     store.close();
+    assertTrue(store.isInState(STATE.STOPPED));
   }
 
   @Test
@@ -51,19 +54,8 @@ public class MyriadFileSystemRMStateStoreTest {
   }
 
   private MyriadFileSystemRMStateStore getInitializedStore() throws Exception {
-    Configuration conf = getConfiguration();
-    MyriadFileSystemRMStateStore store = new MyriadFileSystemRMStateStore();  
-    store.init(conf);
-    store.startInternal();
-    store.loadState();   
+    MyriadFileSystemRMStateStore store = TestObjectFactory.getStateStore(new Configuration(), "/tmp/myriad-file-system-rm-state-store-test");
     store.loadMyriadState();
-    store.setRMDispatcher(new MockDispatcher());
     return store;
-  }
-  
-  private Configuration getConfiguration() {
-    Configuration conf = new Configuration();
-    conf.set("yarn.resourcemanager.fs.state-store.uri", "file:///tmp/");
-    return conf;
   }
 }

@@ -35,6 +35,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnSched
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
+import org.apache.myriad.configuration.NodeManagerConfiguration;
 import org.apache.myriad.scheduler.MyriadDriver;
 import org.apache.myriad.scheduler.SchedulerUtils;
 import org.apache.myriad.scheduler.yarn.interceptor.BaseInterceptor;
@@ -56,11 +57,12 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   private final OfferLifecycleManager offerLifecycleMgr;
   private final NodeStore nodeStore;
   private final SchedulerState state;
+  private final NodeManagerConfiguration conf;
 
   @Inject
   public NMHeartBeatHandler(InterceptorRegistry registry, AbstractYarnScheduler yarnScheduler, MyriadDriver myriadDriver,
                             YarnNodeCapacityManager yarnNodeCapacityMgr, OfferLifecycleManager offerLifecycleMgr,
-                            NodeStore nodeStore, SchedulerState state) {
+                            NodeStore nodeStore, SchedulerState state, NodeManagerConfiguration conf) {
 
     if (registry != null) {
       registry.register(this);
@@ -72,6 +74,7 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     this.offerLifecycleMgr = offerLifecycleMgr;
     this.nodeStore = nodeStore;
     this.state = state;
+    this.conf = conf;
   }
 
   @Override
@@ -88,9 +91,11 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   public void beforeRMNodeEventHandled(RMNodeEvent event, RMContext context) {
     switch (event.getType()) {
       case STARTED:
+        // Since the RMNode was just started, it should not have a non-zero capacity
         RMNode rmNode = context.getRMNodes().get(event.getNodeId());
-        Resource totalCapability = rmNode.getTotalCapability();
-        if (totalCapability.getMemory() != 0 || totalCapability.getVirtualCores() != 0) {
+        
+        if (isNonZeroCapacityNode(rmNode)) {
+          Resource totalCapability = rmNode.getTotalCapability();
           logger.warn(
               "FineGrainedScaling feature got invoked for a NM with non-zero capacity. Host: {}, Mem: {}, CPU: {}. Setting the " +
               "NM's capacity to (0G,0CPU)", rmNode.getHostName(), totalCapability.getMemory(), totalCapability.getVirtualCores());
@@ -109,6 +114,12 @@ public class NMHeartBeatHandler extends BaseInterceptor {
   }
 
   @VisibleForTesting
+  protected boolean isNonZeroCapacityNode(RMNode node) {
+    Resource resource = node.getTotalCapability();
+    return (resource.getMemory() != 0 || resource.getVirtualCores() != 0);
+  }
+  
+  @VisibleForTesting
   protected void handleStatusUpdate(RMNodeEvent event, RMContext context) {
     if (!(event instanceof RMNodeStatusEvent)) {
       logger.error("{} not an instance of {}", event.getClass().getName(), RMNodeStatusEvent.class.getName());
@@ -124,25 +135,42 @@ public class NMHeartBeatHandler extends BaseInterceptor {
       host.snapshotRunningContainers();
     }
 
-    // New capacity of the node =
-    // resources under use on the node (due to previous offers) +
-    // new resources offered by mesos for the node
-    yarnNodeCapacityMgr.setNodeCapacity(rmNode, Resources.add(getResourcesUnderUse(statusEvent), getNewResourcesOfferedByMesos(
-        hostName)));
-  }
-
-  private Resource getNewResourcesOfferedByMesos(String hostname) {
-    OfferFeed feed = offerLifecycleMgr.getOfferFeed(hostname);
-    if (feed == null) {
-      logger.debug("No offer feed for: {}", hostname);
-      return Resource.newInstance(0, 0);
+    /*
+     * Set the new node capacity which is the sum of the current node resources plus those offered by Mesos. 
+     * If the sum is greater than the max capacity of the node, reject the offer.
+     */
+    Resource offeredResources = getNewResourcesOfferedByMesos(hostName);
+    Resource currentResources = getResourcesUnderUse(statusEvent);
+    
+    if (offerWithinResourceLimits(currentResources, offeredResources)) {
+      yarnNodeCapacityMgr.setNodeCapacity(rmNode, Resources.add(currentResources, offeredResources));
+      logger.info("Updated resources for {} with {} cores and {} memory", rmNode.getNode().getName(), 
+              offeredResources.getVirtualCores(), offeredResources.getMemory());
+    } else {
+      logger.info("Did not update {} with {} cores and {} memory, over max cpu cores and/or max memory", 
+              rmNode.getNode().getName(), offeredResources.getVirtualCores(), offeredResources.getMemory());
     }
+  }
+  
+  @VisibleForTesting
+  protected boolean offerWithinResourceLimits(Resource currentResources, Resource offeredResources) {
+    int newMemory = currentResources.getMemory() + offeredResources.getMemory();
+    int newCores = currentResources.getVirtualCores() + offeredResources.getVirtualCores();
+       
+    return (newMemory <= conf.getJvmMaxMemoryMB() && newCores <= conf.getMaxCpus());
+  }
+  
+  @VisibleForTesting
+  protected Resource getNewResourcesOfferedByMesos(String hostname) {
+    OfferFeed feed = offerLifecycleMgr.getOfferFeed(hostname);
     List<Offer> offers = new ArrayList<>();
     Protos.Offer offer;
+        
     while ((offer = feed.poll()) != null) {
-      offers.add(offer);
+      offers.add(offer);     
       offerLifecycleMgr.markAsConsumed(offer);
     }
+    
     Resource fromMesosOffers = OfferUtils.getYarnResourcesFromMesosOffers(offers);
 
     if (logger.isDebugEnabled()) {
@@ -153,10 +181,11 @@ public class NMHeartBeatHandler extends BaseInterceptor {
     return fromMesosOffers;
   }
 
-  private Resource getResourcesUnderUse(RMNodeStatusEvent statusEvent) {
+  @VisibleForTesting
+  protected Resource getResourcesUnderUse(RMNodeStatusEvent statusEvent) {
     Resource usedResources = Resource.newInstance(0, 0);
     for (ContainerStatus status : statusEvent.getContainers()) {
-      if (status.getState() == ContainerState.NEW || status.getState() == ContainerState.RUNNING) {
+      if (containerInUse(status)) {
         RMContainer rmContainer = yarnScheduler.getRMContainer(status.getContainerId());
         // (sdaingade) This check is needed as RMContainer information may not be populated
         // immediately after a RM restart.
@@ -166,5 +195,9 @@ public class NMHeartBeatHandler extends BaseInterceptor {
       }
     }
     return usedResources;
+  }
+  
+  private boolean containerInUse(ContainerStatus status) {
+    return (status.getState() == ContainerState.NEW || status.getState() == ContainerState.RUNNING);
   }
 }

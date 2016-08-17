@@ -1,3 +1,21 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.myriad.scheduler.fgs;
 
 import static org.junit.Assert.assertEquals;
@@ -38,13 +56,13 @@ public class OfferLifeCycleManagerTest {
   
   @Test
   public void testAddOffers() throws Exception {
-    manager.addOffers(TestObjectFactory.getOffer("localhost", "slave-1", "mock-framework", "offer-1"));
+    manager.addOffers(TestObjectFactory.getOffer("localhost", "slave-1", "mock-framework", "offer-1", 0.0, 0.0));
     assertNotNull(manager.getOfferFeed("localhost").poll());
   }
 
   @Test
   public void testMarkAsConsumed() throws Exception {
-    Offer offer = TestObjectFactory.getOffer("localhost-1", "slave-2", "mock-framework", "consumed-offer-1");
+    Offer offer = TestObjectFactory.getOffer("localhost-1", "slave-2", "mock-framework", "consumed-offer-1", 1.0, 1024.0);
     manager.addOffers(offer);
     manager.markAsConsumed(offer);
     ConsumedOffer cOffers = manager.getConsumedOffer("localhost-1");
