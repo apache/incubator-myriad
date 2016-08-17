@@ -61,5 +61,9 @@ public class MyriadConfigurationTest {
       assertEquals(taskName, outTaskname);
     }
   }
-
+  
+  @Test 
+  public void testFrameworkRole() throws Exception {
+    assertEquals("*", cfg.getFrameworkRole());
+  }
 }
