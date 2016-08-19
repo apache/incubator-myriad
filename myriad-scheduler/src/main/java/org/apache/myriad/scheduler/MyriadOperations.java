@@ -74,7 +74,7 @@ public class MyriadOperations {
     Collection<NodeTask> nodes = new HashSet<>();
     for (int i = 0; i < instances; i++) {
       NodeTask nodeTask = new NodeTask(serviceResourceProfile, constraint);
-      nodeTask.setTaskPrefix(NodeManagerConfiguration.NM_TASK_PREFIX);
+      nodeTask.setTaskPrefix(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX);
       nodes.add(nodeTask);
     }
 
@@ -118,6 +118,8 @@ public class MyriadOperations {
 
     if (auxTaskConf.getMaxInstances().isPresent()) {
       //If total number of current and flex instances exceed maxInstances, throw an exception
+      int flexible = getFlexibleInstances(serviceName);
+      System.out.println(flexible + " " + instances);
       int totalflexInstances = instances + getFlexibleInstances(serviceName);
       Integer maxInstances = auxTaskConf.getMaxInstances().get();
       if (maxInstances > 0) {

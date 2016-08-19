@@ -63,6 +63,7 @@ public class MockRMContext implements RMContext {
   SystemMetricsPublisher systemMetricsPublisher;
   ConfigurationProvider configurationProvider;
   AdminService adminService;
+  ConcurrentMap<NodeId, RMNode> rmNodes;
   
   public void setApplicationMasterService(ApplicationMasterService applicationMasterService) {
     this.applicationMasterService = applicationMasterService;
@@ -189,9 +190,12 @@ public class MockRMContext implements RMContext {
 
   @Override
   public ConcurrentMap<NodeId, RMNode> getRMNodes() {
-    return null;
+    return this.rmNodes;
   }
 
+  public void setRMNodes(ConcurrentMap<NodeId, RMNode> rmNodes) {
+    this.rmNodes = rmNodes;
+  }
   @Override
   public AMLivelinessMonitor getAMLivelinessMonitor() {
     return amLivelinessMonitor;

@@ -38,13 +38,13 @@ public class OfferLifeCycleManagerTest {
   
   @Test
   public void testAddOffers() throws Exception {
-    manager.addOffers(TestObjectFactory.getOffer("localhost", "slave-1", "mock-framework", "offer-1"));
+    manager.addOffers(TestObjectFactory.getOffer("localhost", "slave-1", "mock-framework", "offer-1", 0.0, 0.0));
     assertNotNull(manager.getOfferFeed("localhost").poll());
   }
 
   @Test
   public void testMarkAsConsumed() throws Exception {
-    Offer offer = TestObjectFactory.getOffer("localhost-1", "slave-2", "mock-framework", "consumed-offer-1");
+    Offer offer = TestObjectFactory.getOffer("localhost-1", "slave-2", "mock-framework", "consumed-offer-1", 1.0, 1024.0);
     manager.addOffers(offer);
     manager.markAsConsumed(offer);
     ConsumedOffer cOffers = manager.getConsumedOffer("localhost-1");

@@ -34,7 +34,7 @@ public class OfferUtils {
    * @param offers collection of mesos offers
    * @return a single resource object equivalent to the cumulative sum of mesos offers
    */
-  public static Resource getYarnResourcesFromMesosOffers(Collection<Offer> offers) {
+  public static Resource getYarnResourceFromMesosOffers(Collection<Offer> offers) {
     double cpus = 0.0;
     double mem = 0.0;
 

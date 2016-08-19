@@ -62,12 +62,12 @@ public class TaskTerminator implements Runnable {
   @Override
   public void run() { 
     //If there are 1..n killable tasks, proceed; otherwise, simply return
-    if (CollectionUtils.isNotEmpty(schedulerState.getKillableTasks())) {
+    if (CollectionUtils.isNotEmpty(schedulerState.getKillableTaskIds())) {
       /*
        * Clone the killable task collection, iterate through all tasks, and 
        * process any pending and/or non-pending tasks
        */
-      Set<TaskID> killableTasks = Sets.newHashSet(schedulerState.getKillableTasks());
+      Set<TaskID> killableTasks = Sets.newHashSet(schedulerState.getKillableTaskIds());
       Status driverStatus = driverManager.getDriverStatus();
 
       //TODO (hokiegeek2) Can the DriverManager be restarted? If not, should the ResourceManager stop?

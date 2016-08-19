@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 
 /**
  * Manages the Mesos offers tracked by Myriad.
@@ -57,10 +58,31 @@ public class OfferLifecycleManager {
     this.myriadDriver = myriadDriver;
   }
 
-  public OfferFeed getOfferFeed(String hostname) {
-    return offerFeedMap.get(hostname);
+  /**
+   * Retrieves the OfferFeed for a host and, if null, creates a new OfferFeed
+   * for a host that has either been added to, or rejoined, the Mesos cluster.
+   * 
+   * @param hostname
+   * @return feed
+   */
+  @VisibleForTesting
+  protected OfferFeed getOfferFeed(String hostname) {
+    OfferFeed feed = offerFeedMap.get(hostname);
+    if (feed == null) {
+      feed = new OfferFeed();
+      offerFeedMap.put(hostname, feed);
+    }
+    return feed;
   }
-
+  
+  protected Optional<Node> getOfferNode(String host) {
+    return Optional.fromNullable(nodeStore.getNode(host));
+  }
+  
+  protected Optional<Offer> getOffer(OfferFeed feed) {
+    return Optional.fromNullable(feed.poll());
+  }
+  
   public void declineOffer(Protos.Offer offer) {
     myriadDriver.getDriver().declineOffer(offer.getId());
     LOGGER.debug("Declined offer {}", offer.getId());
@@ -69,16 +91,12 @@ public class OfferLifecycleManager {
   public void addOffers(Protos.Offer... offers) {
     for (Protos.Offer offer : offers) {
       String hostname = offer.getHostname();
-      Node node = nodeStore.getNode(hostname);
-      if (node != null) {
-        OfferFeed feed = offerFeedMap.get(hostname);
-        if (feed == null) {
-          feed = new OfferFeed();
-          offerFeedMap.put(hostname, feed);
-        }
+   
+      Optional<Node> optNode = getOfferNode(hostname);
+      if (optNode.isPresent()) {
+        OfferFeed feed = getOfferFeed(hostname);
         feed.add(offer);
-
-        node.setSlaveId(offer.getSlaveId());
+        optNode.get().setSlaveId(offer.getSlaveId());
 
         LOGGER.debug("addResourceOffers: caching offer for host {}, offer id {}", hostname, offer.getId().getValue());
       } else {
@@ -98,6 +116,17 @@ public class OfferLifecycleManager {
     consumedOffer.add(offer);
   }
 
+  @VisibleForTesting
+  protected ConsumedOffer getConsumedOffer(String hostname) {
+    ConsumedOffer cOffer = consumedOfferMap.get(hostname);
+    if (cOffer == null) {
+      cOffer = new ConsumedOffer();
+      consumedOfferMap.put(hostname, cOffer);
+    }    
+    
+    return cOffer;
+  }
+  
   public ConsumedOffer drainConsumedOffer(String hostname) {
     return consumedOfferMap.remove(hostname);
   }
@@ -105,18 +134,14 @@ public class OfferLifecycleManager {
   public void declineOutstandingOffers(String hostname) {
     int numOutStandingOffers = 0;
     OfferFeed offerFeed = getOfferFeed(hostname);
-    Offer offer;
-    while (offerFeed != null && (offer = offerFeed.poll()) != null) {
-      declineOffer(offer);
+    Optional<Offer> optOffer;
+  
+    while ((optOffer = getOffer(offerFeed)).isPresent()) {
+      declineOffer(optOffer.get());
       numOutStandingOffers++;
     }
     if (numOutStandingOffers > 0) {
       LOGGER.info("Declined {} outstanding offers for host {}", numOutStandingOffers, hostname);
     }
-  }
-  
-  @VisibleForTesting
-  public ConsumedOffer getConsumedOffer(String hostname) {
-    return consumedOfferMap.get(hostname);
   }
 }

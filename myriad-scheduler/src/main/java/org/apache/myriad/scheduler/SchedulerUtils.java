@@ -59,7 +59,7 @@ public class SchedulerUtils {
    * @return
    */
   public static boolean isEligibleForFineGrainedScaling(String hostName, SchedulerState state) {
-    for (NodeTask activeNMTask : state.getActiveTasksByType(NodeManagerConfiguration.NM_TASK_PREFIX)) {
+    for (NodeTask activeNMTask : state.getActiveTasksByType(NodeManagerConfiguration.DEFAULT_NM_TASK_PREFIX)) {
       if (activeNMTask.getProfile().getCpus() == 0 &&
           activeNMTask.getProfile().getMemory() == 0 &&
           activeNMTask.getHostname().equals(hostName)) {

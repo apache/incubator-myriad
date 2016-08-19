@@ -51,7 +51,7 @@ public class SchedulerStateResource {
   @GET
   public GetSchedulerStateResponse getState() {
     return new GetSchedulerStateResponse(toStringCollection(state.getPendingTaskIds()), toStringCollection(
-        state.getStagingTaskIds()), toStringCollection(state.getActiveTaskIds()), toStringCollection(state.getKillableTasks()));
+        state.getStagingTaskIds()), toStringCollection(state.getActiveTaskIds()), toStringCollection(state.getKillableTaskIds()));
   }
 
   private Collection<String> toStringCollection(Collection<Protos.TaskID> collection) {
