@@ -212,6 +212,9 @@ public class MyriadConfiguration {
   }
 
   public String getFrameworkRole() {
+    if (frameworkRole.contains("/")) {
+      return frameworkRole.replace("/", "");
+    }  
     return frameworkRole;
   }
 

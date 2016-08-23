@@ -19,7 +19,8 @@ mesosMaster: 10.0.2.15:5050
 checkpoint: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadTest
-frameworkRole: 
+# For the mesos * role, must surround with quotes to prevent yaml parsing error
+frameworkRole: '*'
 frameworkUser: hduser     # User the Node Manager runs as, required if nodeManagerURI set, otherwise defaults to the user
                           # running the resource manager.
 frameworkSuperUser: root  # To be depricated, currently permissions need set by a superuser due to Mesos-1790.  Must be
