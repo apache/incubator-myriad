@@ -97,7 +97,7 @@ public class Main {
    * Initializes the Myriad object graph via MyriadConfiguration and starts
    * the Mesos interface (MyriadDriverManager) as well as all Myriad services
    *
-   *@param cfg MyriadConfiguration
+   * @param cfg MyriadConfiguration
    * @throws Exception
    */
   public void run(MyriadConfiguration cfg) throws Exception {
