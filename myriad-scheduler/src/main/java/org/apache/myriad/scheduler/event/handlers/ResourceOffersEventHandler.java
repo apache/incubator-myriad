@@ -43,6 +43,8 @@ import org.apache.myriad.state.SchedulerState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.myriad.configuration.MyriadConfiguration.DEFAULT_ROLE;
+
 /**
  * handles and logs resource offers events
  */
@@ -83,6 +85,31 @@ public class ResourceOffersEventHandler implements EventHandler<ResourceOffersEv
     }
     LOGGER.debug("Received offers {}", offers.size());
     LOGGER.debug("Pending tasks: {}", this.schedulerState.getPendingTaskIds());
+
+    // Let Myriad use reserved resources firstly.
+    Collections.sort(offers, new Comparator<Offer>() {
+      boolean isReserved(Offer o) {
+        for (Protos.Resource resource : o.getResourcesList()) {
+          if (resource.hasRole() && !Objects.equals(resource.getRole(), DEFAULT_ROLE)) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      @Override
+      public int compare(Offer o1, Offer o2) {
+        boolean reserved1 = isReserved(o1);
+        boolean reserved2 = isReserved(o2);
+
+        if (reserved1 == reserved2) {
+          return 0;
+        }
+
+        return reserved1 ? -1 : 1;
+      }
+    });
+
     driverOperationLock.lock();
     try {
       for (Iterator<Offer> iterator = offers.iterator(); iterator.hasNext(); ) {
