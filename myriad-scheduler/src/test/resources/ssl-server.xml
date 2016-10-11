@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+
+    <property>
+        <name>ssl.server.truststore.location</name>
+        <value>${tmptest.dir}/ssl_truststore</value>
+        <description>Truststore to be used by webservers. Must be specified.
+        </description>
+    </property>
+
+    <property>
+        <name>ssl.server.truststore.password</name>
+        <value>myriad</value>
+        <description>Optional. Default value is "".
+        </description>
+    </property>
+
+    <property>
+        <name>ssl.server.truststore.type</name>
+        <value>jks</value>
+        <description>Optional. The keystore file format, default value is "jks".
+        </description>
+    </property>
+
+    <property>
+        <name>ssl.server.truststore.reload.interval</name>
+        <value>10000</value>
+        <description>Truststore reload check interval, in milliseconds.
+            Default value is 10000 (10 seconds).
+        </description>
+    </property>
+
+    <property>
+        <name>ssl.server.keystore.location</name>
+        <value>${tmptest.dir}/ssl_keystore</value>
+        <description>Keystore to be used by webservers. Must be specified.
+        </description>
+    </property>
+
+    <property>
+        <name>ssl.server.keystore.password</name>
+        <value>myriad</value>
+        <description>Must be specified.
+        </description>
+    </property>
+
+    <property>
+        <name>ssl.server.keystore.keypassword</name>
+        <value>myriad</value>
+        <description>Must be specified.
+        </description>
+    </property>
+
+    <property>
+        <name>ssl.server.keystore.type</name>
+        <value>jks</value>
+        <description>Optional. The keystore file format, default value is "jks".
+        </description>
+    </property>
+
+</configuration>
