@@ -9,44 +9,35 @@
  * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
  * <p/>
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.apache.myriad.webapp;
 
 import com.google.inject.Scopes;
 import com.google.inject.servlet.ServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-import org.apache.myriad.api.ClustersResource;
-import org.apache.myriad.api.ConfigurationResource;
-import org.apache.myriad.api.ControllerResource;
-import org.apache.myriad.api.SchedulerStateResource;
-import org.apache.myriad.api.ArtifactsResource;
+import org.apache.myriad.api.*;
 import org.apache.myriad.configuration.MyriadConfiguration;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
 /**
- * The guice module for configuring the myriad dashboard
+ * Helper Module test class
  */
-public class MyriadServletModule extends ServletModule {
+public class MyriadServletTestModule extends ServletModule {
 
   private MyriadConfiguration cfg;
 
-  MyriadServletModule(MyriadConfiguration cfg) {
+  MyriadServletTestModule(MyriadConfiguration cfg) {
     this.cfg = cfg;
   }
 
   @Override
   protected void configureServlets() {
-    bind(ClustersResource.class);
     bind(ConfigurationResource.class);
-    bind(SchedulerStateResource.class);
-    bind(ControllerResource.class);
-    bind(ArtifactsResource.class);
     bind(GuiceContainer.class);
     bind(JacksonJaxbJsonProvider.class).in(Scopes.SINGLETON);
 

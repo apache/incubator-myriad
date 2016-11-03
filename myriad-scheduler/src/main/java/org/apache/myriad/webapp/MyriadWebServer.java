@@ -20,6 +20,8 @@ package org.apache.myriad.webapp;
 
 import com.google.inject.servlet.GuiceFilter;
 import javax.inject.Inject;
+
+import org.apache.myriad.configuration.MyriadConfiguration;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
@@ -36,6 +38,7 @@ public class MyriadWebServer {
   private final Server jetty;
   private final Connector connector;
   private final GuiceFilter filter;
+  private final MyriadConfiguration myriadConf;
 
   /**
    * Status codes for MyriadWebServer
@@ -43,10 +46,11 @@ public class MyriadWebServer {
   public enum Status {STARTED, RUNNING, STOPPED, FAILED, UNKNOWN}
   
   @Inject
-  public MyriadWebServer(Server jetty, Connector connector, GuiceFilter filter) {
+  public MyriadWebServer(Server jetty, Connector connector, GuiceFilter filter, MyriadConfiguration myriadConf) {
     this.jetty = jetty;
     this.connector = connector;
     this.filter = filter;
+    this.myriadConf = myriadConf;
   }
 
   public void start() throws Exception {
@@ -64,6 +68,21 @@ public class MyriadWebServer {
     filterMapping.setFilterName(filterName);
 
     servletHandler.addFilter(holder, filterMapping);
+
+    if (myriadConf.isSecurityEnabled()) {
+      String authFilterName = "Authentication";
+      String authFilterClassName = MyriadAuthenticationFilter.class.getName();
+      FilterHolder authHolder = new FilterHolder();
+      authHolder.setName(authFilterName);
+      authHolder.setClassName(authFilterClassName);
+
+      FilterMapping authFmap = new FilterMapping();
+      authFmap.setPathSpec("/*");
+      authFmap.setDispatches(Handler.ALL);
+      authFmap.setFilterName(authFilterName);
+
+      servletHandler.addFilter(authHolder, authFmap);
+    }
 
     Context context = new Context();
     context.setServletHandler(servletHandler);

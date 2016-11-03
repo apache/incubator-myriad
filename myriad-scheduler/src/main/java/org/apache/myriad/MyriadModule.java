@@ -52,8 +52,6 @@ import org.apache.myriad.scheduler.fgs.YarnNodeCapacityManager;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.MyriadStateStore;
 import org.apache.myriad.state.SchedulerState;
-import org.apache.myriad.webapp.HttpConnectorProvider;
-import org.apache.myriad.webapp.MyriadWebServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,8 +89,6 @@ public class MyriadModule extends AbstractModule {
     bind(ServiceProfileManager.class).in(Scopes.SINGLETON);
     bind(DisruptorManager.class).in(Scopes.SINGLETON);
     bind(ReconcileService.class).in(Scopes.SINGLETON);
-    bind(HttpConnectorProvider.class).in(Scopes.SINGLETON);
-    bind(MyriadWebServer.class).in(Scopes.SINGLETON);
     // add special binding between TaskFactory and NMTaskFactory to ease up
     // usage of TaskFactory
     bind(TaskFactory.class).annotatedWith(NMTaskFactoryAnnotation.class).to(NMTaskFactory.class);
@@ -161,7 +157,7 @@ public class MyriadModule extends AbstractModule {
   ExecutorCommandLineGenerator providesCLIGenerator(MyriadConfiguration cfg) {
     return new NMExecutorCommandLineGenerator(cfg);
   }
-  
+
   protected MyriadConfiguration generateMyriadConfiguration(String configFile) {
     ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
