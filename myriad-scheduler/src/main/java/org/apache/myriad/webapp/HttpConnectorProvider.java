@@ -101,6 +101,9 @@ public class HttpConnectorProvider implements Provider<Connector> {
     } catch (IOException ioe) {
       password = null;
     }
+    if (password == null) {
+      LOGGER.warn("No password found in config as property: {}. If you don't want prompted please set ...", alias);
+    }
     return password;
   }
 
