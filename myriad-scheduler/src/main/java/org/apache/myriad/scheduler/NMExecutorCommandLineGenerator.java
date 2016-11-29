@@ -101,7 +101,9 @@ public class NMExecutorCommandLineGenerator extends ExecutorCommandLineGenerator
       addJavaOpt(yarnOpts, KEY_YARN_HOME, yarnEnv.get("YARN_HOME"));
     }
 
-    addJavaOpt(yarnOpts, KEY_NM_RESOURCE_CPU_VCORES, Integer.toString(profile.getCpus().intValue()));
+    int vcores = (int) (myriadConfiguration.getNodeManagerConfiguration()
+        .getVcoreMultiplier() * profile.getCpus().intValue());
+    addJavaOpt(yarnOpts, KEY_NM_RESOURCE_CPU_VCORES, Integer.toString(vcores));
     addJavaOpt(yarnOpts, KEY_NM_RESOURCE_MEM_MB, Integer.toString(profile.getMemory().intValue()));
     Map<String, Long> portsMap = profile.getPorts();
     Preconditions.checkState(portsMap.size() == ports.size());

@@ -62,6 +62,11 @@ public class NodeManagerConfiguration {
    * Default max CPU cores for NodeManager JVM
    */
   public static final double DEFAULT_NM_MAX_CPUS = 24;
+
+  /**
+   * Default vcore multiplier for NodeManager
+   */
+  public static final double DEFAULT_VCORE_MULTIPLIER = 1;
   
   /**
    * Translates to -Xmx for the NodeManager JVM.
@@ -94,6 +99,9 @@ public class NodeManagerConfiguration {
   @JsonProperty
   private Double maxCpus;
   
+  @JsonProperty
+  private Double vcoreMultiplier;
+
   private Double generateNodeManagerMemory() {
     return (NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
   }
@@ -128,5 +136,9 @@ public class NodeManagerConfiguration {
   
   public Double getMaxCpus() {
     return Optional.fromNullable(maxCpus).or(DEFAULT_NM_MAX_CPUS);
+  }
+
+  public Double getVcoreMultiplier() {
+    return Optional.fromNullable(vcoreMultiplier).or(DEFAULT_VCORE_MULTIPLIER);
   }
 }
