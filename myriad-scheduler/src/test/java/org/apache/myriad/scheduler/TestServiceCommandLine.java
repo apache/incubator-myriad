@@ -47,10 +47,10 @@ public class TestServiceCommandLine extends BaseConfigurableTest {
       + System.lineSeparator() + "%s";
   protected static final String CMD_FORMAT = "echo \"%1$s\" && %1$s";
   static String toJHSCompare =
-      " sudo tar -zxpf hadoop-2.7.0.tar.gz &&  sudo  cp yarnConfiguration /usr/local/hadoop/etc/hadoop/yarn-site.xml &&  " +
+      " sudo tar -zxpf hadoop-2.7.0.tar.gz &&  sudo  cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml &&  " +
           "sudo -E -u hduser -H  bin/mapred historyserver";
   static String toCompare =
-      " sudo tar -zxpf hadoop-2.7.0.tar.gz &&  sudo  cp yarnConfiguration /usr/local/hadoop/etc/hadoop/yarn-site.xml &&  " +
+      " sudo tar -zxpf hadoop-2.7.0.tar.gz &&  sudo  cp conf /usr/local/hadoop/etc/hadoop/yarn-site.xml &&  " +
           "sudo -E -u hduser -H  $YARN_HOME/bin/yarn nodemanager";
 
   @Test
