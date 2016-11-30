@@ -78,15 +78,24 @@ public interface YarnSchedulerInterceptor {
    */
   public void beforeCompletedContainer(RMContainer rmContainer, ContainerStatus containerStatus, RMContainerEventType event);
 
-    /**
-     * Invoked *before* {@link AbstractYarnScheduler#reinitialize(Configuration, RMContext)}
-     *
-     * @param conf
-     * @param yarnScheduler
-     * @param rmContext
-     * @throws IOException
-     */
+  /**
+   * Invoked *before*
+   * {@link AbstractYarnScheduler#reinitialize(Configuration, RMContext)}
+   *
+   * @param conf
+   * @param yarnScheduler
+   * @param rmContext
+   * @throws IOException
+   */
   public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException;
+
+  /**
+   * Invoked *before*
+   * {@link AbstractYarnScheduler#serviceStop()}
+   *
+   * @throws IOException
+   */
+  public void cleanup() throws IOException;
 
   /**
    * Invoked *before* {@link RMNodeImpl#handle(RMNodeEvent)} only if

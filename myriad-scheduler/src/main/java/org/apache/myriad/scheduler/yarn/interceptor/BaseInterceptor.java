@@ -66,6 +66,10 @@ public class BaseInterceptor implements YarnSchedulerInterceptor {
   }
 
   @Override
+  public void cleanup() throws IOException {
+  }
+
+  @Override
   public void beforeRMNodeEventHandled(RMNodeEvent event, RMContext context) {
 
   }
