@@ -64,10 +64,15 @@ public class NodeManagerConfiguration {
   public static final double DEFAULT_NM_MAX_CPUS = 24;
 
   /**
-   * Default vcore multiplier for NodeManager
+   * Default vcore ratio for NodeManager
    */
-  public static final double DEFAULT_VCORE_MULTIPLIER = 1;
+  public static final double DEFAULT_VCORE_RATIO = 1;
   
+  /**
+   * Min vcore ratio for NodeManager
+   */
+  public static final double MIN_VCORE_RATIO = 0.1;
+
   /**
    * Translates to -Xmx for the NodeManager JVM.
    */
@@ -100,7 +105,7 @@ public class NodeManagerConfiguration {
   private Double maxCpus;
   
   @JsonProperty
-  private Double vcoreMultiplier;
+  private Double vcoreRatio;
 
   private Double generateNodeManagerMemory() {
     return (NodeManagerConfiguration.DEFAULT_JVM_MAX_MEMORY_MB) * (1 + NodeManagerConfiguration.JVM_OVERHEAD);
@@ -138,7 +143,8 @@ public class NodeManagerConfiguration {
     return Optional.fromNullable(maxCpus).or(DEFAULT_NM_MAX_CPUS);
   }
 
-  public Double getVcoreMultiplier() {
-    return Optional.fromNullable(vcoreMultiplier).or(DEFAULT_VCORE_MULTIPLIER);
+  public Double getVcoreRatio() {
+    return Math.max(MIN_VCORE_RATIO,
+        Optional.fromNullable(vcoreRatio).or(DEFAULT_VCORE_RATIO));
   }
 }

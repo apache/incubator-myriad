@@ -59,6 +59,10 @@ public class TaskUtils {
     return cfg.getNodeManagerConfiguration().getPorts();
   }
 
+  public double getNodeManagerVcoreRatio() {
+    return cfg.getNodeManagerConfiguration().getVcoreRatio();
+  }
+
   public double getExecutorCpus() {
     return MyriadExecutorDefaults.DEFAULT_CPUS;
   }

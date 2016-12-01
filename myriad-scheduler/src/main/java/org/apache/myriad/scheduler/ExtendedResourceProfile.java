@@ -48,7 +48,7 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
 
   @Override
   public Double getCpus() {
-    return childProfile.getCpus().doubleValue();
+    return childProfile.getCpus();
   }
 
   @Override
@@ -64,6 +64,10 @@ public class ExtendedResourceProfile extends ServiceResourceProfile {
   @Override
   public Double getAggregateCpu() {
     return cpus + childProfile.getCpus();
+  }
+
+  public int getVcores() {
+    return childProfile.getVcores().intValue();
   }
 
   @Override

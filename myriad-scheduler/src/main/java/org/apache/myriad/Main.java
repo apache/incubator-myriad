@@ -49,6 +49,7 @@ import org.apache.myriad.scheduler.ServiceProfileManager;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
 import org.apache.myriad.scheduler.TaskTerminator;
 import org.apache.myriad.scheduler.TaskUtils;
+import org.apache.myriad.scheduler.fgs.OfferUtils;
 import org.apache.myriad.scheduler.yarn.interceptor.InterceptorRegistry;
 import org.apache.myriad.state.SchedulerState;
 import org.apache.myriad.webapp.MyriadWebServer;
@@ -156,13 +157,19 @@ public class Main {
     ServiceProfileManager profileManager = injector.getInstance(ServiceProfileManager.class);
     Map<String, Map<String, String>> profiles = injector.getInstance(MyriadConfiguration.class).getProfiles();
     TaskUtils taskUtils = injector.getInstance(TaskUtils.class);
+    OfferUtils.setVcoreRatio(taskUtils.getNodeManagerVcoreRatio());
     if (MapUtils.isNotEmpty(profiles)) {
       for (Map.Entry<String, Map<String, String>> profile : profiles.entrySet()) {
         Map<String, String> profileResourceMap = profile.getValue();
-        if (MapUtils.isNotEmpty(profiles) && profileResourceMap.containsKey("cpu") && profileResourceMap.containsKey("mem")) {
-          Long cpu = Long.parseLong(profileResourceMap.get("cpu"));
+        if (MapUtils.isNotEmpty(profiles) &&
+            (profileResourceMap.containsKey("vcore") || profileResourceMap.containsKey("cpu")) &&
+            profileResourceMap.containsKey("mem")) {
+          Long vcore = profileResourceMap.containsKey("vcore") ?
+              Long.parseLong(profileResourceMap.get("vcore")) :
+              Long.parseLong(profileResourceMap.get("cpu"));
           Long mem = Long.parseLong(profileResourceMap.get("mem"));
-          ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(), cpu, mem),
+          ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(),
+              vcore, mem, taskUtils.getNodeManagerVcoreRatio()),
               taskUtils.getNodeManagerCpus(), taskUtils.getNodeManagerMemory(), taskUtils.getNodeManagerPorts());
           profileManager.add(serviceProfile);
         } else {

@@ -71,10 +71,10 @@ public class NMProfileManagerTest {
   public void testToString() throws Exception {
     NMProfileManager manager = this.getNMProfileManager();
     String toString = manager.toString();
-    assertTrue(toString.contains("\"name\":\"profile1\",\"cpus\":1,\"memory\":512"));
-    assertTrue(toString.contains("\"name\":\"profile2\",\"cpus\":2,\"memory\":1024"));
-    assertTrue(toString.contains("\"name\":\"profile3\",\"cpus\":3,\"memory\":2048"));
-    assertTrue(toString.contains("\"name\":\"profile4\",\"cpus\":4,\"memory\":3072"));
-    assertTrue(toString.contains("\"name\":\"profile5\",\"cpus\":5,\"memory\":4096"));
+    assertTrue(toString.contains("\"name\":\"profile1\",\"cpus\":1.0,\"memory\":512"));
+    assertTrue(toString.contains("\"name\":\"profile2\",\"cpus\":2.0,\"memory\":1024"));
+    assertTrue(toString.contains("\"name\":\"profile3\",\"cpus\":3.0,\"memory\":2048"));
+    assertTrue(toString.contains("\"name\":\"profile4\",\"cpus\":4.0,\"memory\":3072"));
+    assertTrue(toString.contains("\"name\":\"profile5\",\"cpus\":5.0,\"memory\":4096"));
   }
 }
