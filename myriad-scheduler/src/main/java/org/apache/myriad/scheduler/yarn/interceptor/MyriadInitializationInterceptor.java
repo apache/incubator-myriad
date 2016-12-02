@@ -50,7 +50,7 @@ public class MyriadInitializationInterceptor extends BaseInterceptor {
       Main.initialize(conf, yarnScheduler, rmContext, registry);
     } catch (Exception e) {
       // Abort bringing up RM
-      throw new RuntimeException("Failed to initialize myriad", e);
+      throw new IOException("Failed to initialize myriad", e);
     }
     LOGGER.info("Initialized myriad.");
   }

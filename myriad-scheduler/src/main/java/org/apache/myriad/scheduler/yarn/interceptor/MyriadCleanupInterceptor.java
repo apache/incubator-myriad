@@ -20,6 +20,7 @@ package org.apache.myriad.scheduler.yarn.interceptor;
 
 import java.io.IOException;
 
+import org.apache.mesos.Protos.Status;
 import org.apache.myriad.Main;
 import org.apache.myriad.scheduler.MyriadDriverManager;
 import org.slf4j.Logger;
@@ -42,11 +43,16 @@ public class MyriadCleanupInterceptor extends BaseInterceptor {
   public void cleanup() throws IOException {
     try {
       LOGGER.info("stopping mesosDriver..");
-      Main.getInjector().getInstance(MyriadDriverManager.class).stopDriver(false);
+      Status status = Main.getInjector().getInstance(MyriadDriverManager.class)
+          .stopDriver(false);
+      if (status.getNumber() != Status.DRIVER_STOPPED_VALUE) {
+        throw new IllegalStateException("Error occurred while stopping MyriadDirver: "
+            + "Unexpected driver status: " + status.name());
+      }
       LOGGER.info("stopped mesosDriver..");
     } catch (Exception e) {
       // Abort shutdown RM
-      throw new RuntimeException("Failed to stop myriad", e);
+      throw new IOException("Failed to stop myriad", e);
     }
     LOGGER.info("Stopped myriad.");
   }
