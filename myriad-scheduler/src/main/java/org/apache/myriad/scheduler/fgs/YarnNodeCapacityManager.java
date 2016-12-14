@@ -326,7 +326,7 @@ public class YarnNodeCapacityManager extends BaseInterceptor {
     return Protos.TaskInfo.newBuilder()
         .setName("task_" + taskId.getValue()).setTaskId(taskId)
         .setSlaveId(offer.getSlaveId())
-        .addAllResources(taskUtils.getScalarResource(offer, "cpus", (double) container.getResource().getVirtualCores(), 0.0))
+        .addAllResources(taskUtils.getScalarResource(offer, "cpus", (double) container.getResource().getVirtualCores() * OfferUtils.getVcoreRatio(), 0.0))
         .addAllResources(taskUtils.getScalarResource(offer, "mem", (double) container.getResource().getMemory(), 0.0))
         .setExecutor(executorInfo)
         .build();

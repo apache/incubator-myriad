@@ -38,6 +38,14 @@ public class OfferUtils {
   }
 
   /**
+   * Get the ratio that indicates physical cpu consumes per vcore
+   * @return vcoreRatio
+   */
+  public static double getVcoreRatio() {
+    return vcoreRatio;
+  }
+
+  /**
    * Transforms a collection of mesos offers into {@link Resource}.
    *
    * @param offers collection of mesos offers
@@ -50,9 +58,9 @@ public class OfferUtils {
     for (Protos.Offer offer : offers) {
       for (Protos.Resource resource : offer.getResourcesList()) {
         if (resource.getName().equalsIgnoreCase("cpus")) {
-          cpus += resource.getScalar().getValue();
+          cpus += resource.getScalar().getValue() / vcoreRatio;
         } else if (resource.getName().equalsIgnoreCase("mem")) {
-          mem += resource.getScalar().getValue() / vcoreRatio;
+          mem += resource.getScalar().getValue();
         }
       }
     }

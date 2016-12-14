@@ -167,6 +167,9 @@ public class Main {
           Long vcore = profileResourceMap.containsKey("vcore") ?
               Long.parseLong(profileResourceMap.get("vcore")) :
               Long.parseLong(profileResourceMap.get("cpu"));
+          if (profileResourceMap.containsKey("vcore")) {
+            LOGGER.warn("Deprecated parameter 'cpu' in profiles, please use 'vcore' instead!");
+          }
           Long mem = Long.parseLong(profileResourceMap.get("mem"));
           ServiceResourceProfile serviceProfile = new ExtendedResourceProfile(new NMProfile(profile.getKey(),
               vcore, mem, taskUtils.getNodeManagerVcoreRatio()),
