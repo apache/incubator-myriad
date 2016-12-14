@@ -167,7 +167,7 @@ public class Main {
           Long vcore = profileResourceMap.containsKey("vcore") ?
               Long.parseLong(profileResourceMap.get("vcore")) :
               Long.parseLong(profileResourceMap.get("cpu"));
-          if (profileResourceMap.containsKey("vcore")) {
+          if (profileResourceMap.containsKey("cpu")) {
             LOGGER.warn("Deprecated parameter 'cpu' in profiles, please use 'vcore' instead!");
           }
           Long mem = Long.parseLong(profileResourceMap.get("mem"));
