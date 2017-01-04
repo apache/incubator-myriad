@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Myriad</title>
+  <meta name="description" content="Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+">
+
+  <!-- TODO download fonts and deliver -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700,700italic,500,500italic' rel='stylesheet' type='text/css'>
+
+  <link rel="shortcut icon" type="image/png" href="/img/favicon.png?">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/mdl/material.min.css">
+  <script src="/css/mdl/material.min.js"></script>
+
+  <link rel="stylesheet" href="/css/font-awesome-4.4.0/css/font-awesome.min.css">
+</head>
+
+  <body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header mdl-color--myriad-contrast">
+
+      <header class="mdl-layout__header mdl-color--grey-100 mdl-color-text--myriad">
+  <div class="mdl-layout__header-row">
+    <span class="mdl-layout-title">Myriad</span>
+    <div class="mdl-layout-spacer"></div>
+    <button class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--icon" id="hdrbtn">
+      <i class="material-icons">more_vert</i>
+    </button>
+    <ul class="mdl-menu mdl-js-menu mdl-js-ripple-effect mdl-menu--bottom-right" for="hdrbtn">
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/">Apache Homepage</a></li>
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/licenses/">License</a></li>
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/foundation/sponsorship.html">Sponsorship</a></li>
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/foundation/thanks.html">Thanks</a></li>
+      <li><a class="mdl-color-text--myriad" href="http://www.apache.org/security/">Security</a></li>
+    </ul>
+  </div>
+</header>
+<div class="mdl-layout__drawer mdl-color-text--myriad mdl-color--grey-100">
+  <span class="">
+    <img src="/img/navbar_logo.png" alt="Incubator Logo" ></img>
+  </span>
+  <nav class="mdl-navigation">
+    <a class="mdl-navigation__link" href="/">Home</a>
+    <a class="mdl-navigation__link" href="/news">News</a>
+    <a class="mdl-navigation__link" href="/docs">Documentation</a>
+    <a class="mdl-navigation__link" href="/downloads">Downloads</a>
+    <a class="mdl-navigation__link" href="/community">Community</a>
+    <hr/>
+  </nav>
+</div>
+
+
+      <main class="mdl-layout__content">
+        <div class="myriad-content">
+          <div class="mdl-grid">
+  <div class="mdl-color--grey-50 mdl-shadow--6dp mdl-color-text--grey-800 mdl-cell mdl-cell--12-col">
+
+        <div class="myriad-splash">
+  <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--1-col"></div>
+  </div>
+  <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--1-col"></div>
+    <div class="mdl-cell mdl-cell--7-col">
+      <img src="/img/navbar_logo.png"></img>
+    </div>
+  </div>
+  <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--2-col"></div>
+    <div class="mdl-cell mdl-cell--10-col">
+      <div class="mdl-typography--headline mdl-color-text--grey-700">
+        Deploy Apache YARN Applications Using Apache Mesos
+      </div>
+    </div>
+    <div class="mdl-grid">
+      <div class="mdl-cell mdl-cell--4-col">
+        <a href="/downloads">
+        <button class="mdl-button mdl-js-button mdl-button--colored mdl-button--raised mdl-color--myriad mdl-js-ripple-effect">
+          Try It!
+        </button>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="mdl-grid">
+    <div class="mdl-cell mdl-cell--8-col"></div>
+    <div class="mdl-cell mdl-cell--4-col">
+      <a href="https://incubator.apache.org" target="_">
+        <img src="/img/egg-logo.png"></img>
+      </a>
+    </div>
+  </div>
+</div>
+
+
+  </div>
+
+  <div class="mdl-color--white mdl-shadow--6dp mdl-color-text--grey-800 mdl-cell mdl-cell--7-col">
+        <div class="mdl-grid">
+<div class="mdl-cell--1-col"></div>
+<div class="mdl-cell mdl-cell--11-col">
+  <h3 class="mdl-typography--title">Overview</h3>
+  <p class="mdl-typography--body-1">
+  Apache Myriad enables the co-existence of Apache Hadoop and
+  Apache Mesos on the same physical infrastructure. By running Hadoop
+  YARN as a Mesos framework, YARN applications and Mesos frameworks can
+  run side-by-side, dynamically sharing cluster resources.
+  </p>
+</div>
+</div>
+
+<div class="mdl-grid">
+<div class="mdl-cell--1-col"></div>
+<div class="mdl-cell--11-col">
+<h3 class="mdl-typography--title">Key Features</h3>
+<ul class="mdl-typography--body-1">
+  <li>YARN resource manager and node managers running inside Mesos containers.</li>
+  <li>Static resource allocation</li>
+  <li>Fine-grained resource allocation</li>
+  <li>High-Availablity and graceful restart</li>
+  <li>Support YARN FairScheduler and all other functionality</li>
+  <li>Deploy YARN ResourceManager with Marathon</li>
+  <li>Run MapReduce v2, Hive, Pig, Mahout, etc.</li>
+</ul>
+</div>
+</div>
+
+  </div>
+  <div class="mdl-color--white mdl-shadow--6dp mdl-color-text--grey-800 mdl-cell mdl-cell--5-col">
+        <div class="mdl-grid">
+<div class="mdl-cell--1-col"></div>
+<div class="mdl-cell mdl-cell--11-col">
+  <h3 class="mdl-typography--title"><a href="/news/">News</a></h3>
+
+  
+  <div class="mdl-typography--body-2">
+    Myriad Migrated to Apache Git
+  </div>
+  <div class="mdl-typography--caption">
+    <em>Sep 24, 2015</em>
+    <br/>
+    <span class="mdl-typography--body-1">
+      Myriad codebase has been migrated from Github to Apache's git infrastructure.
+    </span>
+    <hr/>
+  </div>
+  
+  <div class="mdl-typography--body-2">
+    Project Enters Incubation
+  </div>
+  <div class="mdl-typography--caption">
+    <em>Feb 28, 2015</em>
+    <br/>
+    <span class="mdl-typography--body-1">
+      Myriad project has been accepted into the Apache Software Foundation Incubation process.
+    </span>
+    <hr/>
+  </div>
+  
+</div>
+</div>
+
+  </div>
+
+</div>
+<footer class="mdl-mega-footer">
+  <div class="mdl-mega-footer__top-section">
+    <div class="mdl-mega-footer__left-section">
+      <button class="mdl-mega-footer__social-btn">
+        <a target="_blank" href="https://twitter.com/apachemyriad">
+          <i class="fa fa-twitter fa-3x mdl-color-text--myriad-contrast"></i>
+        </a>
+      </button>
+      <button class="mdl-mega-footer__social-btn">
+        <a target="_blank" href="https://github.com/apache/incubator-myriad">
+          <i class="fa fa-github fa-3x mdl-color-text--myriad-contrast"></i>
+        </a>
+      </button>
+      <button class="mdl-mega-footer__social-btn">
+        <a target="_blank" href="http://stackoverflow.com/search?q=apache+myriad">
+          <i class="fa fa-stack-exchange fa-3x  mdl-color-text--myriad-contrast"></i>
+        </a>
+      </button>
+    </div>
+    <div class="mdl-mega-footer__right-section">
+      <a href="https://freenode.net/">Join us on Freenode IRC #myriad</a>
+    </div>
+  </div>
+  <div class="mdl-mega-footer__middle-section">
+    <div class="mdl-mega-footer__drop-down-section">
+      <h1 class="mdl-mega-footer__heading">Apache Myriad&trade;</h1>
+      <ul class="mdl-mega-footer__link-list">
+        <li><a href="/">Home</a></li>
+        <li><a href="/news">News</a></li>
+        <li><a href="/docs">Documentation</a></li>
+        <li><a href="/downloads">Downloads</a></li>
+        <li><a href="/community">Community</a></li>
+      </ul>
+    </div>
+    <div class="mdl-mega-footer__drop-down-section">
+      <h1 class="mdl-mega-footer__heading">Apache Software Foundation</h1>
+      <ul class="mdl-mega-footer__link-list">
+        <li><a href="http://www.apache.org/">Apache Homepage</a></li>
+        <li><a href="http://www.apache.org/licenses/">License</a></li>
+        <li><a href="http://www.apache.org/foundation/sponsorship.html">Sponsorship</a></li>
+        <li><a href="http://www.apache.org/foundation/thanks.html">Thanks</a></li>
+        <li><a href="http://www.apache.org/security/">Security</a></li>
+      </ul>
+    </div>
+    <div class="mdl-mega-footer__drop-down-section">
+      <br/>
+      <br/>
+      <a href="https://incubator.apache.org" target="_">
+        <img src="/img/egg-logo.png" alt="Incubator Logo" ></img>
+      </a>
+    </div>
+  </div>
+  <div class="mdl-mega-footer__bottom-section">
+    <div class="mdl-logo">
+      &copy;2015 The Apache Software Foundation.
+    </div>
+    <ul class="mdl-mega-footer__link-list">
+      <li>Apache Myriad, Myriad, the Apache feather logo,
+      and the Apache Myriad project logo are trademarks of
+      <a href="http://apache.org">The Apache Software Foundation</a>
+      in the United States and other countries.
+      All other marks mentioned may be trademarks or registered trademarks of their respective owners.</li>
+    </ul>
+  </div>
+</footer>
+
+
+        </div>
+
+      </main>
+      <!-- footer should be included on page layouts -->
+    </div>
+
+  </body>
+</html>

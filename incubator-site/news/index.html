@@ -1,0 +1,11 @@
+---
+layout: big_card_for_md
+title: News
+permalink: /news/
+---
+{% for post in site.posts %}
+<div>
+  {% include page.html %}
+</div>
+<hr/>
+{% endfor %}

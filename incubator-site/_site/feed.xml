@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Apache Myriad Site Demo</title>
+    <description>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+</description>
+    <link>http://myriad.incubator.apache.org/</link>
+    <atom:link href="http://myriad.incubator.apache.org/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Mon, 05 Oct 2015 12:06:32 -0400</pubDate>
+    <lastBuildDate>Mon, 05 Oct 2015 12:06:32 -0400</lastBuildDate>
+    <generator>Jekyll v2.5.3</generator>
+    
+      <item>
+        <title>Myriad Migrated to Apache Git</title>
+        <description>&lt;p&gt;The final legal hurdles to finally donating the codebase to the Apache Software Foundation have been overcome.
+(Thanks EBay and PayPal!) The codebase now resides in the Apache git infrastructure. Please clone this and use
+it from now on. The old github repo is now no longer used, however pull requests may still be submitted through the official Apache Github mirror.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://git-wip-us.apache.org/repos/asf?p=incubator-myriad.git&quot;&gt;Official Repo&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://github.com/apache/incubator-myriad&quot;&gt;Github mirror&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Thu, 24 Sep 2015 20:00:00 -0400</pubDate>
+        <link>http://myriad.incubator.apache.org/news/2015/09/24/code-migrated-to-apache-git.html</link>
+        <guid isPermaLink="true">http://myriad.incubator.apache.org/news/2015/09/24/code-migrated-to-apache-git.html</guid>
+        
+        
+        <category>news</category>
+        
+      </item>
+    
+      <item>
+        <title>Project Enters Incubation</title>
+        <description>&lt;p&gt;Myriad project has been accepted into the Apache Software Foundation Incubation process. Please have a look at our &lt;a href=&quot;https://wiki.apache.org/incubator/MyriadProposal&quot;&gt;proposal.&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://incubator.apache.org/projects/myriad.html&quot;&gt;Incubator Status&lt;/a&gt;&lt;/p&gt;
+</description>
+        <pubDate>Sat, 28 Feb 2015 19:00:00 -0500</pubDate>
+        <link>http://myriad.incubator.apache.org/news/2015/02/28/project-enters-incubation.html</link>
+        <guid isPermaLink="true">http://myriad.incubator.apache.org/news/2015/02/28/project-enters-incubation.html</guid>
+        
+        
+        <category>news</category>
+        
+      </item>
+    
+  </channel>
+</rss>
