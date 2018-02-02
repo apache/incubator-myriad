@@ -28,6 +28,7 @@ import com.google.common.base.Optional;
 
 /**
  * Myriad Configuration commonly defined in the YML file
+ * <pre>
  * mesosMaster: 10.0.2.15:5050
  * checkpoint: false
  * frameworkFailoverTimeout: 43200000
@@ -75,6 +76,7 @@ import com.google.common.base.Optional;
  *       hostPath: path
  * yarnEnvironment:
  *   YARN_HOME: /usr/local/hadoop
+ * </pre>
  */
 public class MyriadConfiguration {
   /**
