@@ -1,0 +1,68 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: Create Hadoop group
+  group:
+    name: hadoop
+    state: present
+  tags: hadoop
+
+- name: Create Hadoop users
+  user: 
+    name: "{{ item }}"
+    password: "{{ 'vagrant' | password_hash('sha512') }}"
+    shell: /bin/bash 
+    group: hadoop
+  with_items:
+      - yarn
+      - hdfs
+      - mapred
+  tags: hadoop
+
+- name: Create Hadoop metadata folder
+  file:
+    path: "{{ hadoop_namenode_folder }}"
+    state: directory
+    owner: hdfs
+    group: hadoop
+    mode: 0755
+  tags: hadoop
+
+- name: Create local logs folder for Hadoop daemons
+  file:
+    path: "{{ hadoop_logs_folder }}"
+    state: directory
+    owner: hdfs
+    group: hadoop
+    mode: 0775
+  tags: hadoop
+
+- name: Copy minimal (core,hdfs,mapred,yarn)-site.xml files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ hadoop_etc_folder }}"
+  with_items:
+    - core-site.xml
+    - hdfs-site.xml
+    - mapred-site.xml
+    - yarn-site.xml
+    - workers
+    - slaves
+    - myriad-config-default.yml
+  tags: hadoop

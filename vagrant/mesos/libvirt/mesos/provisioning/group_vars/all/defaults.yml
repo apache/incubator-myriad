@@ -1,0 +1,100 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+---
+# Minimal CentOS system packages
+system_packages:
+  - nc
+  - tar
+  - wget
+  - git
+  - docker-python
+  - epel-release
+  - vim
+  - tree
+  - ntp
+  - net-tools
+  - bind-utils
+  - xz 
+  - unzip 
+  - curl 
+  - ipset
+  - nfs-utils
+  - gdb-gdbserver
+  - gcc-c++
+  - sysstat
+
+# Dependencies for building Apache Mesos in CentOS
+mesos_dependencies_packages:
+  - apache-maven 
+  - python-devel 
+  - python-six 
+  - python-virtualenv 
+  - java-1.8.0-openjdk-devel 
+  - zlib-devel 
+  - libcurl-devel 
+  - openssl-devel 
+  - cyrus-sasl-devel 
+  - cyrus-sasl-md5 
+  - apr-devel 
+  - subversion-devel 
+  - apr-util-devel
+  - libevent 
+  - libevent-devel
+
+system_epel_packages:
+  - pdsh  
+  - sshpass
+
+# NFS enablement for sharing folders between nodes
+nfs_packages:
+  - rpcbind 
+  - nfs-server
+  - nfs-lock 
+  - nfs-idmap
+nfs_shared_folder: /opt
+
+# Source code location for Mesos and Myriad
+mesos_cloned_folder: mesos
+myriad_cloned_folder: myriad
+mesos_repository: https://git-wip-us.apache.org/repos/asf/mesos.git
+myriad_repository: https://github.com/myriad-framework/myriad
+mesos_repo_branch: master
+myriad_repo_branch: master
+
+# Zookeeper configrations 
+zookeeper_version: "{{ lookup('env','ZOOKEEPER_VERSION') }}"
+zookeeper_binary_download_url: http://www-eu.apache.org/dist/zookeeper
+zookeeper_binary_package: "{{ zookeeper_binary_download_url }}/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+
+# Hadoop configrations 
+hadoop_version: "{{ lookup('env','HADOOP_VERSION') }}"
+hadoop_binary_download_url: https://archive.apache.org/dist/hadoop/common/
+hadoop_binary_package: "{{ hadoop_binary_download_url }}/hadoop-{{ hadoop_version }}/hadoop-{{ hadoop_version }}.tar.gz"
+
+# Hadoop folders
+hadoop_data_root_folder: /cluster
+hadoop_namenode_folder: "{{ hadoop_data_root_folder }}/nn"
+hadoop_logs_folder: "{{ nfs_shared_folder }}/hadoop/logs"
+hadoop_etc_folder: "{{ nfs_shared_folder }}/hadoop/etc/hadoop"
+
+
+
+
+
+

@@ -1,0 +1,83 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: Create hdfs .ssh folder
+  file:
+    path: /home/hdfs/.ssh
+    state: directory
+    owner: hdfs
+    group: hadoop
+    mode: 0700
+  tags: hadoop
+
+- name: Generate RSA key-pair for hdfs user passwordless
+  shell: ssh-keygen -t rsa -f .ssh/id_rsa -q -N "" && touch .skiprsa
+  become: yes
+  become_user: hdfs
+  args:
+      chdir: /home/hdfs
+      creates: .skiprsa
+  tags: hadoop
+
+- name: Install boot host public key in a remote authorized_keys
+  shell: >
+    sshpass -p vagrant ssh-copy-id -i .ssh/id_rsa {{ item }} -o StrictHostKeyChecking=no 
+  become: yes
+  become_user: hdfs
+  args:
+    chdir: /home/hdfs
+  with_items:
+    - "{{ groups['mesos-masters'] }}"
+    - "{{ groups['mesos-agents'] | reject('search','mesos-a1') | list }}"
+    - 0.0.0.0
+  tags: hadoop
+
+- name: Create yarn .ssh folder
+  file:
+    path: /home/yarn/.ssh
+    state: directory
+    owner: yarn
+    group: hadoop
+    mode: 0700
+  tags: hadoop
+
+- name: Generate RSA key-pair for hdfs user passwordless
+  shell: ssh-keygen -t rsa -f .ssh/id_rsa -q -N "" && touch .skiprsa
+  become: yes
+  become_user: yarn 
+  args:
+      chdir: /home/yarn
+      creates: .skiprsa
+  tags: hadoop
+
+- name: Install boot host public key in a remote authorized_keys
+  shell: >
+    sshpass -p vagrant ssh-copy-id -i .ssh/id_rsa {{ item }} -o StrictHostKeyChecking=no 
+  become: yes
+  become_user: yarn
+  args:
+    chdir: /home/yarn
+  with_items:
+    - "{{ groups['mesos-masters'] }}"
+    - "{{ groups['mesos-agents'] | reject('search','mesos-a1') | list }}"
+    - 0.0.0.0
+  tags: hadoop
+
+
+
