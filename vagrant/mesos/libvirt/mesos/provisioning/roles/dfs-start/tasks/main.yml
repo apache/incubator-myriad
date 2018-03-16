@@ -1,0 +1,21 @@
+---
+- name: Format Hadoop filesystem
+  shell : "source /etc/profile.d/java.sh && {{ nfs_shared_folder }}/hadoop/bin/hdfs namenode -format && touch .skipformat"
+  become: yes
+  become_user: hdfs
+  args:
+      creates: .skipformat
+  run_once: yes
+  tags: hadoop
+
+- name: Start DFS cluster
+  shell : "source /etc/profile.d/java.sh && {{ nfs_shared_folder }}/hadoop/sbin/start-dfs.sh && touch .skipstartdfs"
+  become: yes
+  become_user: hdfs
+  args:
+      creates: .skipstartdfs
+  run_once: yes
+  tags: hadoop
+
+
+

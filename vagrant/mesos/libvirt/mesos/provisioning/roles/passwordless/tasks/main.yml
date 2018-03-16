@@ -1,0 +1,6 @@
+---
+- include: build.yml
+  when: inventory_hostname in groups['build-host']
+
+- include: master.yml
+  when: inventory_hostname == 'mesos-m1'

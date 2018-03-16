@@ -1,0 +1,11 @@
+# Copy the Myriad Scheduler
+cp -vf myriad/myriad-scheduler/build/libs/* hadoop/share/hadoop/yarn/lib/
+
+#  Copy the Myriad Executor
+cp -vf myriad/myriad-executor/build/libs/myriad-executor-0.2.0.jar hadoop/share/hadoop/yarn/lib/
+
+# Copy the myriad-config-default.yml
+cp myriad/myriad-scheduler/build/resources/main/myriad-config-default.yml hadoop/etc/hadoop/
+
+#Hadoop 2.7.x:
+#sbin/yarn-daemon.sh --config /opt/hadoop/etc/hadoop/ start resourcemanager

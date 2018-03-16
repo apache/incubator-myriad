@@ -1,0 +1,20 @@
+---
+- name: Generate RSA key-pair for passwordless
+  shell: ssh-keygen -t rsa -f .ssh/id_rsa -q -N "" && touch .skiprsa
+  become: yes
+  become_user: vagrant
+  args:
+      chdir: /home/vagrant
+      creates: .skiprsa
+
+- name: Install boot host public key in a remote authorized_keys
+  shell: >
+    sshpass -p vagrant ssh-copy-id -i .ssh/id_rsa {{ item }} -o StrictHostKeyChecking=no
+  become: yes
+  become_user: vagrant
+  args:
+    chdir: /home/vagrant
+  with_inventory_hostnames:
+    - all
+
+

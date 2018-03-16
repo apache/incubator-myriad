@@ -1,0 +1,12 @@
+---
+- name: Start Yarn cluster
+  shell : "source /etc/profile.d/java.sh && {{ nfs_shared_folder }}/hadoop/sbin/start-yarn.sh && touch .skipstartyarn"
+  become: yes
+  become_user: yarn
+  args:
+      creates: .skipstartyarn
+  run_once: yes
+  tags: hadoop
+
+
+

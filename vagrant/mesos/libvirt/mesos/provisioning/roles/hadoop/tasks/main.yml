@@ -1,0 +1,19 @@
+---
+- name: Setup system wide JAVA_HOME
+  copy:
+    src: java.sh
+    dest: /etc/profile.d
+  tags: hadoop
+
+- include: build.yml
+  when: inventory_hostname in groups['build-host']
+
+- include: namenode.yml
+  when: inventory_hostname in groups['mesos-masters']
+
+- include: datanode.yml
+  when: inventory_hostname in groups['mesos-agents'] and inventory_hostname != 'mesos-a1'
+
+
+
+

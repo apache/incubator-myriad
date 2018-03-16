@@ -1,0 +1,45 @@
+---
+- name: Setup OverlayFS storage driver automatic loading
+  lineinfile: 
+    dest: /etc/modules-load.d/overlay.conf
+    create: yes
+    state: present
+    line: overlay
+
+- name: Load overlay kernel module (avoiting reboot)
+  modprobe: name=overlay state=present
+
+- name: Setup offial Docker repository
+  blockinfile:
+    dest: /etc/yum.repos.d/docker.repo
+    backup: yes
+    create: yes
+    block: |
+      [dockerrepo]
+      name=Docker Repository
+      baseurl=https://yum.dockerproject.org/repo/main/centos/7/
+      enabled=1
+      gpgcheck=1
+      gpgkey=https://yum.dockerproject.org/gpg
+
+- name: Configure systemd to run the Docker Daemon with OverlayFS (folder)
+  file: path=/etc/systemd/system/docker.service.d state=directory
+
+- name: Configure systemd to run the Docker Daemon with OverlayFS (control file)
+  blockinfile:
+    dest: /etc/systemd/system/docker.service.d/override.conf
+    backup: yes
+    create: yes
+    block: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
+
+- name: Installing Docker 1.11.12 version
+  yum: name=docker-engine-1.11.2 state=installed
+
+- name: Starting Docker daemon
+  service: name=docker state=started
+
+- name: Enabling Docker daemon
+  service: name=docker enabled=yes

@@ -1,0 +1,145 @@
+$ cat /etc/profile.d/java.sh 
+export JAVA_HOME=/usr/lib/jvm/java
+
+$ cat /opt/hadoop/etc/hadoop/workers 
+mesos-a2 
+mesos-a3 
+mesos-a4 
+
+- Set NameNode Location
+
+$ cat /opt/hadoop/etc/hadoop/core-site.xml
+<configuration>
+        <property>
+            <name>fs.default.name</name>
+            <value>hdfs://mesos-m1:9000</value>
+        </property>
+</configuration>
+
+- Set path for HDFS
+
+https://hortonworks.com/blog/hdfs-metadata-directories-explained/
+
+NN: dfs.namenode.name.dir
+
+Determines where on the local filesystem the DFS name node should store the 
+name table(fsimage). If this is a comma-delimited list of directories 
+then the name table is replicated in all of the directories, for redundancy.
+
+DN:  dfs.datanode.data.dir
+
+Although DataNodes do not contain metadata about the directories and files 
+stored in an HDFS cluster, they do contain a small amount of metadata about 
+the DataNode itself and its relationship to a cluster. 
+
+- directories on the datanode's local filesystem that store HDFS blocks. 
+- dfs.datanode.data.dir: directory on your datanodes as the data directory. 
+dfs.datanode.data.dir=/volumes/disk1/hadoop/data/
+
+$ cat /opt/hadoop/etc/hadoop/hdfs-site.xml
+
+<configuration>
+    <property>
+            <name>dfs.namenode.name.dir</name>
+            <value>/cluster/nn</value>
+    </property>
+
+    <property>
+            <name>dfs.datanode.data.dir</name>
+            <value>/cluster/1/dn/data,/data/2/dn/data</value>
+    </property>
+
+    <property>
+            <name>dfs.replication</name>
+            <value>3</value>
+    </property>
+</configuration>
+
+- Set YARN as Job Scheduler
+$ cat /opt/hadoop/etc/hadoop/mapred-site.xml
+<configuration>
+    <property>
+            <name>mapreduce.framework.name</name>
+            <value>yarn</value>
+    </property>
+</configuration>
+
+- Configure YARN
+$ cat /opt/hadoop/etc/hadoop/yarn-site.xml
+<configuration>
+    <property>
+            <name>yarn.acl.enable</name>
+            <value>0</value>
+    </property>
+
+    <property>
+            <name>yarn.resourcemanager.hostname</name>
+            <value>mesos-m1</value>
+    </property>
+
+    <property>
+            <name>yarn.nodemanager.aux-services</name>
+            <value>mapreduce_shuffle</value>
+    </property>
+</configuration>
+
+- Duplicate Config Files on Each Node: NFS shared for this
+
+- HDFS needs to be formatted like any classical file system. On node-master, run the following command:
+
+- Permission, user and local folders:
+
+Master (NN):
+
+groupadd hadoop
+useradd -g hadoop yarn
+useradd -g hadoop hdfs
+useradd -g hadoop mapred
+
+mkdir /opt/hadoop/logs
+sudo chown -R hdfs:hadoop /opt/hadoop/logs
+
+sudo mkdir -p /cluster/nn/
+sudo chown -R hdfs:hadoop /cluster/nn/
+
+- Format HDFS:
+
+For the HDFS NameNode to start, it needs to initialize the directory where it
+will hold its data.
+
+sudo su - hdfs
+cd /opt/hadoop
+bin/hdfs namenode -format
+
+- Running HDFS cluster:
+
+sudo su - hdfs
+sbin/start-dfs.sh
+
+
+- Testing HDFS:
+
+sudo su - hdfs
+bin/hdfs dfsadmin -printTopology
+bin/hdfs dfsadmin -report
+
+- Running Yarn cluster:
+
+sudo su - yarn
+sbin/start-yarn.sh
+
+- Testing Yarn:
+
+bin/yarn node -list
+bin/yarn application -list
+
+For testing with Myriad we run only RM:
+
+sudo -E -u yarn bin/yarn --daemon start resourcemanager
+sudo -E -u yarn jps
+
+
+
+
+
+

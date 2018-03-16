@@ -1,0 +1,52 @@
+---
+- name: Install the 'Development tools' package group
+  yum:
+    name: "@Development tools"
+    state: present
+
+- name: Setup shared folder permissions
+  file:
+    path: "{{ nfs_shared_folder }}"
+    state: directory
+    owner: vagrant
+    group: vagrant
+    mode: 0755
+
+- name: Checkout Apache Mesos repo
+  become_user: vagrant
+  git:
+    repo: "{{ mesos_repository }}"
+    dest: "{{ nfs_shared_folder }}/{{ mesos_cloned_folder }}"
+    version: "{{ mesos_repo_branch }}"
+    update: no
+
+- name: Checkout Apache Myriad repo
+  become_user: vagrant
+  git:
+    repo: "{{ myriad_repository }}"
+    dest: "{{ nfs_shared_folder }}/{{ myriad_cloned_folder }}"
+    version: "{{ myriad_repo_branch }}"
+    update: no
+
+- name: Copy exports file.
+  template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: 0644
+  notify: Restart NFS Server
+
+- name: Start rpcbind
+  service: name=rpcbind state=started enabled=yes
+ 
+- name: Start NFS Server
+  service: name=nfs-server state=started enabled=yes
+
+- name: Start nfs-lock
+  service: name=nfs-lock state=started enabled=yes
+
+- name: Start nfs-idmap
+  service: name=nfs-idmap state=started enabled=yes
+
+- meta: flush_handlers

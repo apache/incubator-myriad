@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if ! grep -e "^127\.0\.1\.1.*`hostname`.*" /etc/hosts > /dev/null ; then
+  echo "127.0.1.1 `hostname`" >> /etc/hosts
+fi

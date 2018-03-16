@@ -1,0 +1,32 @@
+---
+- name: Create Hadoop group
+  group:
+    name: hadoop
+    state: present
+  tags: hadoop
+
+- name: Create Hadoop users
+  user: 
+    name: "{{ item }}"
+    password: "{{ 'vagrant' | password_hash('sha512') }}"
+    shell: /bin/bash 
+    group: hadoop
+  with_items:
+      - yarn
+      - hdfs
+      - mapred
+  tags: hadoop
+
+- name: Create Hadoop data folders
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: hdfs
+    group: hadoop
+    mode: 0755
+  with_items:
+      - "{{ hadoop_data_root_folder }}/1/dn"
+      - "{{ hadoop_data_root_folder }}/2/dn"
+  tags: hadoop
+
+

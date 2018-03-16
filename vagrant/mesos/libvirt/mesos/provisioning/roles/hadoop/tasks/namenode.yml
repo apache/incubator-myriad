@@ -1,0 +1,50 @@
+---
+- name: Create Hadoop group
+  group:
+    name: hadoop
+    state: present
+  tags: hadoop
+
+- name: Create Hadoop users
+  user: 
+    name: "{{ item }}"
+    password: "{{ 'vagrant' | password_hash('sha512') }}"
+    shell: /bin/bash 
+    group: hadoop
+  with_items:
+      - yarn
+      - hdfs
+      - mapred
+  tags: hadoop
+
+- name: Create Hadoop metadata folder
+  file:
+    path: "{{ hadoop_namenode_folder }}"
+    state: directory
+    owner: hdfs
+    group: hadoop
+    mode: 0755
+  tags: hadoop
+
+- name: Create local logs folder for Hadoop daemons
+  file:
+    path: "{{ hadoop_logs_folder }}"
+    state: directory
+    owner: hdfs
+    group: hadoop
+    mode: 0775
+  tags: hadoop
+
+- name: Copy minimal (core,hdfs,mapred,yarn)-site.xml files
+  copy:
+    src: "{{ item }}"
+    dest: "{{ hadoop_etc_folder }}"
+  with_items:
+    - core-site.xml
+    - hdfs-site.xml
+    - mapred-site.xml
+    - yarn-site.xml
+    - workers
+    - slaves
+    - myriad-config-default.yml
+  tags: hadoop

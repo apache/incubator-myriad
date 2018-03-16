@@ -1,0 +1,10 @@
+#
+# This tasks can spend a lot of time, you have
+# to take this into account.
+#
+- name: Restart NFS Server
+  service: name=nfs-server state=restarted
+
+
+ 
+ 

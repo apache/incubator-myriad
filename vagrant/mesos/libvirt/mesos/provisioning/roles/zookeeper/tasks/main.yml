@@ -1,0 +1,33 @@
+---
+- name: Check that you can connect (GET) to a page and it returns a status 200
+  uri:
+    url: "{{ zookeeper_binary_download_url }}"
+  tags: download_zookeeper
+
+- name: Download Zookeeper binary from Apache releases
+  get_url:
+    url: "{{ zookeeper_binary_package }}"
+    dest: "{{ nfs_shared_folder }}"
+  tags: download_zookeeper
+
+- name: Check if already moved
+  stat: path="{{ nfs_shared_folder }}/zookeeper"
+  register: zookeeper_stat
+  tags: download_zookeeper
+
+- name: Unarchive a file that is already on the remote machine
+  unarchive:
+    src: "{{ nfs_shared_folder }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+    dest: "{{ nfs_shared_folder }}"
+    remote_src: yes
+    owner: vagrant
+    group: vagrant
+  when: zookeeper_stat.stat.isdir is not defined
+  tags: download_zookeeper
+
+- name: Rename folder name
+  command: mv "{{ nfs_shared_folder }}/zookeeper-{{ zookeeper_version }}" "{{ nfs_shared_folder }}/zookeeper"
+  when: zookeeper_stat.stat.isdir is not defined
+  tags: download_zookeeper
+
+

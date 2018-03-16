@@ -1,0 +1,13 @@
+---
+- name: Create NFS mount point
+  file:
+    path: "{{ nfs_shared_folder }}"
+    state: directory
+
+- name: Mount NFS shared folder
+  mount:
+    path: "{{ nfs_shared_folder }}"
+    src: "build:{{ nfs_shared_folder }}"
+    fstype: nfs
+    state: mounted
+
