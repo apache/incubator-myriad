@@ -63,17 +63,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "forwarded_port", guest: 2181, host: 2181
 
   # install software
-  config.vm.provision "shell", path: "vagrant/install_default_jdk.sh"
-  config.vm.provision "shell", path: "vagrant/install_mesos.sh"
-  config.vm.provision "shell", path: "vagrant/install_docker.sh"
-  config.vm.provision "shell", path: "vagrant/install_hadoop.sh", args: ["#{HADOOP_VERSION}"]
+  config.vm.provision "shell", path: "provisioning/install_default_jdk.sh"
+  config.vm.provision "shell", path: "provisioning/install_mesos.sh"
+  config.vm.provision "shell", path: "provisioning/install_docker.sh"
+  config.vm.provision "shell", path: "provisioning/install_hadoop.sh", args: ["#{HADOOP_VERSION}"]
 
   # start things up
-  config.vm.provision "shell", path: "vagrant/start_mesos_master.sh"
-  config.vm.provision "shell", path: "vagrant/start_mesos_slave.sh"
-  config.vm.provision "shell", path: "vagrant/format_namenode.sh"
-  config.vm.provision "shell", path: "vagrant/start_namenode.sh"
-  config.vm.provision "shell", path: "vagrant/start_datanode.sh"
-  config.vm.provision "shell", path: "vagrant/start_historyserver.sh"
+  config.vm.provision "shell", path: "provisioning/start_mesos_master.sh"
+  config.vm.provision "shell", path: "provisioning/start_mesos_slave.sh"
+  config.vm.provision "shell", path: "provisioning/format_namenode.sh"
+  config.vm.provision "shell", path: "provisioning/start_namenode.sh"
+  config.vm.provision "shell", path: "provisioning/start_datanode.sh"
+  config.vm.provision "shell", path: "provisioning/start_historyserver.sh"
 
 end

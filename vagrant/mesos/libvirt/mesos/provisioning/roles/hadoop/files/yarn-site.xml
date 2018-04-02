@@ -25,10 +25,16 @@
 
     <property>
             <name>yarn.nodemanager.aux-services</name>
-            <value>mapreduce_shuffle</value>
+            <value>mapreduce_shuffle,myriad_executor</value>
     </property>
+
     <property>
         <name>yarn.resourcemanager.scheduler.class</name>
         <value>org.apache.myriad.scheduler.yarn.MyriadFairScheduler</value>
+    </property>
+
+     <property>
+        <name>yarn.nodemanager.aux-services.myriad_executor.class</name>
+        <value>org.apache.myriad.executor.MyriadExecutorAuxService</value>
     </property>
 </configuration>
