@@ -1,0 +1,126 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: Install CentOS prerequisites for Docker Ansible Module
+  yum: name={{ item }} state=latest
+  with_items:
+    - docker-python
+
+- name: Start and enable DNSMasq in Bootstrap
+  service: name=dnsmasq state=started enabled=yes
+
+- name: Pull NGINX Docker Image
+  docker_image:
+    name: nginx
+
+- name: Create working folder (genconf)
+  file: path=/home/vagrant/genconf state=directory
+
+- name: Download dcos_generate_config.sh installer (~700MB this process might takes a long time)
+  shell: >
+    curl -fLsS --retry 20 -Y 100000 -y 60 
+    https://downloads.dcos.io/dcos/{{ versions[with_dcos_version].channel }}/commit/{{ versions[with_dcos_version].ref }}/dcos_generate_config.sh 
+    -o dcos_generate_config.sh && touch .installerskip
+  args:
+    chdir: /home/vagrant
+    creates: .installerskip
+
+- name: Configure ip-detect helper for correct interface attaching
+  blockinfile:
+    dest: /home/vagrant/genconf/ip-detect
+    create: yes
+    marker: REMOVE
+    block: |
+      #!/usr/bin/env bash
+      set -o nounset -o errexit
+      export PATH=/usr/sbin:/usr/bin:$PATH
+      echo $(ip addr show eth1 | grep -Eo '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | head -1)
+
+- name: Configure config.yaml for DC/OS deployment
+  blockinfile:
+    dest: /home/vagrant/genconf/config.yaml
+    create: yes
+    marker: REMOVE
+    block: |
+      ---
+      bootstrap_url: http://bt:8080
+      cluster_name: 'dcos-vagrant'
+      exhibitor_storage_backend: static
+      ip_detect_filename: /genconf/ip-detect
+      master_discovery: static
+      master_list:
+      - 100.1.10.101
+      resolvers:
+      - 8.8.8.8
+      ssh_port: 22
+      ssh_user: vagrant
+      superuser_username: admin
+      superuser_password_hash: $6$rounds=656000$J1uOqAb95/iblDzm$ejRz.4wZiBJyKK0Wlmv4zH4c1bRbO0/P1KbOLSm8NJfQChzWcDJ.twmbCq9LS83bWrt7S6ZaOzicwN/bBnC3S1
+      check_time: false
+
+- name: Remove markers from module blockinfile (workaround)
+  lineinfile: 
+    dest: "{{ item }}"
+    regexp: "^REMOVE"
+    state: absent
+  with_items:
+    - "/home/vagrant/genconf/ip-detect"
+    - "/home/vagrant/genconf/config.yaml"
+
+- name: Generating DC/OS config
+  shell: bash dcos_generate_config.sh && touch .skip
+  args:
+    chdir: /home/vagrant
+    creates: .skip
+
+# FIXME: hardcoded IP of bootstrap node
+- name: Running dockerized Nginx for installation
+  docker_container:
+    name: nginx-bootstrap
+    image: nginx
+    ports:
+      - "100.1.10.100:8080:80"
+    volumes:
+      - /home/vagrant/genconf/serve:/usr/share/nginx/html
+
+# https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-{{ with_dcos_version[0:3] }}/dcos 
+- name: Downloading DC/OS CLI
+  shell: >
+    curl -fLsS --retry 20 -Y 100000 -y 60 
+    https://downloads.dcos.io/binaries/cli/linux/x86-64/0.5.7/dcos
+    -o dcos && touch .cliskip
+  args:
+    chdir: /home/vagrant
+    creates: .cliskip
+
+- name: Copy DC/OS CLI to suitable PATH location
+  shell: cp dcos /usr/local/bin/dcos && chmod 755 /usr/local/bin/dcos && touch .skipcopy
+  args:
+    chdir: /home/vagrant
+    creates: .skipcopy
+
+- name: Delete DC/OS CLI downloaded
+  file: 
+    path: /home/vagrant/dcos
+    state: absent
+
+- name: Configure current configuration for master
+  shell: /usr/local/bin/dcos config set core.dcos_url http://m1
+  become: yes
+  become_user: vagrant

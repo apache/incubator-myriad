@@ -1,0 +1,25 @@
+---
+- name: Waiting for bootstrap healthy state
+  wait_for:
+    host: bt 
+    port: 8080
+    delay: 5
+    timeout: 1200
+  tags: install
+
+- name: Download dcos_install.sh DC/OS Installer 
+  get_url:
+    url: http://bt:8080/dcos_install.sh
+    dest: /home/vagrant/dcos_install.sh
+    mode: 0655
+  tags: install
+
+# master, slave, slave_public
+- name: Executing DC/OS Node Installation
+  shell: >
+    bash dcos_install.sh "{{ node_type }}" && 
+    touch .skip
+  args:
+    chdir: /home/vagrant
+    creates: .skip
+  tags: install
