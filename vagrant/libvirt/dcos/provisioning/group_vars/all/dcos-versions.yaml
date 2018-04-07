@@ -1,0 +1,29 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+versions:
+  '1.11.0':
+    channel: 'stable/1.11.0'
+    ref: 'b6d6ad4722600877fde2860122f870031d109da3'
+    sha256: 'f42800c773a79c8fa4b5ae837626805ac67420d388433bbc9891520b17668ba9'
+    cli: 'dcos-1.11'
+  '1.10.4':
+    channel: 'stable/1.10.4'
+    ref: '2d45a8f9e277a60007f277f70f01d076c913a7fe'
+    sha256: '108b0d66af1a96508219627f7dd897b3110235eb1d9729ae5a576025192ccb61'
+    cli: 'dcos-1.10'
