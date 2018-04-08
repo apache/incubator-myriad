@@ -32,6 +32,7 @@
   roles:
     - common
     - docker
+    - registry
 
 # Play 1
 - hosts: bootstrap 
