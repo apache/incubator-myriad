@@ -19,7 +19,7 @@
 ---
 - name: Pull Docker Registry Image
   docker_image:
-    name: regsitry
+    name: registry
   tags: registy
 
 - name: Running dockerized Nginx for installation

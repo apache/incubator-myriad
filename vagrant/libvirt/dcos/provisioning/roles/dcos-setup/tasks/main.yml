@@ -32,7 +32,7 @@
 - name: Create working folder (genconf)
   file: path=/home/vagrant/genconf state=directory
 
-- name: Download dcos_generate_config.sh installer (~700MB this process might takes a long time)
+- name: Download dcos_generate_config.sh installer (~1GB this process might takes a long time)
   shell: >
     curl -fLsS --retry 20 -Y 100000 -y 60 
     https://downloads.dcos.io/dcos/{{ versions[with_dcos_version].channel }}/commit/{{ versions[with_dcos_version].ref }}/dcos_generate_config.sh 
