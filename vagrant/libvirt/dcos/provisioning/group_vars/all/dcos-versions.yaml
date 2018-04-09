@@ -21,91 +21,9 @@ versions:
     channel: 'stable/1.11.0'
     ref: 'b6d6ad4722600877fde2860122f870031d109da3'
     sha256: 'f42800c773a79c8fa4b5ae837626805ac67420d388433bbc9891520b17668ba9'
+    cli: 'dcos-1.11'
   '1.10.4':
     channel: 'stable/1.10.4'
     ref: '2d45a8f9e277a60007f277f70f01d076c913a7fe'
     sha256: '108b0d66af1a96508219627f7dd897b3110235eb1d9729ae5a576025192ccb61'
-  '1.10.2':
-    channel: 'stable/1.10.2'
-    ref: '12b494a3309c65a22b7d5553debd1c053e008a31'
-    sha256: '0136580689c764d9d3a4b69848c1fab3e51aa4caa631da1683db5a67fd204854'
-  '1.10.1':
-    channel: 'stable/1.10.1'
-    ref: 'd932fc405eb80d8e5b3516eaabf2bd41a2c25c9f'
-    sha256: 'ae4a736422646513aeba3037a0b78785e6ea7b4061c54bec3905e29ae6208f9f'
-  '1.10.0':
-    channel: 'stable/1.10.0'
-    ref: 'e38ab2aa282077c8eb7bf103c6fff7b0f08db1a4'
-    sha256: 'b3f7cdaac065b196206d76724204d2227438232d2858ce1ca7ffd699f458f876'
-  '1.9.7':
-    channel: 'stable/1.9.7'
-    ref: '888d171dbd85d2a56cc046b95c751989ea6c7604'
-    sha256: '91fbbfac7f5e09c0ad70fb70e74c2366c301eefe45f177d21d2c6253d21f56e3'
-  '1.9.6':
-    channel: 'stable/1.9.6'
-    ref: 'f25e9dcfd0abae4de8bc18cc1fc9584a7a0a586a'
-    sha256: '89644f4bd6821177a2396d955b105986b71f855f12df822adfe9377e97496d85'
-  '1.9.5':
-    channel: 'stable/1.9.5'
-    ref: '4308d88bfc0dd979703f4ef500ce415c5683b3c5'
-    sha256: 'c9d7209f44bf755bf62b59166979069f7e31755d6661d0f4adb72145bf727d52'
-  '1.9.4':
-    channel: 'stable/1.9.4'
-    ref: 'ff2481b1d2c1008010bdc52554f872d66d9e5904'
-    sha256: '91fbbfac7f5e09c0ad70fb70e74c2366c301eefe45f177d21d2c6253d21f56e3'
-  '1.9.3':
-    channel: 'stable/1.9.3'
-    ref: '744f5ea28fc52517e344a5250a5fd12554da91b8'
-    sha256: 'f3622e514357345d90acdc7489f7d835cb248dbf57e028b59bb622115d6e0754'
-  '1.9.2':
-    channel: 'stable/1.9.2'
-    ref: 'af6ddc2f5e95b1c1d9bd9fd3d3ef1891928136b9'
-    sha256: 'ec62e020e77b14d7a3122ff7b96c55451f87737a55efb494e1e9f143b67abff4'
-  '1.9.1':
-    channel: 'stable/1.9.1'
-    ref: '008d3bfe4acca190100fcafad9a18a205a919590'
-    sha256: 'ce2b0fea376a325a617a8920587140c810c6412ca4efe8866f91711738cbea0e'
-  '1.9.0':
-    channel: stable
-    ref: '0ce03387884523f02624d3fb56c7fbe2e06e181b'
-    sha256: '617bee1bb6d210dc3b6933c7865b35716e21e3c335bcf740d222af3eaeaacac5'
-  '1.8.9':
-    channel: 'stable/1.8.9'
-    ref: '65d66d7f399fe13bba8960c1f2c42ef9fa5dcf8d'
-    sha256: '0883173ace1276ba9d609deae30a7377e82f65bbe6b01f282a1c47434d9d7155'
-  '1.8.8':
-    channel: stable
-    ref: '602edc1b4da9364297d166d4857fc8ed7b0b65ca'
-    sha256: 'd00f31df6122d11fd5668f4b81c63c5c3b22f1753687f5207d67d49f89b5a0b1'
-  '1.8.7':
-    channel: stable
-    ref: '1b43ff7a0b9124db9439299b789f2e2dc3cc086c'
-    sha256: 'ddd9a86e4fc6ab149fb6c2ce38fc7d7c2f5891e62fb5ed41b91c3e99e02ed536'
-  '1.8.6':
-    channel: stable
-    ref: 'cfccfbf84bbba30e695ae4887b65db44ff216b1d'
-    sha256: 'f6f0e7f8b478ad176764f29b2d3b0c89d226bf8b9bc0bf928f69555cd0f6ba77'
-  '1.8.5':
-    channel: stable
-    ref: 'e665123df0dbb19adacaefe47d16a3de144d5733'
-    sha256: '05660575d0dc88ac1fbe78626e0429b82ed0c62f7185522e616fcfd16eae1b23'
-  '1.8.4':
-    channel: stable
-    ref: 'e64024af95b62c632c90b9063ed06296fcf38ea5'
-    sha256: 'a77d8855df329e0394fa949f462bc5c06f894d798ee5619e88c83d7939c061ba'
-  '1.8.3':
-    channel: EarlyAccess
-    ref: '636f8b72288e82ad3b0065928e0b492af4c7cf66'
-    sha256: '421010c3b78c4cb779d93b1f5788f4711621c407f53b534284912efa381dc147'
-  '1.8.2':
-    channel: EarlyAccess
-    ref: '4cfc235259a2375c558f2e1bab3564419110459e'
-    sha256: '462202c19fe71394af51e1876ff9f910a11514e7e0325fc7cf2985f2f046deed'
-  '1.8.1':
-    channel: EarlyAccess
-    ref: 'c1915a9f9f02caf7e34022eaea04f15ff853bd0e'
-    sha256: 'bb26cc21b18080fb0233bd9047ae74c4181dbe2eb662d103822c9eeb69d9f9a6'
-  '1.8.0':
-    channel: EarlyAccess
-    ref: '586c0496863000322c016c631e463248d863690d'
-    sha256: '45471f4c9601022c8c18059d50beeb84c5141be3905fd02d6e179901f1d4f4c7'
+    cli: 'dcos-1.10'

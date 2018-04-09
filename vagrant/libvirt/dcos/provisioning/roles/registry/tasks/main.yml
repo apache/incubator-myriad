@@ -20,29 +20,13 @@
 - name: Pull Docker Registry Image
   docker_image:
     name: regsitry
-    tag: 2
   tags: registy
 
 - name: Running dockerized Nginx for installation
   docker_container:
     name: registry
-    image: registry:2
+    image: registry
     ports:                                 
     - "5000:5000"                          
     restart_policy: always
-  tags: registry
-
-- name: Configure Docker Insecure Registry (boot.dcos:5000)
-  replace: >
-    dest=/usr/lib/systemd/system/docker.service
-    regexp="^(ExecStart=(.*)/usr/bin/docker daemon -H fd:// --insecure-registry bt:5000)"
-    replace="\1 {{ dockerd_arg }} "
-  tags: registry
-
-- name: Reload systemd units (for new config)
-  command: systemctl daemon-reload
-  tags: registry
-
-- name: Restart Docker (for new config)
-  service: name=docker state=restarted
   tags: registry

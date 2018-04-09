@@ -32,13 +32,13 @@
   roles:
     - common
     - docker
-    - registry
 
 # Play 1
 - hosts: bootstrap 
   roles:
     - passwordless
     - dcos-setup
+    - registry
 
 # Play 2
 - hosts: dcos-masters 

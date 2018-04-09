@@ -99,28 +99,32 @@
     volumes:
       - /home/vagrant/genconf/serve:/usr/share/nginx/html
 
-# https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-{{ with_dcos_version[0:3] }}/dcos 
 - name: Downloading DC/OS CLI
   shell: >
     curl -fLsS --retry 20 -Y 100000 -y 60 
-    https://downloads.dcos.io/binaries/cli/linux/x86-64/0.5.7/dcos
+    https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.11/dcos
+    https://downloads.dcos.io/binaries/cli/linux/x86-64/{{ versions[with_dcos_version].cli }}/dcos
     -o dcos && touch .cliskip
   args:
     chdir: /home/vagrant
     creates: .cliskip
+  tags: cli
 
 - name: Copy DC/OS CLI to suitable PATH location
-  shell: cp dcos /usr/local/bin/dcos && chmod 755 /usr/local/bin/dcos && touch .skipcopy
+  shell: cp -f dcos /usr/local/bin/dcos && chmod 755 /usr/local/bin/dcos && touch .skipcopy
   args:
     chdir: /home/vagrant
     creates: .skipcopy
+  tags: cli
 
 - name: Delete DC/OS CLI downloaded
   file: 
     path: /home/vagrant/dcos
     state: absent
+  tags: cli
 
 - name: Configure current configuration for master
   shell: /usr/local/bin/dcos config set core.dcos_url http://m1
   become: yes
   become_user: vagrant
+  tags: cli

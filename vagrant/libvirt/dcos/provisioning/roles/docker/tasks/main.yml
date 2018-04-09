@@ -51,7 +51,7 @@
     block: |
       [Service]
       ExecStart=
-      ExecStart=/usr/bin/docker daemon --storage-driver=overlay -H fd://
+      ExecStart=/usr/bin/docker daemon --insecure-registry bt:5000 --storage-driver=overlay -H fd://
 
 - name: Installing Docker 1.11.12 version
   yum: name=docker-engine-1.11.2 state=installed
