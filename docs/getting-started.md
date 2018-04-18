@@ -18,8 +18,8 @@ The ports used by Mesos, Marathon, and Myriad are:
 Application | Port | Syntax |
 ----------------| ------ | ---------- |
 Marathon | 8080 | http://&lt;IP address>:8080 |
-Mesos | 5050 | http://&lt;IP address>:5050. Use the 5050 port and Frameworks directory. For example: http://&lt;IP address>:5050/#/frameworks (http://10.141.141.20:5050/#/frameworks) |
-Myriad | 8192 | http://<IP address>:8192. For example: http://<ip address>:8192/ (http://10.141.141.20:8192/). Without the Mesos-DNS service, this IP is slave node's IP address where the Resource Manager is running. With the Mesos-DNS service, Mesos-DNS discovers the node where the Resource Manager is running by using Mesos DNS FQDN (&lt;app-ID>.&lt;framework>.mesos). |
+Mesos | 5050 | http://&lt;IP address>:5050. Use the 5050 port and Frameworks directory. For example: `http://10.141.141.20:5050/#/frameworks` |
+Myriad | 8192 | http://&lt;IP address>:8192. For example: `http://10.141.141.20:8192`. Without the Mesos-DNS service, this IP is slave node's IP address where the Resource Manager is running. With the Mesos-DNS service, Mesos-DNS discovers the node where the Resource Manager is running by using Mesos DNS FQDN &lt;app-ID>.&lt;framework>.mesos. |
 
 ## Launching Resource Manager ##
 
