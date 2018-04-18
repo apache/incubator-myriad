@@ -30,8 +30,8 @@ If you need to setup hdfs, consider using the [hdfs-mesos framework](https://git
 In order for the ResourceManager to operate correctly, you will need to provide 5 configuration files. These files will 
 need to mounted from a directory into `/usr/local/hadoo/etc` of the docker container.
 
-* [myriad-config-default.yml](https://github.com/apacher/incubator-myriad/blob/phase1/myriad-scheduler/src/main/resources/myriad-config-default.yml) (template provided)
-* [yarn-site.xml](https://github.com/apache/incubator-myriad/blob/phase1/docs/myriad-dev.md) (template provided)
+* [myriad-config-default.yml](../myriad-scheduler/src/main/resources/myriad-config-default.yml) (template provided)
+* [yarn-site.xml](../docs/samples/yarn-site.xml) (template provided)
 * mapred-site.xml (template provided)
 * hdfs-site.xml (used for hdfs)
 * core-site.xml (used for hdfs)
