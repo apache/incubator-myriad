@@ -23,20 +23,24 @@
 dependencies {
     compile project(':myriad-commons')
 
-    compile "org.apache.hadoop:hadoop-common:${hadoopVer}"
-    compile "org.apache.hadoop:hadoop-yarn-common:${hadoopVer}"
-    compile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}"
-    compile "com.lmax:disruptor:3.3.0"
-    compile "io.dropwizard.metrics:metrics-core:${metricsVer}"
-    compile "io.dropwizard.metrics:metrics-annotation:${metricsVer}"
-    compile "io.dropwizard.metrics:metrics-healthchecks:${metricsVer}"
-    compile "org.hibernate:hibernate-validator:5.1.2.Final"
-    compile "com.fasterxml.jackson.core:jackson-annotations:2.5.1"
-    compile "com.fasterxml.jackson.core:jackson-databind:2.5.1"
-    compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.5.1"
-    compile "org.apache.curator:curator-framework:2.7.1"
-    compile "org.apache.commons:commons-lang3:3.4"
-    compile 'com.google.inject.extensions:guice-multibindings:3.0'
+    compile ("org.apache.hadoop:hadoop-common:${hadoopVer}") {
+        exclude group: "com.google.guava"
+    }
+    compile ("org.apache.hadoop:hadoop-yarn-common:${hadoopVer}")
+    compile ("org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}")
+    compile ("com.lmax:disruptor:3.3.0")
+    compile ("io.dropwizard.metrics:metrics-core:${metricsVer}")
+    compile ("io.dropwizard.metrics:metrics-annotation:${metricsVer}")
+    compile ("io.dropwizard.metrics:metrics-healthchecks:${metricsVer}")
+    compile ("org.hibernate:hibernate-validator:5.1.2.Final")
+    compile ("com.fasterxml.jackson.core:jackson-annotations:2.5.1")
+    compile ("com.fasterxml.jackson.core:jackson-databind:2.5.1")
+    compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.5.1")
+    compile ("org.apache.curator:curator-framework:2.7.1"){
+        exclude group: "com.google.guava"
+    }
+    compile ("org.apache.commons:commons-lang3:3.4")
+    compile ('com.google.inject.extensions:guice-multibindings:3.0')
     testCompile "org.apache.hadoop:hadoop-yarn-server-resourcemanager:${hadoopVer}:tests"
 }
 
