@@ -1,0 +1,15 @@
+[Unit]
+Description=Apache Hadoop HDFS Namenode
+After=syslog.target network.target remote-fs.target nss-lookup.target
+
+[Service]
+Environment="JAVA_HOME=/opt/mesosphere/active/java/usr/java"
+Environment="HADOOP_PID_DIR=/var/run/hadoop/hdfs"
+Environment="HADOOP_LOG_DIR=/opt/shared/hadoop/logs/"
+ExecStart=/opt/shared/hadoop/sbin/hadoop-daemon.sh --config /opt/shared/hadoop/etc/hadoop start namenode
+User=hdfs
+Group=hadoop
+Type=forking
+
+[Install]
+WantedBy=multi-user.target
