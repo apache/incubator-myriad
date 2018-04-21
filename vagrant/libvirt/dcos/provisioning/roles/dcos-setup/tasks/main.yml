@@ -102,7 +102,6 @@
 - name: Downloading DC/OS CLI
   shell: >
     curl -fLsS --retry 20 -Y 100000 -y 60 
-    https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.11/dcos
     https://downloads.dcos.io/binaries/cli/linux/x86-64/{{ versions[with_dcos_version].cli }}/dcos
     -o dcos && touch .cliskip
   args:

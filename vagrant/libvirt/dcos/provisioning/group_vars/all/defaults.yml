@@ -33,6 +33,7 @@ system_packages:
   - xz 
   - unzip 
   - curl 
+  - nfs-utils
   - ipset
   - sysstat
 
@@ -42,3 +43,28 @@ system_epel_packages:
 
 with_dcos_version: "{{ lookup('env','DCOS_VERSION') }}"
 with_hadoop_version: "{{ lookup('env','HADOOP_VERSION') }}"
+
+# NFS enablement for sharing folders between nodes
+nfs_packages:
+  - rpcbind
+  - nfs-server
+  - nfs-lock
+  - nfs-idmap
+nfs_shared_folder: /opt/shared
+
+# Source code location for Mesos and Myriad
+myriad_cloned_folder: myriad
+myriad_repository: https://github.com/myriad-framework/myriad
+myriad_repo_branch: master
+
+# Hadoop configrations 
+hadoop_version: "{{ lookup('env','HADOOP_VERSION') }}"
+hadoop_binary_download_url: https://archive.apache.org/dist/hadoop/common/
+hadoop_binary_package: "{{ hadoop_binary_download_url }}/hadoop-{{ hadoop_version }}/hadoop-{{ hadoop_version }}.tar.gz"
+
+# Hadoop folders
+hadoop_data_root_folder: /cluster
+hadoop_namenode_folder: "{{ hadoop_data_root_folder }}/nn"
+hadoop_logs_folder: "{{ nfs_shared_folder }}/hadoop/logs"
+hadoop_etc_folder: "{{ nfs_shared_folder }}/hadoop/etc/hadoop"
+

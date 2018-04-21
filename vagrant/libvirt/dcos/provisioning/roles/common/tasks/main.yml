@@ -67,6 +67,9 @@
 - name: Restarting SSH daemon
   service: name=sshd state=restarted
 
+- name: Setup wide JAVA_HOME at /etc/profile.d
+  template: src=java.sh.j2 dest=/etc/profile.d/java.sh
+
 - name: Configure /etc/host files
   template: src=hosts.j2 dest=/etc/hosts
 
