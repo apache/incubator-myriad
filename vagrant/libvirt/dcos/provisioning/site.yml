@@ -27,34 +27,47 @@
 #   non in special order, you cannot control the order
 #   of roles within a play.
 
-# Play 0
+# Play 1
 - hosts: all
   roles:
     - common
     - docker
+    - { role: jbod-disks, 
+        when: "inventory_hostname in groups['dcos-agents-private'] and inventory_hostname != 'a1'" }
 
-# Play 1
+# Play 2
 - hosts: bootstrap 
   roles:
     - passwordless
+    - devel
+    - nfs
     - dcos-setup
     - registry
+    - hadoop
 
-# Play 2
+# Play 3
 - hosts: dcos-masters 
   strategy: free
   vars:
     node_type: master
   roles:
     - dcos-install
+    - nfs
+    - nfs-client
+    - hadoop
 
+# Play 4
 - hosts: dcos-agents-private 
   strategy: free
   vars:
     node_type: slave
   roles:
     - dcos-install
+    - nfs
+    - nfs-client
+    - hadoop
 
+# Play 4
 - hosts: dcos-agents-public
   strategy: free
   vars:

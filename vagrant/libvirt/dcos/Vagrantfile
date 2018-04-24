@@ -19,10 +19,8 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-
-unless defined? VAGRANTFILE_API_VERSION 
-    VAGRANTFILE_API_VERSION = "2"
-end
+#
+VAGRANTFILE_API_VERSION = "2"
 
 # Tested with Vagrant version:
 Vagrant.require_version ">= 1.7.2"
