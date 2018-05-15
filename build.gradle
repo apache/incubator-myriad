@@ -28,7 +28,6 @@ tasks.withType(JavaCompile) {
 buildscript {
     repositories {
         jcenter()
-        mavenCentral()
     }
 
     dependencies {
@@ -37,7 +36,7 @@ buildscript {
 }
 
 repositories {
-    mavenCentral()
+    jcenter()
 }
 
 idea {
@@ -95,7 +94,7 @@ subprojects {
     }
 
     repositories {
-        mavenCentral()
+        jcenter()
         mavenLocal()
     }
 
