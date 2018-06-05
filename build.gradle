@@ -47,6 +47,10 @@ idea {
 			        provider.node.component
 			                .find { it.@name == 'VcsDirectoryMappings' }
 			                .mapping.@vcs = 'Git'
+
+			        provider.node.component
+			                .find { it.@name == 'ProjectRootManager' }
+			                .output.@url = 'file://$PROJECT_DIR$/build'
 			    }
 		}
     }
