@@ -45,6 +45,14 @@
     dest: "{{ nfs_shared_folder }}/{{ myriad_cloned_folder }}"
     version: "{{ myriad_repo_branch }}"
     update: no
+  when: with_local_sources | trim == ''
+
+- name: Apache Myriad repo
+  file:
+    src: "/mnt"
+    dest: "/opt/myriad"
+    state: link
+  when: with_local_sources | trim != ''
 
 - name: Copy exports file.
   template:

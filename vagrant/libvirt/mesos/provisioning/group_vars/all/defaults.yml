@@ -93,6 +93,7 @@ hadoop_namenode_folder: "{{ hadoop_data_root_folder }}/nn"
 hadoop_logs_folder: "{{ nfs_shared_folder }}/hadoop/logs"
 hadoop_etc_folder: "{{ nfs_shared_folder }}/hadoop/etc/hadoop"
 
+with_local_sources: "{{ lookup('env','MYRIAD_SOURCES') }}"
 
 
 
