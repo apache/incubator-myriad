@@ -56,8 +56,6 @@ else
 end
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  # Disabling the default /vagrant share
-  config.vm.synced_folder ".", "/vagrant", disabled: true
   config.ssh.insert_key = false
 
   i = 0
@@ -66,6 +64,15 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.define servers["name"] do |node|
       node.vm.box = servers["box"]
       node.vm.hostname = servers["name"]
+
+      if node.vm.hostname == 'build' && !ENV['MYRIAD_SOURCES'].nil?
+        node.vm.synced_folder ENV['MYRIAD_SOURCES'], "/mnt", type:"nfs",
+            linux__nfs_options: ['rw','no_subtree_check','no_root_squash','async'],
+            nfs_udp: false
+      else
+        config.vm.synced_folder ".", "/vagrant", disabled: true
+      end
+
       node.vm.network "private_network", ip: servers["ip"]
       node.vm.provider :libvirt do |domain|
         domain.uri = 'qemu+unix:///system'

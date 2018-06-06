@@ -23,6 +23,7 @@ echo
 [ -z $MESOS_ARCH ] || echo "- MESOS_ARCH: $MESOS_ARCH"
 [ -z $HADOOP_VERSION ] || echo "- HADOOP_VERSION: $HADOOP_VERSION"
 [ -z $ZOOKEEPER_VERSION ] || echo "- ZOOKEEPER_VERSION: $ZOOKEEPER_VERSION"
+[ -z $MYRIAD_SOURCES ] || echo "- MYRIAD_SOURCES: $MYRIAD_SOURCES"
 
 echo
 echo "'vagrant up --provider=libvirt' and happy hacking!"

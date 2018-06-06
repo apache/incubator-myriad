@@ -19,5 +19,6 @@
 export MESOS_ARCH=1m4a
 export HADOOP_VERSION=2.7.0
 export ZOOKEEPER_VERSION=3.4.11
+# export MYRIAD_SOURCES=/home/user/incubator-myriad/
 
 sh check-env.sh

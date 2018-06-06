@@ -232,14 +232,44 @@ The Myriad web interface can be accessd via the URL:
 
 http://100.0.10.101:8192
 
+# Export local repository to VM environment
+
+For an useful development environment, we can sync a local folder into the VM
+named "build". We can export our Myriad local repository by means of the following
+environment variable:
+
+export MYRIAD_SOURCES=/home/user/incubator-myriad
+
+This folder will be mounted (NFS mount) from the host machine to the guest
+machine ("build" VM in our case).
+
+Vagrant has built-in support to orchestrate the configuration of the NFS server
+on the host and guest for you.
+
+Before using synced folders backed by NFS, the host machine must have NFS
+server installed. The following an example for a RPM based machine:
+
+```
+sudo yum install nfs-utils libnfsidmap
+
+sudo systemctl enable rpcbind
+sudo systemctl enable nfs-server
+
+sudo systemctl start rpcbind
+sudo systemctl start nfs-server
+sudo systemctl start rpc-statd
+sudo systemctl start nfs-idmapd
+
+sudo firewall-cmd --permanent --add-service=nfs
+sudo firewall-cmd --permanent --add-service=mountd
+sudo firewall-cmd --permanent --add-service=rpc-bind
+sudo firewall-cmd --reload
+
+sudo firewall-cmd --list-all
+```
+
 # Happy Hacking
 
 At this point you have a local development environment ready for Myriad
 Framework hacking!
-
-
-
-
-
-
 
