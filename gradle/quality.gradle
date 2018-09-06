@@ -25,6 +25,22 @@ tasks.withType(FindBugs) {
   excludeFilter = file("$rootProject.projectDir/config/findbugs/excludeFilter.xml")
 }
 
+tasks.withType(FindBugs) {
+    exclude '**/org/apache/mesos/*'
+    classes = classes.filter {
+        !it.path.contains(new File("org/apache/mesos/").path)
+    }
+}
+
+tasks.withType(Pmd) {
+    exclude 'org/apache/mesos/**'
+}
+
+tasks.withType(Checkstyle) {
+    exclude 'org/apache/mesos/**'
+}
+
+
 pmd {
     ruleSets = [
 //            'java-basic',         // need brandon's http config to add in

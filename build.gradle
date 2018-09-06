@@ -52,6 +52,7 @@ idea {
     }
 }
 
+
 subprojects {
 
     apply plugin: 'java'
@@ -69,7 +70,7 @@ subprojects {
     version = "0.2.0"
 
     ext {
-        mesosVer = "0.28.1"
+        //mesosVer = "1.5.0"
         //Allows passing -PhadoopVer=2.6.0 from command line
         if(!project.hasProperty('hadoopVer')) {
             hadoopVer = "2.7.0"
@@ -102,7 +103,7 @@ subprojects {
         capsule "co.paralleluniverse:capsule:0.7.1"
     	myriadExecutorConf 'org.slf4j:slf4j-log4j12:1.7.10'
 
-        compile "org.apache.mesos:mesos:${mesosVer}"
+        //compile "org.apache.mesos:mesos:${mesosVer}"
         compile 'com.google.code.gson:gson:2.3.1'        // marshalling between the scheduler and executor
 
         testCompile 'org.apache.zookeeper:zookeeper:3.4.6' // to resolve temporary mavenlocal issue
@@ -115,4 +116,5 @@ subprojects {
     run {
         systemProperty "myriad.config", "build/resources/main/myriad-config-default.yml"
     }
+
 }
