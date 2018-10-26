@@ -18,9 +18,9 @@
  */
 package org.apache.myriad.state;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import java.util.concurrent.ExecutionException;
 import org.apache.mesos.Protos;
+import org.apache.mesos.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.state.State;
 import org.apache.mesos.state.Variable;
 

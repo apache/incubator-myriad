@@ -21,7 +21,6 @@ package org.apache.myriad.state.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.protobuf.GeneratedMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,6 +32,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
+import org.apache.mesos.protobuf.GeneratedMessageV3;
 import org.apache.myriad.scheduler.ServiceResourceProfile;
 import org.apache.myriad.scheduler.constraints.Constraint;
 import org.apache.myriad.scheduler.constraints.Constraint.Type;
@@ -81,7 +81,7 @@ public class ByteBufferSupport {
   /*
    * Common method to convert Protobuf object to ByteBuffer 
    */
-  public static ByteBuffer toBuffer(GeneratedMessage message) {
+  public static ByteBuffer toBuffer(GeneratedMessageV3 message) {
     byte dst[];
     int size;
     if (message != null) {

@@ -30,6 +30,7 @@ import org.apache.mesos.Protos.FrameworkID;
 import org.apache.mesos.Protos.FrameworkInfo;
 import org.apache.mesos.Protos.FrameworkInfo.Builder;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.protobuf.ByteString;
 import org.apache.mesos.state.State;
 import org.apache.mesos.state.ZooKeeperState;
 import org.apache.myriad.configuration.MyriadConfiguration;
@@ -44,7 +45,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Scopes;
 import com.google.inject.Singleton;
-import com.google.protobuf.ByteString;
 
 /**
  * Guice Module for Mesos objects.
