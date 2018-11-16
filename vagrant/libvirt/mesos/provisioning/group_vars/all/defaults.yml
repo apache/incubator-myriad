@@ -72,7 +72,7 @@ nfs_shared_folder: /opt
 # Source code location for Mesos and Myriad
 mesos_cloned_folder: mesos
 myriad_cloned_folder: myriad
-mesos_repository: https://git-wip-us.apache.org/repos/asf/mesos.git
+mesos_repository: https://gitbox.apache.org/repos/asf/mesos.git
 myriad_repository: https://github.com/myriad-framework/myriad
 mesos_repo_branch: master
 myriad_repo_branch: master
