@@ -86,7 +86,7 @@ build Myriad framework as follow:
 
 ```
 [vagrant@build ~]$ cd /opt/mesos
-[vagrant@build ~]$ git checkout 0.28.1
+[vagrant@build ~]$ git checkout tags/1.5.0 -b 1.5.0
 [vagrant@build ~]$ ./bootstrap
 [vagrant@build ~]$ mkdir build
 [vagrant@build ~]$ cd build
@@ -127,7 +127,7 @@ Mesos folder. Let see who to run the 3rdparty Zookeeper shipped with Mesos.
 
 ```
 $ vagrant ssh mesos-m1
-[vagrant@mesos-m1 ~]$ cd /opt/mesos/build/3rdparty/zookeeper-3.4.5/
+[vagrant@mesos-m1 ~]$ cd /opt/mesos/build/3rdparty/zookeeper-3.4.8/
 [vagrant@mesos-m1 zookeeper-3.4.5]$ cp conf/zoo_sample.cfg conf/zoo.cfg
 [vagrant@mesos-m1 zookeeper-3.4.5]$ echo "server.1=mesos-m1:2888:3888" >> conf/zoo.cfg
 [vagrant@mesos-m1 zookeeper-3.4.5]$ bin/zkServer.sh start
@@ -151,7 +151,7 @@ imok
 
 ```
 [vagrant@mesos-a1 ~]$ cd /opt/mesos/build
-[vagrant@mesos-a1 build]$ sudo ./bin/mesos-slave.sh --master=zk://mesos-m1:2181/mesos --work_dir=/var/lib/mesos
+[vagrant@mesos-a1 build]$ sudo ./bin/mesos-slave.sh --master=zk://mesos-m1:2181/mesos --work_dir=/var/lib/mesos --resources='mem:4000'
 ```
 
 *Note*: mesos-slave.sh was changed for newer versions of Mesos for mesos-agent.sh
@@ -204,6 +204,13 @@ with Hadoop.
 ## Running Hadoop YARN Resource Manager (RM) with Myriad
 
 - At mesos-m1:
+
+You have to insert the following environment variable:
+
+```
+[vagrant@mesos-m1 ~]$ grep MESOS /opt/hadoop/etc/hadoop/hadoop-env.sh
+export MESOS_NATIVE_JAVA_LIBRARY=/opt/mesos/build/src/.libs/libmesos.so
+```
 
 ```
 cd /opt
@@ -266,6 +273,72 @@ sudo firewall-cmd --permanent --add-service=rpc-bind
 sudo firewall-cmd --reload
 
 sudo firewall-cmd --list-all
+```
+
+# Stopping VMs and starting 
+
+When you stop/start the VMs
+
+```
+$ vagrant halt
+$ vagrant up
+```
+
+You have to start manually some of the daemons in order to continue
+The operation such as the provisioning phase did it. You have to
+follow the following steps:
+
+- Start Zookeeper:
+
+```
+$ vagrant ssh mesos-m1
+[vagrant@mesos-m1 ~]$ cd /opt/mesos/build/3rdparty/zookeeper-3.4.8/
+[vagrant@mesos-m1 zookeeper-3.4.5]$ bin/zkServer.sh start
+[vagrant@mesos-m1 zookeeper-3.4.5]$ echo ruok | nc 127.0.0.1 2181
+imok
+```
+
+- Start Hadoop
+
+```
+$ vagrant ssh mesos-m1
+[vagrant@mesos-m1 ~]$ su - hdfs (vagrant password)
+[hdfs@mesos-m1 ~]$ cd /opt/hadoop
+[hdfs@mesos-m1 hadoop]$ sbin/start-dfs.sh
+Starting namenodes on [mesos-m1]
+mesos-m1: starting namenode, logging to /opt/hadoop/logs/hadoop-hdfs-namenode-mesos-m1.out
+mesos-a2: starting datanode, logging to /opt/hadoop/logs/hadoop-hdfs-datanode-mesos-a2.out
+mesos-a4: starting datanode, logging to /opt/hadoop/logs/hadoop-hdfs-datanode-mesos-a4.out
+mesos-a3: starting datanode, logging to /opt/hadoop/logs/hadoop-hdfs-datanode-mesos-a3.out
+Starting secondary namenodes [0.0.0.0] 0.0.0.0: starting secondarynamenode, logging to /opt/hadoop/logs/hadoop-hdfs-secondarynamenode-mesos-m1.out 
+[hdfs@mesos-m1 hadoop]$ jps
+11872 Jps
+11756 SecondaryNameNode
+11550 NameNode
+```
+
+- Start Mesos: Master at mesos-m1
+
+```
+$ vagrant ssh mesos-m1
+[vagrant@mesos-m1 ~]$ cd /opt/mesos/build
+[vagrant@mesos-m1 build]$ sudo ./bin/mesos-master.sh --ip=100.0.10.101 --work_dir=/var/lib/mesos --zk=zk://mesos-m1:2181/mesos --quorum=1
+```
+
+- Start Mesos: Agents at mesos-a[1..4]:
+
+```
+[vagrant@mesos-a1 ~]$ cd /opt/mesos/build
+[vagrant@mesos-a1 build]$ sudo ./bin/mesos-slave.sh --master=zk://mesos-m1:2181/mesos --work_dir=/var/lib/mesos --resources='mem:4000'
+```
+
+- Start YARN Resource Manager:
+
+```
+$ vagrant ssh mesos-m1
+[vagrant@mesos-m1 ~]$ su - yarn (vagrant password)
+[yarn@mesos-m1 ~]$ cd /opt/hadoop
+[yarn@mesos-m1 ~]$ sbin/yarn-daemon.sh --config /opt/hadoop/etc/hadoop/ start resourcemanager && tail -f logs/yarn-yarn-resourcemanager-mesos-m1.log
 ```
 
 # Happy Hacking
