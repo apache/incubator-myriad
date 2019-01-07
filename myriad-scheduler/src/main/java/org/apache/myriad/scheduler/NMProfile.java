@@ -27,26 +27,40 @@ public class NMProfile {
   private String name;
 
   /**
-   * Number of CPU advertised to YARN Resource Manager.
+   * Number of vcores advertised to YARN Resource Manager.
    */
-  private Long cpus;
+  private Long vcores;
 
   /**
    * Memory in MB advertised to YARN Resource Manager.
    */
   private Long memory;
 
-  public NMProfile(String name, Long cpus, Long memory) {
+  /**
+   * Number of physical CPU requested to Mesos.
+   */
+  private Double cpus;
+
+  public NMProfile(String name, Long vcores, Long memory, double vcoreRatio) {
     this.name = name;
-    this.cpus = cpus;
+    this.vcores = vcores;
     this.memory = memory;
+    this.cpus = vcores * vcoreRatio;
+  }
+
+  public NMProfile(String name, Long vcores, Long memory) {
+    this(name, vcores, memory, 1);
   }
 
   public String getName() {
     return name;
   }
 
-  public Long getCpus() {
+  public Long getVcores() {
+    return vcores;
+  }
+
+  public Double getCpus() {
     return cpus;
   }
 
@@ -64,6 +78,7 @@ public class NMProfile {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
+    result = prime * result + ((vcores == null) ? 0 : vcores.hashCode());
     result = prime * result + ((cpus == null) ? 0 : cpus.hashCode());
     result = prime * result + ((memory == null) ? 0 : memory.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
@@ -82,6 +97,13 @@ public class NMProfile {
       return false;
     }
     NMProfile other = (NMProfile) obj;
+    if (vcores == null) {
+      if (other.vcores != null) {
+        return false;
+      }
+    } else if (!vcores.equals(other.vcores)) {
+      return false;
+    }
     if (cpus == null) {
       if (other.cpus != null) {
         return false;

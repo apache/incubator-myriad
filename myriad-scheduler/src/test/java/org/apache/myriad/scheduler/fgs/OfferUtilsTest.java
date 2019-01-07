@@ -67,8 +67,17 @@ public class OfferUtilsTest {
   
   @Test
   public void testgetYarnResourcesFromMesosOffers() throws Exception {
+    OfferUtils.setVcoreRatio(1);
     org.apache.hadoop.yarn.api.records.Resource resource = OfferUtils.getYarnResourcesFromMesosOffers(offers);
     assertEquals(6.0, resource.getMemory(), 1.0);
     assertEquals(3.0, resource.getVirtualCores(), 1.0);
+  }
+
+  @Test
+  public void testgetYarnResourcesFromMesosOffersWithVcoreRatio() throws Exception {
+    OfferUtils.setVcoreRatio(0.3);
+    org.apache.hadoop.yarn.api.records.Resource resource = OfferUtils.getYarnResourcesFromMesosOffers(offers);
+    assertEquals(6.0, resource.getMemory(), 1.0);
+    assertEquals(10.0, resource.getVirtualCores(), 1.0);
   }
 }

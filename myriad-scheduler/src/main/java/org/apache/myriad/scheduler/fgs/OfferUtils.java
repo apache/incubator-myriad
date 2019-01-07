@@ -27,6 +27,23 @@ import org.apache.mesos.Protos.Offer;
  * Utility class that provides useful methods that deal with Mesos offers.
  */
 public class OfferUtils {
+  private static double vcoreRatio = 1;
+
+  /**
+   * Set the ratio that indicates physical cpu consumes per vcore
+   * @param ratio vcoreRatio to set
+   */
+  public static void setVcoreRatio(double ratio) {
+    vcoreRatio = ratio;
+  }
+
+  /**
+   * Get the ratio that indicates physical cpu consumes per vcore
+   * @return vcoreRatio
+   */
+  public static double getVcoreRatio() {
+    return vcoreRatio;
+  }
 
   /**
    * Transforms a collection of mesos offers into {@link Resource}.
@@ -41,7 +58,7 @@ public class OfferUtils {
     for (Protos.Offer offer : offers) {
       for (Protos.Resource resource : offer.getResourcesList()) {
         if (resource.getName().equalsIgnoreCase("cpus")) {
-          cpus += resource.getScalar().getValue();
+          cpus += resource.getScalar().getValue() / vcoreRatio;
         } else if (resource.getName().equalsIgnoreCase("mem")) {
           mem += resource.getScalar().getValue();
         }
