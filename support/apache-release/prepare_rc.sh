@@ -28,7 +28,7 @@ VERSION=${1}
 RC=${2}
 
 TAG="myriad-${VERSION}-incubating-rc${RC}"
-GIT_URL="https://git-wip-us.apache.org/repos/asf/incubator-myriad.git"
+GIT_URL=" https://github.com/apache/incubator-myriad.git"
 WORK_DIR="."
 
 echo "Preparing a release candidate ${TAG}.."
