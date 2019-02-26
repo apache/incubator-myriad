@@ -64,7 +64,7 @@ rm -rf ${TAG}/myriad-scheduler/src/main/resources/banner.txt
 
 # Create a tar ball that excludes VCS files
 TARBALL=${TAG}.tar.gz
-tar -czf ${TARBALL} ${TAG} --exclude-vcs || \
+tar czf ${TARBALL} --exclude-vcs ${TAG} || \
   { echo "Failed to create a tarball of ${TAG}"; exit 1; }
 
 # Sign the tarball.
