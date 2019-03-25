@@ -43,7 +43,7 @@ RC=${2}
 
 RC_TAG="myriad-${VERSION}-incubating-rc${RC}"
 RELEASE_TAG="myriad-${VERSION}-incubating"
-GIT_URL="https://git-wip-us.apache.org/repos/asf/incubator-myriad.git"
+GIT_URL="https://gitbox.apache.org/repos/asf/incubator-myriad.git"
 WORK_DIR="."
 
 echo "Preparing a release ${RELEASE_TAG}.."
@@ -87,7 +87,6 @@ mkdir ${SVN_RELEASE_LOCAL}/${RELEASE_TAG}
 echo "Copying release artifacts under ${SVN_DEV_LOCAL}/${RC_TAG} to ${SVN_RELEASE_LOCAL}/${RELEASE_TAG}..."
 cp ${SVN_DEV_LOCAL}/${RC_TAG}/${RC_TAG}.tar.gz ${SVN_RELEASE_LOCAL}/${RELEASE_TAG}/${RELEASE_TAG}.tar.gz
 cp ${SVN_DEV_LOCAL}/${RC_TAG}/${RC_TAG}.tar.gz.asc ${SVN_RELEASE_LOCAL}/${RELEASE_TAG}/${RELEASE_TAG}.tar.gz.asc
-cp ${SVN_DEV_LOCAL}/${RC_TAG}/${RC_TAG}.tar.gz.md5 ${SVN_RELEASE_LOCAL}/${RELEASE_TAG}/${RELEASE_TAG}.tar.gz.md5
 cp ${SVN_DEV_LOCAL}/${RC_TAG}/${RC_TAG}.tar.gz.sha512 ${SVN_RELEASE_LOCAL}/${RELEASE_TAG}/${RELEASE_TAG}.tar.gz.sha512
 
 pushd ${SVN_RELEASE_LOCAL}
