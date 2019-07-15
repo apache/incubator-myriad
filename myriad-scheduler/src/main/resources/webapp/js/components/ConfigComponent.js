@@ -17,39 +17,38 @@
  * under the License.
  */
 
-var React = require('react');
-var ProfileComponent = require('../components/ProfileComponent');
-var RawJSONComponent = require('../components/RawJSONComponent');
+import React from 'react';
 
-var ConfigComponent = React.createClass({
-  displayName: "ConfigComponent",
+import ProfileComponent from "./ProfileComponent";
+import RawJSONComponent from "./RawJSONComponent";
 
-  render: function () {
+class ConfigComponent extends React.Component {
+
+  render() {
 
     // get all the profile names from the config
     var profileNames = [];
-    for(var key in this.props.config.profiles) {
+    for (var key in this.props.config.profiles) {
       if (this.props.config.profiles.hasOwnProperty(key)) {
         profileNames.push(key);
       }
     }
 
     var html = [];
-    for( var ii=0; ii<profileNames.length; ii++) {
+    for (var ii=0; ii<profileNames.length; ii++) {
       var name = profileNames[ii];
-      html.push( <ProfileComponent key={name} name={name} profile={this.props.config.profiles[name]} /> );
-      html.push( <hr key={'hr_'+name} />);
+      html.push(<ProfileComponent key={name} name={name} profile={this.props.config.profiles[name]}/>);
+      html.push(<hr key={'hr_'+name} />);
     }
 
-
     return(
-      <div>
-        {html}
-        <h3>Raw Json</h3>
-        <RawJSONComponent json={this.props.config} />
-      </div>
-   )}
+        <div>
+          {html}
+          <h3>Raw Json</h3>
+          <RawJSONComponent json={this.props.config}/>
+        </div>
+    )}
 
-});
+}
 
-module.exports = ConfigComponent;
+export default ConfigComponent;

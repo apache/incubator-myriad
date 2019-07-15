@@ -17,32 +17,23 @@
  * under the License.
  */
 
-var React = require("react");
-var Myriad = require('./components/Myriad')
-var FlexComponent = require('./components/FlexComponent')
-var TasksComponent = require('./components/TasksComponent')
-var ConfigComponent = require('./components/ConfigComponent')
-var AboutComponent = require('./components/AboutComponent')
-var HelpComponent = require('./components/HelpComponent')
-var ShutdownFrameworkComponent = require('./components/ShutdownFrameworkComponent')
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-var Router = require('react-router')
-  , RouteHandler= Router.RouteHandler
-  , Route = Router.Route
-  , Redirect = Router.Redirect;
+import {HashRouter, Route} from 'react-router-dom';
 
-var routes = (
-  <Route name="myriad" path="/" handler={Myriad} >
-    <Route name="frameworkDown" path="frameworkDown" handler={ShutdownFrameworkComponent} />
-    <Route name="flex" path="flex" handler={FlexComponent} />
-    <Route name="tasks" path="tasks" handler={TasksComponent} />
-    <Route name="help" path="help" handler={HelpComponent} />
-    <Route name="config" path="config" handler={ConfigComponent} />
-    <Route name="about" path="/" handler={AboutComponent} />
-    <Redirect from="myriad" to="about" />
-  </Route>
-);
+import Myriad from './components/Myriad.js'
 
-Router.run(routes, function (Handler) {
-  React.render(<Handler/>, document.getElementById("myriad"));
-});
+function App() {
+    return (
+        <main>
+            <Route path='/' component={Myriad}/>
+        </main>
+    );
+}
+
+ReactDOM.render((
+    <HashRouter>
+        <App />
+    </HashRouter>
+), document.getElementById('myriad'));

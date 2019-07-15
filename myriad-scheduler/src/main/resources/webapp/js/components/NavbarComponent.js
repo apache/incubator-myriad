@@ -17,57 +17,57 @@
  * under the License.
  */
 
-var React = require('react');
+import React from 'react';
 
-var ReactBootstrap = require('react-bootstrap')
-  , Nav = ReactBootstrap.Nav
-  , Navbar = ReactBootstrap.Navbar
-  , DropdownButton = ReactBootstrap.DropdownButton
-  , MenuItem = ReactBootstrap.MenuItem
-  , Label = ReactBootstrap.Label;
+import {Navbar, Nav, NavItem, NavDropdown, MenuItem} from 'react-bootstrap';
+import {Link} from "react-router-dom";
 
-var ReactRouterBootstrap = require('react-router-bootstrap')
-  , NavItemLink = ReactRouterBootstrap.NavItemLink
-  , ButtonLink = ReactRouterBootstrap.ButtonLink;
+class NavbarComponent extends React.Component {
+    render() {
+        return (
+            <Navbar fixedTop inverse>
 
+                <Navbar.Header>
+                    <Navbar.Brand>
+                        <a className="navbar-brand" href="#">
+                            <img alt="Myriad Logo" src="/img/navbar_logo.png"/>
+                        </a>
+                    </Navbar.Brand>
+                    <Navbar.Toggle />
+                </Navbar.Header>
 
-var NavbarComponent = React.createClass({
-  name: "NavbarComponent",
+                <Nav>
+                    <NavDropdown id="dropdownMyriad" title="Myriad">
+                        <MenuItem>
+                            <Link to="frameworkDown">Shutdown Framework</Link>
+                        </MenuItem>
+                    </NavDropdown>
 
-  render: function () {
-    return(
-    <Navbar fixedTop inverse>
-      <Nav>
-      <a className="navbar-brand" href="#">
-          <img src="/img/navbar_logo.png"></img>
-      </a>
-      </Nav>
-      <Nav bsStyle='tabs'   >
-      		<DropdownButton  title='Myriad' naveItem={true} >
-      			<NavItemLink  to="frameworkDown">Shutdown Framework</NavItemLink>
- 	   		</DropdownButton>
- 	  </Nav>
-      <Nav>
-        <NavItemLink to="flex">Flex</NavItemLink>
-        <NavItemLink to="tasks">Tasks</NavItemLink>
-      </Nav>
-      <Nav bsStyle='tabs'   >
-      	<DropdownButton  title='Help' naveItem={true} >
-      		<NavItemLink  to="help">Menu Options</NavItemLink>
-      		<NavItemLink  to="about">About Myriad</NavItemLink>
-      	</DropdownButton>
-      </Nav>
+                    <NavItem>
+                        <Link to="flex">Flex</Link>
+                    </NavItem>
+                    <NavItem>
+                        <Link to="tasks">Tasks</Link>
+                    </NavItem>
 
-      <Nav right>
-        <NavItemLink to="config">Config</NavItemLink>
-        <span className="navbar-text">
-          <Label bsStyle="default">{this.props.master}</Label>
-        </span>
-      </Nav>
+                    <NavDropdown id="dropdownHelp" title="Help">
+                        <MenuItem>
+                            <Link  to="help">Menu Options</Link>
+                        </MenuItem>
+                        <MenuItem>
+                            <Link  to="about">About Myriad</Link>
+                        </MenuItem>
+                    </NavDropdown>
+                </Nav>
 
-    </Navbar>
-   )}
+                <Nav pullRight>
+                    <NavItem>
+                        <Link to="config">Config</Link>
+                    </NavItem>
+                    <Navbar.Text>{this.props.master}</Navbar.Text>
+                </Nav>
+            </Navbar>
+        );
+    }}
 
-});
-
-module.exports = NavbarComponent;
+export default NavbarComponent;

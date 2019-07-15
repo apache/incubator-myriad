@@ -16,9 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
- plugins {
-     id "com.moowork.gulp" version "0.11"
- }
+plugins {
+    id "com.github.node-gradle.gulp" version "1.3.0"
+}
 
 dependencies {
     compile project(':myriad-commons')
@@ -84,7 +84,7 @@ sourceSets {
 
 node {
     // Version of node to use.
-    version = '4.2.1'
+    version = '12.5.0'
 
     // Base URL for fetching node distributions (change if you have a mirror).
     distBaseUrl = 'https://nodejs.org/dist'
@@ -107,9 +107,9 @@ gulp {
     // Whether output from Gulp should be buffered - useful when running tasks in parallel
     bufferOutput = false
 
-  // makes sure on each build that gulp is installed
+    // makes sure on each build that gulp is installed
     gulp_build.dependsOn 'installGulp'
 
-  // processes your package.json before running gulp build
+    // processes your package.json before running gulp build
     gulp_build.dependsOn 'npmInstall'
 }

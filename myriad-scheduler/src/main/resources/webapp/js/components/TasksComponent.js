@@ -17,21 +17,21 @@
  * under the License.
  */
 
-var React = require('react');
-var TaskListComponent = require('../components/TaskListComponent');
-var changeCase = require('change-case');
+import React from 'react';
 
-var TasksComponent = React.createClass({
-  displayName: "TasksComponent",
+import TaskListComponent from "./TaskListComponent";
 
-  _prettyName: function( name ) {
+import changeCase from 'change-case';
+
+class TasksComponent extends React.Component {
+
+  _prettyName(name) {
     name = changeCase.sentenceCase(name);
     name = changeCase.titleCase(name);
     return name;
-  },
+  }
 
-  render: function () {
-
+  render() {
     var taskTypes = [];
     var keys = [];
     // gather the keys, so task lists can be sorted
@@ -42,15 +42,13 @@ var TasksComponent = React.createClass({
     }
     keys.sort();
     for (var ii=0; ii<keys.length; ii++) {
-       var key = keys[ii];
-       taskTypes.push( <TaskListComponent key={key} name={this._prettyName(key)} taskNames={this.props.tasks[key]} /> );
-       taskTypes.push( <hr key={'hr_'+key} /> );
+      var key = keys[ii];
+      taskTypes.push( <TaskListComponent key={key} name={this._prettyName(key)} taskNames={this.props.tasks[key]} /> );
+      taskTypes.push( <hr key={'hr_'+key} /> );
     }
-
     return (<div>{taskTypes}</div>);
+  }
 
-   }
+}
 
-});
-
-module.exports = TasksComponent;
+export default TasksComponent;
