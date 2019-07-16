@@ -17,25 +17,22 @@
  * under the License.
  */
 
-var React = require('react');
-var FlexUpComponent = require('../components/FlexUpComponent');
-var FlexDownComponent = require('../components/FlexDownComponent');
+import React from 'react';
 
-var FlexComponent = React.createClass({
-  displayName: "FlexComponent",
+import FlexUpComponent from '../components/FlexUpComponent.js';
+import FlexDownComponent from '../components/FlexDownComponent.js';
 
-  render: function () {
-    return(
-      <div>
-        <h3>Flex Up</h3>
-        <FlexUpComponent profiles={this.props.config.profiles} />
-        <hr />
-        <h3>Flex Down</h3>
-        <FlexDownComponent profiles={this.props.config.profiles} />
-      </div>
+class FlexComponent extends React.Component {
+    render() {
+        return(
+            <div>
+                <h3>Flex Up</h3>
+                <FlexUpComponent profiles={this.props.config.profiles} />
+                <hr />
+                <h3>Flex Down</h3>
+                <FlexDownComponent profiles={this.props.config.profiles} />
+            </div>
+        )}
+}
 
-   )}
-
-});
-
-module.exports = FlexComponent;
+export default FlexComponent;

@@ -17,12 +17,11 @@
  * under the License.
  */
 
-var React = require('react');
+import React from 'react';
 
-var TaskListComponent = React.createClass({
-  displayName: "TaskListComponent",
+class TaskListComponent extends React.Component {
 
-  render: function () {
+  render() {
 
     var html = [];
     html.push( <h3 key={this.props.name}>{this.props.name}</h3> );
@@ -31,8 +30,8 @@ var TaskListComponent = React.createClass({
     }
 
     return (<ul>{html}</ul>);
-   }
+  }
 
-});
+}
 
-module.exports = TaskListComponent;
+export default TaskListComponent;

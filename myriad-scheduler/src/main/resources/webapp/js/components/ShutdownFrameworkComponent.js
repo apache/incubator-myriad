@@ -17,85 +17,74 @@
  * under the License.
  */
 
-var React = require('react');
-var ReactBootstrap = require('react-bootstrap')
-  , Button = ReactBootstrap.Button
-  , Modal = ReactBootstrap.Modal;
+import React from 'react';
 
-var OverlayMixin = ReactBootstrap.OverlayMixin;
-var Navigation = require('react-router').Navigation;
+import {Button, Modal} from 'react-bootstrap';
+
 var request = require('superagent');
 
-var XModal = React.createClass({
-  	mixins: [OverlayMixin],
+class ShutdownFrameworkComponent extends React.Component {
 
-  	getInitialState: function () {
-    		return {
-      			isModalOpen: false
-    		};
-  	},
+	constructor(props, context) {
+		super(props, context);
 
-  	handleToggle: function () {
-		// For whatever reason this toggle does not work as claimed on line....so cheat.
-		if (!this.state.isModalOpen)
-    	    		document.getElementById('shutdownModal').style.visibility = "hidden";
-        	this.setState({
-            		isModalOpen: !this.state.isModalOpen
-        	});
-  	},
-  	render: function () {
-    		return ( <Modal {...this.props} bsStyle='primary'   id="shutdownModal" title='Shutdown Myriad Framework ?' animation={false}  					onRequestHide={this.handleToggle}>
-	 			<div className='modal-body' >
+		this.state = {
+			isModalOpen: true
+		};
+	}
+
+	handleToggle() {
+		this.setState({
+			isModalOpen: !this.state.isModalOpen
+		});
+	}
+
+	render() {
+		return (
+			<Modal {...this.props} show={this.state.isModalOpen} bsStyle='primary' id="shutdownModal" title='Shutdown Myriad Framework ?'
+				   animation={false} >
+				<div className='modal-body' >
 					<p> This will stop the driver in failover mode, which will stop the executor and tasks, but not stop the ResourceManager.</p>
 				</div>
-       				<div className='modal-footer'>
-       	    				<Button bsStyle="default" onClick={function() {
+				<div className='modal-footer'>
+					<Button bsStyle="default" onClick={function() {
 						this.handleToggle();
-						this.props.onCancel();
-						}.bind(this)}>Cancel</Button>
-	    				<Button bsStyle="success" onClick= {function(){
-                				this.handleToggle();
-						this.props.onShutdown();
-              					}.bind(this)} >Continue</Button>
-	 			</div>
-     			</Modal>);
-  	},
+						this.onCancel();
+					}.bind(this)}>Cancel</Button>
+					<Button bsStyle="success" onClick= {function(){
+						this.handleToggle();
+						this.onRequestShutdown();
+					}.bind(this)} >Continue</Button>
+				</div>
+			</Modal>
+		)
+	}
 
- 	renderOverlay: function () {
-      	   		return <span/>;
-  	}
-});
- 
-var ShutdownFrameworkComponent = React.createClass({
-	mixins: [Navigation],
+	renderOverlay() {
+		return <span/>;
+	}
 
-  	displayName: "ShutdownFrameworkComponent",
+	onCancel() {
+		this.props.history.push("tasks");
+	}
 
-  	render: function() {
-   		return (
-  			<XModal onShutdown={this.onRequestShutdown} onCancel={this.onCancel}/>
-    		);
-  	},
- 	onCancel: function() {
-        	this.transitionTo("tasks");
-	},
-  	onRequestShutdown: function() {
-    		console.log( "shutting down Myriad .... ");
-    		request.post('/api/framework/shutdown/framework')
-    			.set('Content-Type', 'application/json')
-    			.end(function(err, res){
-           			console.log("Result from /api/framework/shutdown/framework");
-           			console.log(res);
-		   		if (!err) {
-		     			console.log("Shutdown Myraid framework successful!");
-		   		} else {
-		     			console.log('Shutdown Myraid framework failed: ' + res.text);
-           		}
-         }.bind(this));
+	onRequestShutdown() {
+		console.log("shutting down Myriad .... ");
+		request.post('/api/framework/shutdown/framework')
+			.set('Content-Type', 'application/json')
+			.end(function(err, res){
+				console.log("Result from /api/framework/shutdown/framework");
+				console.log(res);
+				if (!err) {
+					console.log("Shutdown Myriad framework successful!");
+				} else {
+					console.log('Shutdown Myriad framework failed: ' + res.text);
+				}
+			}.bind(this));
 
-        this.transitionTo("tasks");
-      },
+		this.props.history.push("tasks");
+	}
 
-});
+}
 
-module.exports = ShutdownFrameworkComponent;
+export default ShutdownFrameworkComponent;

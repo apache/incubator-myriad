@@ -17,21 +17,17 @@
  * under the License.
  */
 
-var React = require('react');
-
+import React from 'react';
 
 // Renders a json object in a pre
 
-var RawJSONComponent = React.createClass({
-  displayName: "RawJSONComponent",
+class RawJSONComponent extends React.Component {
 
-  render: function () {
+    render() {
+        return(
+            <pre>{JSON.stringify(this.props.json, null, '  ')}</pre>
+        )}
 
+}
 
-    return(
-      <pre>{JSON.stringify(this.props.json, null, '  ')}</pre>
-   )}
-
-});
-
-module.exports = RawJSONComponent;
+export default RawJSONComponent;

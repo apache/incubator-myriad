@@ -17,24 +17,20 @@
  * under the License.
  */
 
-var React = require('react');
+import React from 'react';
 
-var ProfileComponent = React.createClass({
-  displayName: "ProfileComponent",
+class ProfileComponent extends React.Component {
+    render() {
+        return(
+            <div>
+                <h3>Profile: {this.props.name}</h3>
+                <div className="well">
+                    <h5>CPU: {this.props.profile.cpu}</h5>
+                    <h5>MEM: {this.props.profile.mem}</h5>
+                </div>
+            </div>
+        )}
 
-  render: function () {
+}
 
-    return(
-      <div>
-        <h3>Profile: {this.props.name}</h3>
-        <div className="well">
-          <h5>CPU: {this.props.profile.cpu}</h5>
-          <h5>MEM: {this.props.profile.mem}</h5>
-        </div>
-      </div>
-   )}
-
-
-  });
-
-module.exports = ProfileComponent;
+export default ProfileComponent;
