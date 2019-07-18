@@ -4,7 +4,7 @@
 
 ### Requirements
  - Linux/Unix/Mac OS X 
- - JDK 7
+ - JDK 7+
  - [gradle](http://gradle.org) 
  	- **Gradle installation is required to build Myriad from a source release download**
  	- If building Myriad from the project's git clone, gradle installation is *not required* 
@@ -16,7 +16,7 @@
 Myriad's source release tarball does not include gradle wrapper script. So you'll need to:
 
 - Install gradle:
-	- Please follow the instructions on [gradle's website](http://gradle.org) to install gradle. We tested Myriad with gradle 2.9.
+	- Please follow the instructions on [gradle's website](http://gradle.org) to install gradle. We tested Myriad with gradle 5.5.
 - Generate the gradle wrapper script:
 	- Once gradle is installed, execute ```gradle wrapper``` command from the $PROJECT_ROOT of the Myriad project. This generates a ```$PROJECT_ROOT/gradlew``` script, and also places a supporting jar at ```$PROJECT_ROOT/gradle/wrapper/gradle-wrapper.jar```.
 

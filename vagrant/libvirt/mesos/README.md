@@ -197,7 +197,7 @@ with Hadoop.
 ```
 [hdfs@mesos-m1 hadoop]$ cd /opt/hadoop
 [hdfs@mesos-m1 hadoop]$ sbin/stop-dfs.sh
-[hdfs@mesos-m1 hadoop]$ sbin/stop-dfs.sh
+[hdfs@mesos-m1 hadoop]$ sbin/start-dfs.sh
 ```
 
 

@@ -37,6 +37,7 @@ $ newgrp -
 dnf -y install qemu libvirt libvirt-devel ruby-devel gcc
 dnf -y install libxslt-devel libxml2-devel libvirt-devel 
 dnf -y install libguestfs-tools-c ruby-devel gcc
+dnf -y install python2-yaml python2-paramiko
 ``` 
 
 Testing Vagrant-libvirt:
