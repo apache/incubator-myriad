@@ -21,7 +21,7 @@
   type: build
   box: centos/7
   ip: 100.0.10.100
-  mem: 4096
+  mem: 6096
   cpu: 2
 - name: mesos-m1
   type: master
