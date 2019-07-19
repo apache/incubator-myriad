@@ -69,7 +69,7 @@ subprojects {
     version = "0.2.0"
 
     ext {
-        mesosVer = "1.5.0:shaded-protobuf"
+        mesosVer = "1.8.0:shaded-protobuf"
         //Allows passing -PhadoopVer=2.6.0 from command line
         if(!project.hasProperty('hadoopVer')) {
             hadoopVer = "2.7.0"
