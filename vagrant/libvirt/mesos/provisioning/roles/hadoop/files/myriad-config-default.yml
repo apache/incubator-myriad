@@ -57,7 +57,7 @@ nodemanager:
 executor:
   jvmMaxMemoryMB: 256
   #path: file:///usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
-  path: file:///opt/hadoop/share/hadoop/yarn/lib/myriad-executor-0.2.0.jar
+  path: file:///opt/hadoop/share/hadoop/yarn/lib/myriad-executor-0.3.0.jar
   #The following should be used for a remotely distributed URI, hdfs assumed but other URI types valid.
   #nodeManagerUri: hdfs://namenode:port/dist/hadoop-2.7.0.tar.gz
   #configUri: http://127.0.0.1/api/arifacts/config.tgz

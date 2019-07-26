@@ -70,14 +70,14 @@ The Myriad Schedule and Executer jar files and all the runtime dependences as we
 * The Myriad Executor jar file are located at:
 
 ```
-/vagrant/myriad-scheduler/build/libs/myriad-executor-0.1.0.jar
+/vagrant/myriad-scheduler/build/libs/myriad-executor-<version>.jar
 ```
 
 For example, the files are copied to the following locations:
 
 ```
 cp /vagrant/myriad-scheduler/build/libs/* $YARN_HOME/share/hadoop/yarn/lib/
-cp /vagrant/myriad-executor/build/libs/myriad-executor-0.1.0.jar $YARN_HOME/share/hadoop/yarn/lib/
+cp /vagrant/myriad-executor/build/libs/myriad-executor-<version>.jar $YARN_HOME/share/hadoop/yarn/lib/
 cp /vagrant/myriad-scheduler/src/main/resources/myriad-config-default.yml $YARN_HOME/etc/hadoop/
 ```
 
@@ -120,7 +120,7 @@ nodemanager:
   cgroups: false
 executor:
   jvmMaxMemoryMB: 256
-  path: file://localhost/usr/local/libexec/mesos/myriad-executor-runnable-0.1.0.jar
+  path: file://localhost/usr/local/libexec/mesos/myriad-executor-runnable-<version>.jar
 ```
 
 
