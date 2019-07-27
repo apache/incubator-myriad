@@ -219,7 +219,7 @@ cd /opt
 cp -vf myriad/myriad-scheduler/build/libs/* hadoop/share/hadoop/yarn/lib/
 
 #  Copy the Myriad Executor
-cp -vf myriad/myriad-executor/build/libs/myriad-executor-0.2.0.jar hadoop/share/hadoop/yarn/lib/
+cp -vf myriad/myriad-executor/build/libs/myriad-executor-<version>.jar hadoop/share/hadoop/yarn/lib/
 
 # Hadoop 2.7.x:
 $ su - yarn

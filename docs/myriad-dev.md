@@ -58,18 +58,18 @@ To build only the Executor, from $PROJECT_HOME, run:
 To deploy Myriad Scheduler and Executor Binaries:
 
 1. Copy the Myriad Scheduler jar and it's dependencies from the $PROJECT_HOME/myriad-scheduler/build/libs/ directory to the $YARN_HOME/share/hadoop/yarn/lib/ directory on all nodes in your cluster.
-2. Copy the Myriad Executor myriad-executor-xxx.jar file from the $PROJECT_HOME/myriad-executor/build/libs/ directory to each mesos slave's $YARN_HOME/share/hadoop/yarn/lib/ directory.
+2. Copy the Myriad Executor myriad-executor-<version>.jar file from the $PROJECT_HOME/myriad-executor/build/libs/ directory to each mesos slave's $YARN_HOME/share/hadoop/yarn/lib/ directory.
 3. Copy the myriad-config-default.yml file from $PROJECT_HOME/myriad-scheduler/build/src/main/resources/ directory to the $YARN_HOME/etc/hadoop directory.
 
 For example:
 
 ```
 cp myriad-scheduler/build/libs/*.jar /opt/hadoop-2.7.0/share/hadoop/yarn/lib/
-cp myriad-executor/build/libs/myriad-executor-0.1.0.jar /opt/hadoop-2.7.0/share/hadoop/yarn/lib/
+cp myriad-executor/build/libs/myriad-executor-<version>.jar /opt/hadoop-2.7.0/share/hadoop/yarn/lib/
 cp myriad-scheduler/build/resources/main/myriad-config-default.yml /opt/hadoop-2.7.0/etc/hadoop/
 ```
 
-**NOTE:** For advanced users, you can also copy myriad-executor-xxx.jar to any other directory on a slave filesystem or it can be copied to HDFS as well. In either case, you need to update the executor's path property in the myriad-config-default.yml file and prepend the path with either file:// or hdfs://, as appropriate.
+**NOTE:** For advanced users, you can also copy myriad-executor-<version>.jar to any other directory on a slave filesystem or it can be copied to HDFS as well. In either case, you need to update the executor's path property in the myriad-config-default.yml file and prepend the path with either file:// or hdfs://, as appropriate.
 
 
 ## Step 3: Configure the Myriad Defaults
