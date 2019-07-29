@@ -94,7 +94,7 @@ node {
     download = true
 
     // Set the work directory where node_modules should be located
-    nodeModulesDir = file("${project.projectDir}/src/main/resources/webapp")
+    nodeModulesDir = file("${project.projectDir}")
 }
 
 gulp {
