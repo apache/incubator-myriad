@@ -20,7 +20,7 @@ The Mesos Slave and YARN’s Node Manager are processes that run on the host OS.
 /sys/fs/cgroup/cpu/mesos/node-manager-task-id/container-1
 ```
 
-The following diagram showsa node running YARN NodeManager as a Mesos Slave task:
+The following diagram shows a node running YARN NodeManager as a Mesos Slave task:
 
 ![Node](images/node.png)
 
