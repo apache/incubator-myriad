@@ -1,4 +1,4 @@
-Release Notes - Myriad - Version 0.4.0 (WIP)
+Release Notes - Myriad - Version 0.4.0
 -------------------------------------------
 This release contains the following highlights:
 
@@ -13,6 +13,8 @@ This release contains the following highlights:
   * [MYRIAD-300] Update documentation and readmes with latest version
   * [MYRIAD-301] Make links relative in index.html
   * [MYRIAD-302] Renaming artifacts with correct version
+  * [MYRIAD-304] Removed configuration files (checkstyle and findbugs) from subprojects
+  * [MYRIAD-308] Md5 removed from prepare_rc script (insecure)
 
 ---
 <sub>
