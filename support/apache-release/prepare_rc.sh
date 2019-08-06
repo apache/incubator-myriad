@@ -72,11 +72,6 @@ echo "Signing the distribution ..."
 gpg --armor --output ${TARBALL}.asc --detach-sig ${TARBALL} || \
   { echo "Failed to sign the tarball ${TARBALL}"; exit 1; }
 
-# Create MD5 checksum.
-echo "Creating a MD5 checksum..."
-gpg --print-md MD5 ${TARBALL} > ${TARBALL}.md5 || \
-  { echo "Failed to create MD5 checksum for tarball ${TARBALL}"; exit 1; }
-
 # Create SHA512 checksum.
 echo "Creating a SHA512 checksum..."
 gpg --print-md SHA512 ${TARBALL} > ${TARBALL}.sha512 || \
@@ -94,7 +89,7 @@ svn co --depth=empty ${SVN_DEV_REPO} ${SVN_DEV_LOCAL} || \
 
 RELEASE_DIRECTORY="${SVN_DEV_LOCAL}/${TAG}"
 mkdir ${RELEASE_DIRECTORY}
-mv ${TARBALL} ${TARBALL}.asc ${TARBALL}.md5 ${TARBALL}.sha512 ${RELEASE_DIRECTORY}
+mv ${TARBALL} ${TARBALL}.asc ${TARBALL}.sha512 ${RELEASE_DIRECTORY}
 echo "Release artifacts moved into ${RELEASE_DIRECTORY}"
 
 pushd ${SVN_DEV_LOCAL}
@@ -109,11 +104,10 @@ while true; do
 done
 
 echo "Uploading the artifacts (the distribution," \
-  "signature, MD5 and SHA) to ${SVN_DEV_REPO}/${TAG} ...."
+  "signature and SHA) to ${SVN_DEV_REPO}/${TAG} ...."
 
 svn add ${TAG}
 svn commit -m "Adding ${TAG}."
 popd # ${SVN_DEV_LOCAL}
 
 echo "All good!"
-
