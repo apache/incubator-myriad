@@ -94,6 +94,7 @@ public class MyriadConfiguration {
    */
   public static final Boolean DEFAULT_HA_ENABLED = false;
 
+  public static final Boolean DEFAULT_SSL_ENABLED = false;
   /**
    * By default framework failover timeout is 1 day.
    */
@@ -158,6 +159,9 @@ public class MyriadConfiguration {
 
   @JsonProperty
   private Boolean haEnabled;
+
+  @JsonProperty
+  private Boolean isSSLEnabled;
 
   @JsonProperty
   private NodeManagerConfiguration nodemanager;
@@ -255,6 +259,9 @@ public class MyriadConfiguration {
     return Optional.fromNullable(haEnabled).or(DEFAULT_HA_ENABLED);
   }
 
+  public Boolean isSSLEnabled() {
+    return Optional.fromNullable(isSSLEnabled).or(DEFAULT_SSL_ENABLED);
+  }
   public NodeManagerConfiguration getNodeManagerConfiguration() {
     return nodemanager;
   }

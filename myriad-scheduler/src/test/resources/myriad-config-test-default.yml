@@ -20,6 +20,7 @@ servedBinaryPath: /tmp/myriadBinary
 mesosMaster: 10.0.2.15:5050
 haEnabled:  false
 checkpoint: false
+isSSLEnabled: false
 frameworkFailoverTimeout: 44200000
 frameworkName: MyriadTest
 frameworkRole: "*"

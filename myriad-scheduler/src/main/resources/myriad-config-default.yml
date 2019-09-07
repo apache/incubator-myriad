@@ -18,6 +18,7 @@
 ##
 mesosMaster: 10.0.2.15:5050
 checkpoint: false
+isSSLEnabled: false
 frameworkFailoverTimeout: 43200000
 frameworkName: MyriadAlpha
 frameworkRole: "*"
