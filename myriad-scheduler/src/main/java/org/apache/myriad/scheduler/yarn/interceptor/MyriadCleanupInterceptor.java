@@ -19,39 +19,41 @@
 package org.apache.myriad.scheduler.yarn.interceptor;
 
 import java.io.IOException;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
-import org.apache.hadoop.yarn.server.resourcemanager.scheduler.AbstractYarnScheduler;
+
+import org.apache.mesos.Protos.Status;
 import org.apache.myriad.Main;
+import org.apache.myriad.scheduler.MyriadDriverManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Responsible for initializing Myriad by invoking initialize upon the 
+ * Responsible for shutdown Myriad by invoking stopDriver upon the 
  * Myriad driver {@link org.apache.myriad.Main}
  */
-public class MyriadInitializationInterceptor extends BaseInterceptor {
-  private static final Logger LOGGER = LoggerFactory.getLogger(MyriadInitializationInterceptor.class);
+public class MyriadCleanupInterceptor extends BaseInterceptor {
+  private static final Logger LOGGER = LoggerFactory.getLogger(MyriadCleanupInterceptor.class);
 
   private final InterceptorRegistry registry;
 
-  public MyriadInitializationInterceptor(InterceptorRegistry registry) {
+  public MyriadCleanupInterceptor(InterceptorRegistry registry) {
     this.registry = registry;
   }
 
-  /**
-   * Initialize Myriad plugin before RM's scheduler is initialized.
-   * This includes registration with Mesos master, initialization of
-   * the myriad web application, initializing guice modules etc.
-   */
   @Override
-  public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException {
+  public void cleanup() throws IOException {
     try {
-      Main.initialize(conf, yarnScheduler, rmContext, registry);
+      LOGGER.info("stopping mesosDriver..");
+      Status status = Main.getInjector().getInstance(MyriadDriverManager.class)
+          .stopDriver(false);
+      if (status.getNumber() != Status.DRIVER_STOPPED_VALUE) {
+        throw new IllegalStateException("Error occurred while stopping MyriadDirver: "
+            + "Unexpected driver status: " + status.name());
+      }
+      LOGGER.info("stopped mesosDriver..");
     } catch (Exception e) {
-      // Abort bringing up RM
-      throw new IOException("Failed to initialize myriad", e);
+      // Abort shutdown RM
+      throw new IOException("Failed to stop myriad", e);
     }
-    LOGGER.info("Initialized myriad.");
+    LOGGER.info("Stopped myriad.");
   }
 }

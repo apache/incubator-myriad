@@ -54,6 +54,7 @@ public class CompositeInterceptor implements YarnSchedulerInterceptor, Intercept
 
   private Map<Class<?>, YarnSchedulerInterceptor> interceptors = Maps.newLinkedHashMap();
   private YarnSchedulerInterceptor myriadInitInterceptor;
+  private YarnSchedulerInterceptor myriadCleanupInterceptor;
 
   /**
    * Called by Myriad{Fair,Capacity,Fifo}Scheduler classes. Creates an instance of
@@ -61,6 +62,7 @@ public class CompositeInterceptor implements YarnSchedulerInterceptor, Intercept
    */
   public CompositeInterceptor() {
     this.myriadInitInterceptor = new MyriadInitializationInterceptor(this);
+    this.myriadCleanupInterceptor = new MyriadCleanupInterceptor(this);
   }
 
   @VisibleForTesting
@@ -126,6 +128,11 @@ public class CompositeInterceptor implements YarnSchedulerInterceptor, Intercept
   @Override
   public void init(Configuration conf, AbstractYarnScheduler yarnScheduler, RMContext rmContext) throws IOException {
     myriadInitInterceptor.init(conf, yarnScheduler, rmContext);
+  }
+
+  @Override
+  public void cleanup() throws IOException {
+    myriadCleanupInterceptor.cleanup();    
   }
 
   @Override

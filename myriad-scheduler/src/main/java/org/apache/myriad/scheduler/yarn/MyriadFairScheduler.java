@@ -97,6 +97,12 @@ public class MyriadFairScheduler extends FairScheduler {
   }
 
   @Override
+  public synchronized void serviceStop() throws Exception {
+    this.yarnSchedulerInterceptor.cleanup();
+    super.serviceStop();
+  }
+
+  @Override
   public synchronized void handle(SchedulerEvent event) {
     this.yarnSchedulerInterceptor.beforeSchedulerEventHandled(event);
     super.handle(event);
