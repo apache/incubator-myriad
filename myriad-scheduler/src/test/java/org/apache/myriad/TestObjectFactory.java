@@ -268,7 +268,7 @@ public class TestObjectFactory {
     Server server = TestObjectFactory.getJettyServer();
     HttpConnectorProvider provider = new HttpConnectorProvider(cfg);
     Connector connector = provider.get();
-    return new MyriadWebServer(server, connector, new GuiceFilter());
+    return new MyriadWebServer(server, connector, new GuiceFilter(), cfg);
   }
   
   public static MyriadFileSystemRMStateStore getStateStore(Configuration conf, String baseDir) throws Exception {

@@ -83,9 +83,11 @@ public class Main {
                                 InterceptorRegistry registry) throws Exception {
     MyriadModule myriadModule = new MyriadModule("myriad-config-default.yml", hadoopConf, yarnScheduler, rmContext, registry);
     MesosModule mesosModule = new MesosModule();
-    injector = Guice.createInjector(myriadModule, mesosModule, new WebAppGuiceModule());
+    Injector parentInjector = Guice.createInjector(myriadModule, mesosModule);
+    final MyriadConfiguration cfg = parentInjector.getInstance(MyriadConfiguration.class);
+    injector = parentInjector.createChildInjector(new WebAppGuiceModule(cfg));
 
-    new Main().run(injector.getInstance(MyriadConfiguration.class));
+    new Main().run(cfg);
   }
 
   // TODO (Kannan Rajah) Hack to get injector in unit test.
