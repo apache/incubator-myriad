@@ -77,7 +77,7 @@ public abstract class ExecutorCommandLineGenerator {
       //config file to yarnConfiguration, It's an xml file with the parameters of yarn-site.xml, core-site.xml and hdfs.xml.
       if (!myriadExecutorConfiguration.getConfigUri().isPresent()) {
         appendSudo(cmdLine);
-        cmdLine.append(" cp yarnConfiguration ");
+        cmdLine.append(" cp conf ");
         cmdLine.append(myriadConfiguration.getYarnEnvironment().get("YARN_HOME"));
         cmdLine.append("/etc/hadoop/yarn-site.xml && ");
       }
@@ -111,13 +111,13 @@ public abstract class ExecutorCommandLineGenerator {
       if (StringUtils.isEmpty(address)) {
         address = yarnConfiguration.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + ":8090";
       }
-      return "https://" + address + "/yarnConfiguration";
+      return "https://" + address + "/conf";
     } else {
       address = yarnConfiguration.get(TaskFactory.YARN_RESOURCEMANAGER_WEBAPP_ADDRESS);
       if (StringUtils.isEmpty(address)) {
         address = yarnConfiguration.get(TaskFactory.YARN_RESOURCEMANAGER_HOSTNAME) + ":8088";
       }
-      return "http://" + address + "/yarnConfiguration";
+      return "http://" + address + "/conf";
     }
   }
 
